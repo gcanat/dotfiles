@@ -20,13 +20,15 @@ vim.api.nvim_exec(
     false
 )
 
--- vim.cmd [[language en_US]]
+if vim.fn.has("mac") == 1 then
+    vim.cmd [[language en_US]]
+end
 
 local use = require('packer').use
 require('packer').startup(function()
     use 'wbthomason/packer.nvim' -- Package manager
     use 'tpope/vim-fugitive' -- Git commands in nvim
-    use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
+    -- use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
     use 'b3nj5m1n/kommentary' -- "gc" to comment visual regions/lines
     use 'ludovicchabant/vim-gutentags' -- Automatic tags management
     -- UI to select things (files, grep results, open buffers...)
@@ -51,6 +53,10 @@ require('packer').startup(function()
     use 'kyazdani42/nvim-web-devicons'  -- fancy icons
     use 'kyazdani42/nvim-tree.lua'  -- file tree browser
     use 'christoomey/vim-tmux-navigator'
+    -- previewer for markdown files
+    use {'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
+    use 'plasticboy/vim-markdown'
+    use 'vim-pandoc/vim-pandoc-syntax'
 end)
 
 --Incremental live completion
@@ -128,6 +134,7 @@ require('lualine').setup{
         theme = 'onedark'
     },
     sections = {
+        lualine_b = {'branch', 'diff'},
         lualine_y = {
             {
                 'diagnostics',
@@ -290,7 +297,19 @@ nvim_lsp['r_language_server'].setup {
     capabilities = capabilities,
 }
 
--- custom server for lua language
+-- enable java language server
+local jls_root_path = vim.fn.getenv("HOME") .. "/.config/nvim/java-language-server"
+
+nvim_lsp['java_language_server'].setup{
+    cmd = {jls_root_path .. "/dist/lang_server_linux.sh"},
+    on_attach = on_attach,
+    capabilities = capabilities,
+    filetypes = { "java" }
+    -- regarding root_dir settings,
+    -- apparently having a `.git` dir in the project is enough
+}
+
+-- lua language server
 local system_name
 if vim.fn.has("mac") == 1 then
   system_name = "macOS"
@@ -653,3 +672,28 @@ require("nvim-autopairs.completion.compe").setup({
   map_cr = false, --  map <CR> on insert mode
   map_complete = true -- it will auto insert `(` after select function or method item
 })
+
+
+-- vim.markdown options
+-- disable header folding
+vim.g.vim_markdown_folding_disabled = 1
+-- do not use conceal feature, the implementation is not so good
+vim.g.vim_markdown_conceal = 0
+-- disable math tex conceal feature
+vim.g.tex_conceal = ""
+vim.g.vim_markdown_math = 1
+-- support front matter of various format
+vim.g.vim_markdown_frontmatter = 1  -- for YAML format
+vim.g.vim_markdown_toml_frontmatter = 1  -- for TOML format
+vim.g.vim_markdown_json_frontmatter = 1  -- for JSON format
+
+-- markdown pandoc standalone usage
+-- vim.api.nvim_exec(
+    -- [[
+    -- augroup pandoc_syntax
+        -- au! BufNewFile,BufFilePre,BufRead *.md set filetype=markdown.pandoc
+    -- augroup end
+    -- ]],
+    -- false
+-- )
+
