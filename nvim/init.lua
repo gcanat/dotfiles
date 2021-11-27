@@ -31,11 +31,14 @@ require('packer').startup(function()
     -- use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
     use 'b3nj5m1n/kommentary' -- "gc" to comment visual regions/lines
     use 'ludovicchabant/vim-gutentags' -- Automatic tags management
+    use 'nvim-lua/plenary.nvim'
     -- UI to select things (files, grep results, open buffers...)
     use { 'nvim-telescope/telescope.nvim', requires = { { 'nvim-lua/popup.nvim' }, { 'nvim-lua/plenary.nvim' } } }
     use 'joshdick/onedark.vim' -- Theme inspired by Atom
     -- use 'itchyny/lightline.vim' -- Fancier statusline
     use 'hoob3rt/lualine.nvim'  -- even more fancier statusline
+    -- tabline that goes along with lualine
+    use { 'kdheepak/tabline.nvim', requires = { { 'hoob3rt/lualine.nvim', opt=true }, {'kyazdani42/nvim-web-devicons', opt = true} } }
     use 'Vimjas/vim-python-pep8-indent' -- special plugin for python identation
     -- Add indentation guides even on blank lines
     use 'lukas-reineke/indent-blankline.nvim'
@@ -51,12 +54,14 @@ require('packer').startup(function()
     use 'windwp/nvim-autopairs'  -- autoclosing brackets, quotes etc.
     use 'hkupty/iron.nvim' -- repl plugin
     use 'kyazdani42/nvim-web-devicons'  -- fancy icons
-    use 'kyazdani42/nvim-tree.lua'  -- file tree browser
+    use {'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }  -- file tree browser
     use 'christoomey/vim-tmux-navigator'
     -- previewer for markdown files
     use {'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
     use 'plasticboy/vim-markdown'
     use 'vim-pandoc/vim-pandoc-syntax'
+    use 'mhartington/formatter.nvim'
+    use 'lervag/vimtex'
 end)
 
 --Incremental live completion
@@ -90,7 +95,7 @@ vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.softtabstop = 4
 vim.o.expandtab = true
-
+vim.o.textwidth=79
 -- Continue comment marker in new lines.
 vim.opt.formatoptions:append('ro')
 
@@ -107,8 +112,8 @@ vim.api.nvim_exec(
     [[
     augroup CursColLine
         autocmd!
-        au WinLeave * set nocursorline nocursorcolumn
-        au WinEnter * set cursorline cursorcolumn
+        au WinLeave * setlocal nocursorline nocursorcolumn
+        au VimEnter,WinEnter,BufWinEnter * setlocal cursorline cursorcolumn
     augroup end
     ]],
     false
@@ -155,6 +160,10 @@ require('lualine').setup{
     },
     extensions = {'nvim-tree', 'fugitive', 'quickfix'}
 }
+
+require'tabline'.setup {}
+
+
 --Remap space as leader key
 -- map('', '<Space>', '<Nop>', { noremap = true, silent = true })
 vim.g.mapleader = ','
@@ -233,7 +242,9 @@ local border = {
 }
 
 -- LSP settings
-local on_attach = function(_, bufnr)
+local on_attach = function(client, bufnr)
+    client.resolved_capabilities.document_formatting = false
+    client.resolved_capabilities.document_range_formatting = false
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
     vim.lsp.handlers["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border})
     vim.lsp.handlers["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border})
@@ -257,7 +268,7 @@ local on_attach = function(_, bufnr)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>so', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]], opts)
-    vim.cmd [[ command! Format execute 'lua vim.lsp.buf.formatting()' ]]
+    --vim.cmd [[ command! Format execute 'lua vim.lsp.buf.formatting()' ]]
 end
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -275,7 +286,7 @@ for _, lsp in ipairs(servers) do
 end ]]
 
 -- enable python language server
-nvim_lsp['pyright'].setup {
+--[[ nvim_lsp['pyright'].setup {
     on_attach = on_attach,
     capabilities = capabilities,
     settings = {
@@ -284,11 +295,16 @@ nvim_lsp['pyright'].setup {
                 autoSearchPaths = true,
                 diagnosticMode = "openFilesOnly",
                 typeCheckingMode = "off",
-                -- useLibraryCodeForTypes = true,
+                useLibraryCodeForTypes = true,
                 -- stubPath = "/home/gui/typings"
             }
         }
     }
+} ]]
+
+require'lspconfig'.jedi_language_server.setup{
+    on_attach = on_attach,
+    capabilities = capabilities
 }
 
 -- enable R language server
@@ -371,7 +387,6 @@ vim.api.nvim_exec(
         autocmd!
         autocmd BufWritePre *.js lua vim.lsp.buf.formatting_sync(nil, 100)
         autocmd BufWritePre *.jsx lua vim.lsp.buf.formatting_sync(nil, 100)
-        autocmd BufWritePre *.py lua vim.lsp.buf.formatting_sync(nil, 100)
     augroup end
     ]],
     false
@@ -636,14 +651,77 @@ map('t', '<leader><Esc>', '<C-\\><C-n>', {noremap = true, silent = true})
 
 -- allow terminal width to dynamically adjust
 -- autocmd BufLeave * if &buftype == 'terminal' | :set nowfw | endif
+--
+require'nvim-tree'.setup {
+  -- disables netrw completely
+  disable_netrw       = true,
+  -- hijack netrw window on startup
+  hijack_netrw        = true,
+  -- open the tree when running this setup function
+  open_on_setup       = false,
+  -- will not open on setup if the filetype is in this list
+  ignore_ft_on_setup  = {},
+  -- closes neovim automatically when the tree is the last **WINDOW** in the view
+  auto_close          = false,
+  -- opens the tree when changing/opening a new tab if the tree wasn't previously opened
+  open_on_tab         = false,
+  -- hijacks new directory buffers when they are opened.
+  update_to_buf_dir   = { enable = true, auto_open = true },
+  -- hijack the cursor in the tree to put it at the start of the filename
+  hijack_cursor       = false,
+  -- updates the root directory of the tree on `DirChanged` (when your run `:cd` usually) 
+  update_cwd          = false,
+  -- show lsp diagnostics in the signcolumn
+  diagnostics     = { enable = true },
+  -- update the focused file on `BufEnter`, un-collapses the folders recursively until it finds the file
+  update_focused_file = {
+    -- enables the feature
+    enable      = false,
+    -- update the root directory of the tree to the one of the folder containing the file if the file is not under the current root directory
+    -- only relevant when `update_focused_file.enable` is true
+    update_cwd  = false,
+    -- list of buffer names / filetypes that will not update the cwd if the file isn't found under the current root directory
+    -- only relevant when `update_focused_file.update_cwd` is true and `update_focused_file.enable` is true
+    ignore_list = {}
+  },
+  -- configuration options for the system open command (`s` in the tree by default)
+  system_open = {
+    -- the command to run this, leaving nil should work in most cases
+    cmd  = nil,
+    -- the command arguments as a list
+    args = {}
+  },
 
+  view = {
+    -- width of the window, can be either a number (columns) or a string in `%`
+    width = 30,
+    -- side of the tree, can be one of 'left' | 'right' | 'top' | 'bottom'
+    side = 'left',
+    -- if true the tree will resize itself after opening a file
+    auto_resize = false,
+    mappings = {
+      -- custom only false will merge the list with the default mappings
+      -- if true, it will only use your list to set the mappings
+      custom_only = false,
+      -- list of mappings to set on the tree manually
+      list = {}
+    }
+  },
 
-vim.g.vim_tree_ignore = {'.git', 'node_modules', '.cache', '.pyc', '.pyo', '__pycache__'}
+  filters = {
+	dotfiles = true,
+	custom = {
+      '.git', 'node_modules', '.cache', '.pyc', '.pyo', '__pycache__', '.ipynb_checkpoints'
+    }
+  }
+}
+
+-- vim.g.nvim_tree_ignore = {'.git', 'node_modules', '.cache', '.pyc', '.pyo', '__pycache__', '.ipynb_checkpoints'}
 vim.g.nvim_tree_indent_markers = 1
 vim.g.nvim_tree_git_hl = 1
 vim.g.nvim_tree_highlight_opened_files = 1
 vim.g.nvim_tree_add_trailing = 1 -- 0 by default, append a trailing slash to folder names
-vim.g.nvim_tree_lsp_diagnostics = 1
+-- vim.g.nvim_tree_lsp_diagnostics = 1
 vim.g.nvim_tree_special_files = {
 	['README.md'] = 1,
 	['Makefile'] = 1,
@@ -697,3 +775,27 @@ vim.g.vim_markdown_json_frontmatter = 1  -- for JSON format
     -- false
 -- )
 
+-- formatter.nvim
+require('formatter').setup({
+  filetype = {
+    python = {
+      -- Configuration for psf/black
+      function()
+        return {
+          exe = "black", -- this should be available on your $PATH
+          args = { '-' },
+          stdin = true,
+        }
+      end
+    }
+  }
+})
+
+vim.api.nvim_exec([[
+augroup FormatAutogroup
+  autocmd!
+  autocmd BufWritePost *.py,*.R FormatWrite
+augroup END
+]], true)
+
+vim.api.nvim_set_keymap('n', '<leader>f', ':Format<CR>', {})
