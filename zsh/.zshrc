@@ -104,8 +104,6 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 source /home/gui/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-alias ped='ssh -p 22 pedale@163.172.212.122'
-alias gullo='ssh ttkap@136.243.23.68 -p 15050'
 alias tfnight='source ~/.venv/tf-nightly/bin/activate'
 alias torchnight='source ~/.venv/lambda-tf/bin/activate'
 alias luamake='/home/gui/.config/nvim/lua-language-server/3rd/luamake/luamake'
