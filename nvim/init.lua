@@ -49,6 +49,8 @@ require('packer').startup(function()
     -- Additional textobjects for treesitter
     use 'nvim-treesitter/nvim-treesitter-textobjects'
     use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
+    use 'williamboman/nvim-lsp-installer' -- to easily install several language servers
+    use{'scalameta/nvim-metals', requires = { "nvim-lua/plenary.nvim" }} -- for better integration of scala lsp
     use 'hrsh7th/nvim-compe' -- Autocompletion plugin
     use 'L3MON4D3/LuaSnip' -- Snippets plugin
     use 'windwp/nvim-autopairs'  -- autoclosing brackets, quotes etc.
@@ -126,6 +128,9 @@ vim.cmd [[colorscheme onedark]]
 
 -- disable show mode in command line because it's already displayed by status line
 vim.o.showmode = false
+
+-- needed for metals
+vim.opt_global.shortmess:remove("F")
 
 --Set statusbar
 -- vim.g.lightline = {
@@ -228,20 +233,6 @@ vim.api.nvim_exec(
 map('n', 'Y', 'y$', { noremap = true })
 
 -- LSP settings
-local nvim_lsp = require 'lspconfig'
-
-local border = {
-    {"🭽", "FloatBorder"},
-    {"▔", "FloatBorder"},
-    {"🭾", "FloatBorder"},
-    {"▕", "FloatBorder"},
-    {"🭿", "FloatBorder"},
-    {"▁", "FloatBorder"},
-    {"🭼", "FloatBorder"},
-    {"▏", "FloatBorder"},
-}
-
--- LSP settings
 local on_attach = function(client, bufnr)
     client.resolved_capabilities.document_formatting = false
     client.resolved_capabilities.document_range_formatting = false
@@ -274,111 +265,62 @@ end
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
--- Enable the following language servers
--- local servers = { 'clangd', 'rust_analyzer', 'jedi_language_server', 'tsserver', 'r_language_server' }
---[[ local servers = { 'jedi_language_server', 'r_language_server' }
+local lsp_installer = require("nvim-lsp-installer")
 
-for _, lsp in ipairs(servers) do
-    nvim_lsp[lsp].setup {
-        on_attach = on_attach,
-        capabilities = capabilities,
+-- Register a handler that will be called for all installed servers.
+-- Alternatively, you may also register handlers on specific server instances instead (see example below).
+lsp_installer.on_server_ready(function(server)
+    local opts = {
+        on_attach= on_attach,
+        capabilities = capabilities 
     }
-end ]]
+    -- (optional) Customize the options passed to the server
+    -- if server.name == "tsserver" then
+    --     opts.root_dir = function() ... end
+    -- end
 
--- enable python language server
---[[ nvim_lsp['pyright'].setup {
-    on_attach = on_attach,
-    capabilities = capabilities,
-    settings = {
-        python = {
-            analysis = {
-                autoSearchPaths = true,
-                diagnosticMode = "openFilesOnly",
-                typeCheckingMode = "off",
-                useLibraryCodeForTypes = true,
-                -- stubPath = "/home/gui/typings"
-            }
-        }
-    }
-} ]]
+    -- This setup() function is exactly the same as lspconfig's setup function.
+    -- Refer to https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
+    server:setup(opts)
+end)
 
-require'lspconfig'.jedi_language_server.setup{
-    on_attach = on_attach,
-    capabilities = capabilities
+-- metals setup
+vim.cmd([[augroup lsp]])
+vim.cmd([[autocmd!]])
+vim.cmd([[autocmd FileType scala setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
+vim.cmd([[autocmd FileType scala,sbt lua require("metals").initialize_or_attach(metals_config)]])
+vim.cmd([[augroup end]])
+
+-- Need for symbol highlights to work correctly
+vim.cmd([[hi! link LspReferenceText CursorColumn]])
+vim.cmd([[hi! link LspReferenceRead CursorColumn]])
+vim.cmd([[hi! link LspReferenceWrite CursorColumn]])
+metals_config = require("metals").bare_config()
+
+-- Example of settings
+metals_config.settings = {
+  showImplicitArguments = true,
+  excludedPackages = { "akka.actor.typed.javadsl", "com.github.swagger.akka.javadsl" },
 }
 
--- enable R language server
-nvim_lsp['r_language_server'].setup {
-    on_attach = on_attach,
-    capabilities = capabilities,
-}
+-- Example of how to ovewrite a handler
+metals_config.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+  virtual_text = { prefix = "" },
+})
 
--- enable java language server
-local jls_root_path = vim.fn.getenv("HOME") .. "/.config/nvim/java-language-server"
+-- *READ THIS*
+-- I *highly* recommend setting statusBarProvider to true, however if you do,
+-- you *have* to have a setting to display this in your statusline or else
+-- you'll not see any messages from metals. There is more info in the help
+-- docs about this
+-- metals_config.init_options.statusBarProvider = "on"
 
-nvim_lsp['java_language_server'].setup{
-    cmd = {jls_root_path .. "/dist/lang_server_linux.sh"},
-    on_attach = on_attach,
-    capabilities = capabilities,
-    filetypes = { "java" }
-    -- regarding root_dir settings,
-    -- apparently having a `.git` dir in the project is enough
-}
+-- Example if you are including snippets
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem.snippetSupport = true
 
--- lua language server
-local system_name
-if vim.fn.has("mac") == 1 then
-  system_name = "macOS"
-elseif vim.fn.has("unix") == 1 then
-  system_name = "Linux"
-elseif vim.fn.has('win32') == 1 then
-  system_name = "Windows"
-else
-  print("Unsupported system for sumneko")
-end
-local sumneko_root_path = vim.fn.getenv("HOME") .. '/.config/nvim/lua-language-server' -- Change to your sumneko root installation
-local sumneko_binary = sumneko_root_path .. '/bin/' .. system_name .. '/lua-language-server'
+metals_config.capabilities = capabilities
 
--- Make runtime files discoverable to the server
-local runtime_path = vim.split(package.path, ';')
-table.insert(runtime_path, 'lua/?.lua')
-table.insert(runtime_path, 'lua/?/init.lua')
-
-nvim_lsp['sumneko_lua'].setup {
-    cmd = { sumneko_binary, '-E', sumneko_root_path .. '/main.lua' },
-    on_attach = on_attach,
-    capabilities = capabilities,
-    settings = {
-        Lua = {
-            runtime = {
-                -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
-                version = 'LuaJIT',
-                -- Setup your lua path
-                path = runtime_path,
-            },
-            diagnostics = {
-                -- Get the language server to recognize the `vim` global
-                globals = { 'vim', 'DATA_PATH' },
-                disable = {'undefined-global'},
-            },
-            workspace = {
-                -- Make the server aware of Neovim runtime files
-                -- library = vim.api.nvim_get_runtime_file('', true),
-                library = {
-                    [vim.fn.expand "$VIMRUNTIME/lua"] = true,
-                    [vim.fn.expand "$VIMRUNTIME/lua/vim/lsp"] = true,
-                },
-                maxPreload = 50000,
-                preloadFileSize = 25000,
-                checkThirdParty = false,  -- disable autodetection of 3rd party projects
-            },
-            -- Do not send telemetry data containing a randomized but unique identifier
-            telemetry = {
-                enable = false,
-            },
-        },
-    },
-}
 
 -- autoformat
 vim.api.nvim_exec(
@@ -391,6 +333,7 @@ vim.api.nvim_exec(
     ]],
     false
 )
+
 -- Treesitter configuration
 -- Parsers must be installed manually via :TSInstall
 require('nvim-treesitter.configs').setup {
