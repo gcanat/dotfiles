@@ -27,7 +27,7 @@ end
 local use = require("packer").use
 require("packer").startup(function()
 	use("wbthomason/packer.nvim") -- Package manager
-	--use("tpope/vim-fugitive") -- Git commands in nvim
+	-- use("tpope/vim-fugitive") -- Git commands in nvim
 	-- use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
 	use("b3nj5m1n/kommentary") -- "gc" to comment visual regions/lines
 	-- use "ludovicchabant/vim-gutentags" -- Automatic tags management
@@ -36,12 +36,13 @@ require("packer").startup(function()
 	use({ "nvim-telescope/telescope.nvim", requires = { { "nvim-lua/popup.nvim" }, { "nvim-lua/plenary.nvim" } } })
 	use("joshdick/onedark.vim") -- Theme inspired by Atom
 	-- use 'itchyny/lightline.vim' -- Fancier statusline
-	use("hoob3rt/lualine.nvim") -- even more fancier statusline
+	use({ "nvim-lualine/lualine.nvim", requires = { "kyazdani42/nvim-web-devicons", opt = true } }) -- even more fancier statusline
 	-- tabline that goes along with lualine
-	use({
+	--[[ use({
 		"kdheepak/tabline.nvim",
 		requires = { { "hoob3rt/lualine.nvim", opt = true }, { "kyazdani42/nvim-web-devicons", opt = true } },
-	})
+	}) ]]
+	use({ "akinsho/bufferline.nvim", requires = "kyazdani42/nvim-web-devicons" })
 	use("Vimjas/vim-python-pep8-indent") -- special plugin for python identation
 	-- Add indentation guides even on blank lines
 	use("lukas-reineke/indent-blankline.nvim")
@@ -62,7 +63,7 @@ require("packer").startup(function()
 	use("hrsh7th/nvim-cmp")
 	use("saadparwaiz1/cmp_luasnip")
 	use("onsails/lspkind-nvim")
-    use("ray-x/lsp_signature.nvim")
+	use("ray-x/lsp_signature.nvim")
 	use("L3MON4D3/LuaSnip") -- Snippets plugin
 	use("windwp/nvim-autopairs") -- autoclosing brackets, quotes etc.
 	use("hkupty/iron.nvim") -- repl plugin
@@ -155,9 +156,20 @@ require("lualine").setup({
 		theme = "onedark",
 	},
 	extensions = { "nvim-tree", "quickfix" },
+	--[[ tabline = {
+		lualine_a = { "buffers" },
+		lualine_b = { "branch" },
+		lualine_c = { "filename" },
+		lualine_x = {},
+		lualine_y = {},
+		lualine_z = { "tabs" },
+	}, ]]
 })
 
-require("tabline").setup({})
+-- require("tabline").setup({})
+require("bufferline").setup({})
+map("n", "(b", ":BufferLineCycleNext<CR>", { noremap = true, silent = true })
+map("n", "b)", ":BufferLineCyclePrev<CR>", { noremap = true, silent = true })
 
 --Remap space as leader key
 -- map('', '<Space>', '<Nop>', { noremap = true, silent = true })
@@ -453,7 +465,7 @@ cmp.setup({
 		ghost_test = true,
 	},
 	documentation = {
-		border = {"╭", "─" ,"╮", "│", "╯", "─", "╰", "│" },
+		border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
 	},
 
 	sources = cmp.config.sources({
@@ -501,19 +513,18 @@ cmp.setup.cmdline(":", {
 	}),
 })
 
-
-require'lsp_signature'.setup({
-    toggle_key = nil,
-    floating_window = true,
-    floating_window_above_cur_line = false,
-    log_path = vim.fn.expand("$HOME") .. "/tmp/sig.log",
-    debug = false,
-    hi_parameter = "Search",
-    bind = true,
-    extra_trigger_chars = { "(", "," },
-    handler_opts = {
-        border = "single", -- "shadow", --{"╭", "─" ,"╮", "│", "╯", "─", "╰", "│" },
-    }
+require("lsp_signature").setup({
+	toggle_key = nil,
+	floating_window = true,
+	floating_window_above_cur_line = false,
+	log_path = vim.fn.expand("$HOME") .. "/tmp/sig.log",
+	debug = false,
+	hi_parameter = "Search",
+	bind = true,
+	extra_trigger_chars = { "(", "," },
+	handler_opts = {
+		border = "single", -- "shadow", --{"╭", "─" ,"╮", "│", "╯", "─", "╰", "│" },
+	},
 })
 
 -- Use (s-)tab to:
@@ -797,10 +808,10 @@ vim.g.nvim_tree_show_icons = {
 map("n", "<F3>", ":NvimTreeToggle<CR>", { noremap = true, silent = true })
 -- tab navigation mappings
 map("n", "tt", ":tabnew", { noremap = true, silent = true })
-map("n", "<M-Right>", ":tabn<CR>", { noremap = true, silent = true })
-map("i", "<M-Right>", "<ESC>:tabn<CR>", { noremap = true, silent = true })
-map("n", "<M-Left>", ":tabp<CR>", { noremap = true, silent = true })
-map("i", "<M-Left>", "<ESC>:tabp<CR>", { noremap = true, silent = true })
+map("n", "<M-Right>", ":BufferLineCycleNext<CR>", { noremap = true, silent = true })
+map("i", "<M-Right>", "<ESC>:BufferLineCycleNext<CR>", { noremap = true, silent = true })
+map("n", "<M-Left>", ":BufferLineCyclePrev<CR>", { noremap = true, silent = true })
+map("i", "<M-Left>", "<ESC>:BufferLineCyclePrev<CR>", { noremap = true, silent = true })
 -- Search and Replace
 map("n", "<Leader>s", ":%s//g<Left><Left>", { noremap = false, silent = true })
 

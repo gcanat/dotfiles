@@ -1,0 +1,32 @@
+---
+version: 2
+root-markers:
+ - .git/
+# lint-debounce: 1s
+commands:
+  - title: Editor (neovim) 
+    command: nvim
+    arguments:
+      - '${FILENAME}'
+
+tools:
+  python-black: &python-black
+    format-command: 'black -'
+    format-stdin: true
+
+  python-isort: &python-isort
+    format-command: 'isort --quiet -'
+    format-stdin: true
+
+  lua-lua-format: &lua-lua-format
+    format-command: 'stylua -'
+    format-stdin: true
+
+languages:
+  python:
+    - <<: *python-black
+    - <<: *python-isort
+
+  lua:
+    - <<: *lua-lua-format
+...
