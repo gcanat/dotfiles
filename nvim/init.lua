@@ -35,6 +35,7 @@ require("packer").startup(function()
 	-- UI to select things (files, grep results, open buffers...)
 	use({ "nvim-telescope/telescope.nvim", requires = { { "nvim-lua/popup.nvim" }, { "nvim-lua/plenary.nvim" } } })
 	use("joshdick/onedark.vim") -- Theme inspired by Atom
+	use("marko-cerovac/material.nvim")
 	-- use 'itchyny/lightline.vim' -- Fancier statusline
 	use({ "nvim-lualine/lualine.nvim", requires = { "kyazdani42/nvim-web-devicons", opt = true } }) -- even more fancier statusline
 	-- tabline that goes along with lualine
@@ -135,8 +136,10 @@ vim.api.nvim_exec(
 
 --Set colorscheme (order is important here)
 vim.o.termguicolors = true
-vim.g.onedark_terminal_italics = 2
-vim.cmd([[colorscheme onedark]])
+--vim.g.onedark_terminal_italics = 2
+--vim.cmd([[colorscheme onedark]])
+vim.cmd("colorscheme material")
+vim.g.material_style = "deep ocean"
 
 -- disable show mode in command line because it's already displayed by status line
 vim.o.showmode = false
@@ -153,7 +156,8 @@ vim.opt_global.shortmess:remove("F")
 
 require("lualine").setup({
 	options = {
-		theme = "onedark",
+		-- theme = "onedark",
+		theme = "material-nvim",
 	},
 	extensions = { "nvim-tree", "quickfix" },
 	--[[ tabline = {
@@ -175,6 +179,9 @@ map("n", "b)", ":BufferLineCyclePrev<CR>", { noremap = true, silent = true })
 -- map('', '<Space>', '<Nop>', { noremap = true, silent = true })
 vim.g.mapleader = ","
 vim.g.maplocalleader = ";"
+
+-- map key to toggle between theme style
+map("n", "<leader>mm", [[<Cmd>lua require('material.functions').toggle_style()<CR>]], { noremap = true, silent = true })
 
 --Remap for dealing with word wrap
 map("n", "k", "v:count == 0 ? 'gk' : 'k'", { noremap = true, expr = true, silent = true })
