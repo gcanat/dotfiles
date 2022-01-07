@@ -62,10 +62,12 @@ require("packer").startup(function()
 	use("hrsh7th/cmp-path")
 	use("hrsh7th/cmp-cmdline")
 	use("hrsh7th/nvim-cmp")
-	use("saadparwaiz1/cmp_luasnip")
+	-- use("saadparwaiz1/cmp_luasnip")
 	use("onsails/lspkind-nvim")
 	use("ray-x/lsp_signature.nvim")
-	use("L3MON4D3/LuaSnip") -- Snippets plugin
+	-- use("L3MON4D3/LuaSnip") -- Snippets plugin
+    use("SirVer/ultisnips")
+    use('quangnguyen30192/cmp-nvim-ultisnips')
 	use("windwp/nvim-autopairs") -- autoclosing brackets, quotes etc.
 	use("hkupty/iron.nvim") -- repl plugin
 	use("kyazdani42/nvim-web-devicons") -- fancy icons
@@ -110,7 +112,7 @@ vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.softtabstop = 4
 vim.o.expandtab = true
-vim.o.textwidth = 79
+--vim.o.textwidth = 79
 -- Continue comment marker in new lines.
 vim.opt.formatoptions:append("ro")
 
@@ -443,14 +445,16 @@ local check_back_space = function()
 	end
 end
 
+local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+
 cmp.setup({
 	snippet = {
 		-- REQUIRED - you must specify a snippet engine
 		expand = function(args)
-			--vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-			require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
+			-- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+			-- require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
 			-- require('snippy').expand_snippet(args.body) -- For `snippy` users.
-			-- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+			vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
 		end,
 	},
 	mapping = {
@@ -463,8 +467,20 @@ cmp.setup({
 			c = cmp.mapping.close(),
 		}),
 		["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-		["<Tab>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "s" }),
-		["<S-Tab>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "s" }),
+		--["<Tab>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "s" }),
+		--["<S-Tab>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "s" }),
+        ["<Tab>"] = cmp.mapping(
+          function(fallback)
+            cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+          end,
+          { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }
+        ),
+        ["<S-Tab>"] = cmp.mapping(
+          function(fallback)
+            cmp_ultisnips_mappings.jump_backwards(fallback)
+          end,
+          { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }
+        ),
 		["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 		["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 	},
@@ -479,8 +495,8 @@ cmp.setup({
 		{ name = "nvim_lsp" },
 		{ name = "treesitter" },
 		--{ name = 'vsnip' }, -- For vsnip users.
-		{ name = "luasnip" }, -- For luasnip users.
-		-- { name = 'ultisnips' }, -- For ultisnips users.
+		--{ name = "luasnip" }, -- For luasnip users.
+		{ name = 'ultisnips' }, -- For ultisnips users.
 		-- { name = 'snippy' }, -- For snippy users.
 	}, {
 		{ name = "buffer" },
@@ -495,7 +511,7 @@ cmp.setup({
 				path = "ﱮ",
 				buffer = "﬘",
 				zsh = "",
-				luasnip = "",
+				ultisnips = "",
 				spell = "暈",
 			})[entry.source.name]
 
@@ -844,6 +860,12 @@ vim.g.vim_markdown_json_frontmatter = 1 -- for JSON format
 -- ]],
 -- false
 -- )
+
+-- UltiSnips
+vim.g.UltiSnipsExpandTrigger="<space><tab>"
+vim.g.UltiSnipsJumpForwardTrigger="<c-b>"
+vim.g.UltiSnipsJumpBackwardTrigger="<c-z>"
+vim.g.UltiSnipsSnippetDirectories={"UltiSnips", "my_snippets"}
 
 -- formatter.nvim
 --[[ require("formatter").setup(
