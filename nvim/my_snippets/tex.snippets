@@ -14,7 +14,7 @@ endglobal
 
 snippet template "Basic template" b
 \documentclass[a4paper]{article}
-
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
@@ -34,6 +34,9 @@ snippet template "Basic template" b
 }
 
 \pdfsuppresswarningpagegroup=1
+
+DeclareMathOperator*{\argmax}{argmax}
+DeclareMathOperator*{\argmin}{argmin}
 
 \begin{document}
 	$0
@@ -320,6 +323,11 @@ endsnippet
 
 snippet __ "subscript" iA
 _{$1}$0
+endsnippet
+
+context "math()"
+snippet indic "indicatrice" iA
+\mathbb{I}\\{$1\\}$0
 endsnippet
 
 snippet ooo "\infty" iA
@@ -647,11 +655,11 @@ snippet DD "D" iA
 endsnippet
 
 snippet PP "P" iA
-\mathbb{P}
+\mathbb{P}\Big[$0\Big]
 endsnippet
 
 snippet EX "E" iA
-\mathbb{E}
+\mathbb{E}\Big[$0\Big]
 endsnippet
 
 
