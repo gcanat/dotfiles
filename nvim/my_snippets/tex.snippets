@@ -11,7 +11,6 @@ def env(name):
 
 endglobal
 
-
 snippet template "Basic template" b
 \documentclass[a4paper]{article}
 \usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
@@ -35,8 +34,8 @@ snippet template "Basic template" b
 
 \pdfsuppresswarningpagegroup=1
 
-DeclareMathOperator*{\argmax}{argmax}
-DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
 
 \begin{document}
 	$0
@@ -398,7 +397,7 @@ x_{m}
 endsnippet
 
 snippet R0+ "R0+" iA
-\\R_0^+
+\mathbb{R}_0^+
 endsnippet
 
 snippet plot "Plot" w
@@ -435,6 +434,12 @@ endsnippet
 context "math()"
 snippet nabl "nabla" iA
 \nabla 
+endsnippet
+
+
+context "math()"
+snippet lamb "nabla" iA
+\lambda 
 endsnippet
 
 context "math()"
@@ -480,7 +485,7 @@ endsnippet
 priority 200
 context "math()"
 snippet <-> "leftrightarrow" iA
-\leftrightarrow
+\Leftrightarrow
 endsnippet
 
 context "math()"
@@ -496,11 +501,6 @@ endsnippet
 context "math()"
 snippet compl "complement" iA
 ^{c}
-endsnippet
-
-context "math()"
-snippet \\\ "setminus" iA
-\setminus
 endsnippet
 
 snippet >> ">>" iA
@@ -541,7 +541,7 @@ snippet inn "in " iA
 endsnippet
 
 snippet NN "n" iA
-\N
+\mathbb{N}
 endsnippet
 
 snippet Nn "cap" iA
@@ -565,15 +565,15 @@ snippet OO "emptyset" iA
 endsnippet
 
 snippet RR "real" iA
-\R
+\mathbb{R}
 endsnippet
 
 snippet QQ "Q" iA
-\Q
+\mathbb{Q}
 endsnippet
 
 snippet ZZ "Z" iA
-\Z
+\mathbb{Z}
 endsnippet
 
 snippet <! "normal" iA
@@ -655,7 +655,7 @@ snippet DD "D" iA
 endsnippet
 
 snippet PP "P" iA
-\mathbb{P}\Big[$0\Big]
+\mathbb{P}\Big($0\Big)
 endsnippet
 
 snippet EX "E" iA

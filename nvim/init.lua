@@ -66,8 +66,8 @@ require("packer").startup(function()
 	use("onsails/lspkind-nvim")
 	use("ray-x/lsp_signature.nvim")
 	-- use("L3MON4D3/LuaSnip") -- Snippets plugin
-    use("SirVer/ultisnips")
-    use('quangnguyen30192/cmp-nvim-ultisnips')
+	use("SirVer/ultisnips")
+	use("quangnguyen30192/cmp-nvim-ultisnips")
 	use("windwp/nvim-autopairs") -- autoclosing brackets, quotes etc.
 	use("hkupty/iron.nvim") -- repl plugin
 	use("kyazdani42/nvim-web-devicons") -- fancy icons
@@ -469,18 +469,12 @@ cmp.setup({
 		["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
 		--["<Tab>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "s" }),
 		--["<S-Tab>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "s" }),
-        ["<Tab>"] = cmp.mapping(
-          function(fallback)
-            cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
-          end,
-          { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }
-        ),
-        ["<S-Tab>"] = cmp.mapping(
-          function(fallback)
-            cmp_ultisnips_mappings.jump_backwards(fallback)
-          end,
-          { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }
-        ),
+		["<Tab>"] = cmp.mapping(function(fallback)
+			cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+		end, { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }),
+		["<S-Tab>"] = cmp.mapping(function(fallback)
+			cmp_ultisnips_mappings.jump_backwards(fallback)
+		end, { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }),
 		["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 		["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 	},
@@ -492,11 +486,12 @@ cmp.setup({
 	},
 
 	sources = cmp.config.sources({
+		{ name = "omni", keyword_pattern = { vim.g["vimtex#re#neocomplete"] } },
 		{ name = "nvim_lsp" },
 		{ name = "treesitter" },
 		--{ name = 'vsnip' }, -- For vsnip users.
 		--{ name = "luasnip" }, -- For luasnip users.
-		{ name = 'ultisnips' }, -- For ultisnips users.
+		{ name = "ultisnips" }, -- For ultisnips users.
 		-- { name = 'snippy' }, -- For snippy users.
 	}, {
 		{ name = "buffer" },
@@ -513,6 +508,7 @@ cmp.setup({
 				zsh = "",
 				ultisnips = "",
 				spell = "暈",
+				omni = "🌐",
 			})[entry.source.name]
 
 			return vim_item
@@ -844,7 +840,7 @@ vim.g.vim_markdown_folding_disabled = 1
 -- do not use conceal feature, the implementation is not so good
 vim.g.vim_markdown_conceal = 0
 -- disable math tex conceal feature
-vim.g.tex_conceal = ""
+--vim.g.tex_conceal = ""
 vim.g.vim_markdown_math = 1
 -- support front matter of various format
 vim.g.vim_markdown_frontmatter = 1 -- for YAML format
@@ -862,10 +858,21 @@ vim.g.vim_markdown_json_frontmatter = 1 -- for JSON format
 -- )
 
 -- UltiSnips
-vim.g.UltiSnipsExpandTrigger="<space><tab>"
-vim.g.UltiSnipsJumpForwardTrigger="<c-b>"
-vim.g.UltiSnipsJumpBackwardTrigger="<c-z>"
-vim.g.UltiSnipsSnippetDirectories={"UltiSnips", "my_snippets"}
+vim.g.UltiSnipsExpandTrigger = "<M-tab>"
+vim.g.UltiSnipsJumpForwardTrigger = "<c-b>"
+vim.g.UltiSnipsJumpBackwardTrigger = "<c-z>"
+vim.g.UltiSnipsSnippetDirectories = { "UltiSnips", "my_snippets" }
+
+-- vimtex
+--
+--vim.g.vimtex_latexmk_continuous=0
+vim.g.tex_flavor = "latex"
+vim.g.Tex_DefaultTargetFormat = "pdf"
+vim.g.vimtex_view_enabled = 1
+vim.g.vimtex_view_automatic = 1
+vim.g.vimtex_view_general_viewer = "zathura"
+vim.g.vimtex_view_method = "zathura"
+vim.g.vimtex_quickfix_mode = 0
 
 -- formatter.nvim
 --[[ require("formatter").setup(
