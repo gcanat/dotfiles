@@ -48,10 +48,4 @@ ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}%{$fg[cyan]%}]-"
 ZSH_THEME_GIT_PROMPT_DIRTY=" %{$fg[red]%}✗%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_CLEAN=" %{$fg[green]%}✔%{$reset_color%}"
 
-#export PYTHONHASHSEED=0
-alias ped='ssh -p 22 pedale@163.172.212.122'
-alias tfnight='source ~/.venv/tf-nightly/bin/activate'
-alias torchnight='source ~/.venv/lambda-tf/bin/activate'
-#alias luamake='/home/gui/.config/nvim/lua-language-server/3rd/luamake/luamake'
-#alias nvim='~/.local/bin/nvim.appimage'
 export PATH="$PATH:/home/gui/.local/bin"
