@@ -62,9 +62,10 @@ require("packer").startup(function()
 	use("hrsh7th/cmp-path")
 	use("hrsh7th/cmp-cmdline")
 	use("hrsh7th/nvim-cmp")
+	use("hrsh7th/cmp-nvim-lsp-signature-help")
 	-- use("saadparwaiz1/cmp_luasnip")
 	use("onsails/lspkind-nvim")
-	use("ray-x/lsp_signature.nvim")
+	--use("ray-x/lsp_signature.nvim")
 	-- use("L3MON4D3/LuaSnip") -- Snippets plugin
 	use("SirVer/ultisnips")
 	use("quangnguyen30192/cmp-nvim-ultisnips")
@@ -380,7 +381,7 @@ require("nvim-treesitter.configs").setup({
 	},
 	indent = {
 		enable = true,
-		--disable = { "python" },
+		disable = { "python" },
 	},
 	matchup = { enable = true },
 	autopairs = { enable = true },
@@ -466,15 +467,15 @@ cmp.setup({
 			i = cmp.mapping.abort(),
 			c = cmp.mapping.close(),
 		}),
-		["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+		["<CR>"] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
 		--["<Tab>"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "s" }),
 		--["<S-Tab>"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "s" }),
 		["<Tab>"] = cmp.mapping(function(fallback)
 			cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
-		end, { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }),
+		end, { "i", "s", "c" }),
 		["<S-Tab>"] = cmp.mapping(function(fallback)
 			cmp_ultisnips_mappings.jump_backwards(fallback)
-		end, { "i", "s", [[ "c" (to enable the mapping in command mode) ]] }),
+		end, { "i", "s", "c" }),
 		["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 		["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 	},
@@ -486,6 +487,7 @@ cmp.setup({
 	},
 
 	sources = cmp.config.sources({
+		{ name = "nvim_lsp_signature_help" },
 		{ name = "omni", keyword_pattern = { vim.g["vimtex#re#neocomplete"] } },
 		{ name = "nvim_lsp" },
 		{ name = "treesitter" },
@@ -497,7 +499,11 @@ cmp.setup({
 		{ name = "buffer" },
 	}),
 	formatting = {
-		format = function(entry, vim_item)
+		format = lspkind.cmp_format({
+			with_text = false, -- do not show text alongside icons
+			maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+		}),
+		--[[ format = function(entry, vim_item)
 			vim_item.kind = string.format("%s %s", lspkind.presets.default[vim_item.kind], vim_item.kind)
 			vim_item.menu = ({
 				nvim_lsp = "ﲳ",
@@ -512,7 +518,7 @@ cmp.setup({
 			})[entry.source.name]
 
 			return vim_item
-		end,
+		end, ]]
 	},
 })
 
@@ -532,7 +538,7 @@ cmp.setup.cmdline(":", {
 	}),
 })
 
-require("lsp_signature").setup({
+--[[ require("lsp_signature").setup({
 	toggle_key = nil,
 	floating_window = true,
 	floating_window_above_cur_line = false,
@@ -544,7 +550,7 @@ require("lsp_signature").setup({
 	handler_opts = {
 		border = "single", -- "shadow", --{"╭", "─" ,"╮", "│", "╯", "─", "╰", "│" },
 	},
-})
+}) ]]
 
 -- Use (s-)tab to:
 --- move to prev/next item in completion menuone
