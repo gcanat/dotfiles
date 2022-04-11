@@ -34,8 +34,9 @@ require("packer").startup(function()
 	use("nvim-lua/plenary.nvim")
 	-- UI to select things (files, grep results, open buffers...)
 	use({ "nvim-telescope/telescope.nvim", requires = { { "nvim-lua/popup.nvim" }, { "nvim-lua/plenary.nvim" } } })
-	use("joshdick/onedark.vim") -- Theme inspired by Atom
+	-- use("joshdick/onedark.vim") -- Theme inspired by Atom
 	use("marko-cerovac/material.nvim")
+	use({ "sonph/onehalf", rtp = "vim/" })
 	-- use 'itchyny/lightline.vim' -- Fancier statusline
 	use({ "nvim-lualine/lualine.nvim", requires = { "kyazdani42/nvim-web-devicons", opt = true } }) -- even more fancier statusline
 	-- tabline that goes along with lualine
@@ -141,8 +142,9 @@ vim.api.nvim_exec(
 vim.o.termguicolors = true
 --vim.g.onedark_terminal_italics = 2
 --vim.cmd([[colorscheme onedark]])
-vim.cmd("colorscheme material")
-vim.g.material_style = "deep ocean"
+-- vim.cmd([[colorscheme material]])
+-- vim.g.material_style = "deep ocean"
+vim.cmd([[colorscheme onehalfdark]])
 
 -- disable show mode in command line because it's already displayed by status line
 vim.o.showmode = false
