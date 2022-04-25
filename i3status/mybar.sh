@@ -145,9 +145,10 @@ battery0() {
     bg_separator_previous=$bg
     prct=$(cat /sys/class/power_supply/BAT0/uevent | grep "POWER_SUPPLY_CAPACITY=" | cut -d'=' -f2)
     charging=$(cat /sys/class/power_supply/BAT0/uevent | grep "POWER_SUPPLY_STATUS" | cut -d'=' -f2) # POWER_SUPPLY_STATUS=Discharging|Charging
-    icon=""
-    if [ "$charging" == "Charging" ]; then
+    if [ $charging = "Charging" ]; then
       icon=""
+    else
+      icon=""
     fi
     echo -n ",{"
     echo -n "\"name\":\"battery0\","

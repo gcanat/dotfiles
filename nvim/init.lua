@@ -20,6 +20,7 @@ vim.api.nvim_exec(
 	false
 )
 
+
 if vim.fn.has("mac") == 1 then
 	vim.cmd([[language en_US]])
 end
@@ -142,9 +143,9 @@ vim.api.nvim_exec(
 vim.o.termguicolors = true
 --vim.g.onedark_terminal_italics = 2
 --vim.cmd([[colorscheme onedark]])
--- vim.cmd([[colorscheme material]])
--- vim.g.material_style = "deep ocean"
-vim.cmd([[colorscheme onehalfdark]])
+vim.cmd([[colorscheme material]])
+vim.g.material_style = "deep ocean"
+-- vim.cmd([[colorscheme onehalfdark]])
 
 -- disable show mode in command line because it's already displayed by status line
 vim.o.showmode = false
@@ -481,12 +482,17 @@ cmp.setup({
 		["<Up>"] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 		["<Down>"] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }), { "i" }),
 	},
-	experimental = {
-		ghost_test = true,
+	--experimental = {
+	--	ghost_test = true,
+	--},
+	window = {
+        completion = cmp.config.window.bordered(),
+        documentation = cmp.config.window.bordered()
+        --documentation = "native",
 	},
-	documentation = {
-		border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
-	},
+	-- documentation = {
+	--border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+	--},
 
 	sources = cmp.config.sources({
 		{ name = "nvim_lsp_signature_help" },
