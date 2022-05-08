@@ -253,8 +253,8 @@ set $m2 #FFF0E0
 
 # Startup programs
 exec --no-startup-id dunst 
-exec_always compton &;
-exec --no-startup-id clipit &; 
+exec_always --no-startup-id compton &
+exec --no-startup-id clipit & 
 exec_always feh --bg-scale ~/Pictures/320424.jpg
 exec_always --no-startup-id nm-applet
 # enable autolock after 5 mins and force autolock when pointer is in top left corner,
@@ -270,7 +270,7 @@ assign [class="code"] $ws3
 assign [class="Foxit Reader"] $ws3
 assign [class="Pcmanfm"] $ws4
 assign [class="VirtualBox"] $ws5
-assign [class="Virt-manager"] $ws5
+assign [class="Discord"] $ws5
 assign [class="zoom"] $ws6
 assign [class="Microsoft Teams"] $ws6
 assign [class="Skype"] $ws6
@@ -336,3 +336,6 @@ for_window [class="info|Mate-color-select|gcolor2|timesup|QtPass|GtkFileChooserD
 # Focus window settings
 no_focus [window_role="pop-up"]
 focus_on_window_activation focus
+
+# put it at the end of the file so the geolocation lookup doesnt delay i3 startup
+exec --no-startup-id redshift -l geoclue2 -t 6500:3000

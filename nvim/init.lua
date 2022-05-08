@@ -20,7 +20,6 @@ vim.api.nvim_exec(
 	false
 )
 
-
 if vim.fn.has("mac") == 1 then
 	vim.cmd([[language en_US]])
 end
@@ -72,6 +71,7 @@ require("packer").startup(function()
 	use("SirVer/ultisnips")
 	use("quangnguyen30192/cmp-nvim-ultisnips")
 	use("windwp/nvim-autopairs") -- autoclosing brackets, quotes etc.
+	--use("tpope/vim-sleuth") -- auto detect correct tab size
 	use("hkupty/iron.nvim") -- repl plugin
 	use("kyazdani42/nvim-web-devicons") -- fancy icons
 	use({ "kyazdani42/nvim-tree.lua", requires = { "kyazdani42/nvim-web-devicons" } }) -- file tree browser
@@ -115,7 +115,7 @@ vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.softtabstop = 4
 vim.o.expandtab = true
---vim.o.textwidth = 79
+-- vim.o.textwidth = 79
 -- Continue comment marker in new lines.
 vim.opt.formatoptions:append("ro")
 
@@ -175,6 +175,9 @@ require("lualine").setup({
 		lualine_z = { "tabs" },
 	}, ]]
 })
+
+-- vim-sleuth
+--require("vim-sleuth").setup({})
 
 -- require("tabline").setup({})
 require("bufferline").setup({})
@@ -289,9 +292,9 @@ local on_attach = function(client, bufnr)
 	buf_set_keymap("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
 	buf_set_keymap("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
 	buf_set_keymap("n", "<space>q", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
-	if client.resolved_capabilities.document_formatting then
+	if client.server_capabilities.document_formatting then
 		buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting_sync()<CR>", opts)
-	elseif client.resolved_capabilities.document_range_formatting then
+	elseif client.server_capabilities.document_range_formatting then
 		buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting_sync()<CR>", opts)
 	end
 end
@@ -371,7 +374,7 @@ vim.api.nvim_exec(
 require("nvim-treesitter.configs").setup({
 	highlight = {
 		enable = true, -- false will disable the whole extension
-		additional_vim_regex_highlighting = true,
+		additional_vim_regex_highlighting = false,
 	},
 	incremental_selection = {
 		enable = true,
@@ -386,41 +389,41 @@ require("nvim-treesitter.configs").setup({
 		enable = true,
 		disable = { "python" },
 	},
-	matchup = { enable = true },
-	autopairs = { enable = true },
-	textobjects = {
-		select = {
-			enable = true,
-			lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-			keymaps = {
-				-- You can use the capture groups defined in textobjects.scm
-				["af"] = "@function.outer",
-				["if"] = "@function.inner",
-				["ac"] = "@class.outer",
-				["ic"] = "@class.inner",
-			},
-		},
-		move = {
-			enable = true,
-			set_jumps = true, -- whether to set jumps in the jumplist
-			goto_next_start = {
-				["]m"] = "@function.outer",
-				["]]"] = "@class.outer",
-			},
-			goto_next_end = {
-				["]M"] = "@function.outer",
-				["]["] = "@class.outer",
-			},
-			goto_previous_start = {
-				["[m"] = "@function.outer",
-				["[["] = "@class.outer",
-			},
-			goto_previous_end = {
-				["[M"] = "@function.outer",
-				["[]"] = "@class.outer",
-			},
-		},
-	},
+	-- matchup = { enable = true },
+	-- autopairs = { enable = true },
+	-- textobjects = {
+	--	select = {
+	--		enable = true,
+	--		lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+	--		keymaps = {
+	--			-- You can use the capture groups defined in textobjects.scm
+	--			["af"] = "@function.outer",
+	--			["if"] = "@function.inner",
+	--			["ac"] = "@class.outer",
+	--			["ic"] = "@class.inner",
+	--	  },
+	--	},
+	--	move = {
+	--		enable = true,
+	--		set_jumps = true, -- whether to set jumps in the jumplist
+	--		goto_next_start = {
+	--			["]m"] = "@function.outer",
+	--			["]]"] = "@class.outer",
+	--		},
+	--		goto_next_end = {
+	--			["]M"] = "@function.outer",
+	--			["]["] = "@class.outer",
+	--		},
+	--		goto_previous_start = {
+	--			["[m"] = "@function.outer",
+	--			["[["] = "@class.outer",
+	--		},
+	--		goto_previous_end = {
+	--			["[M"] = "@function.outer",
+	--			["[]"] = "@class.outer",
+	--		},
+	--	},
+	--},
 })
 
 -- Set completeopt to have a better completion experience
@@ -486,9 +489,9 @@ cmp.setup({
 	--	ghost_test = true,
 	--},
 	window = {
-        completion = cmp.config.window.bordered(),
-        documentation = cmp.config.window.bordered()
-        --documentation = "native",
+		completion = cmp.config.window.bordered(),
+		documentation = cmp.config.window.bordered(),
+		--documentation = "native",
 	},
 	-- documentation = {
 	--border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
@@ -752,73 +755,6 @@ map("t", "<leader><Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 -- allow terminal width to dynamically adjust
 -- autocmd BufLeave * if &buftype == 'terminal' | :set nowfw | endif
 --
-require("nvim-tree").setup({
-	-- disables netrw completely
-	disable_netrw = true,
-	-- hijack netrw window on startup
-	hijack_netrw = true,
-	-- open the tree when running this setup function
-	open_on_setup = false,
-	-- will not open on setup if the filetype is in this list
-	ignore_ft_on_setup = {},
-	-- closes neovim automatically when the tree is the last **WINDOW** in the view
-	auto_close = false,
-	-- opens the tree when changing/opening a new tab if the tree wasn't previously opened
-	open_on_tab = false,
-	-- hijacks new directory buffers when they are opened.
-	update_to_buf_dir = { enable = true, auto_open = true },
-	-- hijack the cursor in the tree to put it at the start of the filename
-	hijack_cursor = false,
-	-- updates the root directory of the tree on `DirChanged` (when your run `:cd` usually)
-	update_cwd = false,
-	-- show lsp diagnostics in the signcolumn
-	diagnostics = { enable = true },
-	-- update the focused file on `BufEnter`, un-collapses the folders recursively until it finds the file
-	update_focused_file = {
-		-- enables the feature
-		enable = false,
-		-- update the root directory of the tree to the one of the folder containing the file if the file is not under the current root directory
-		-- only relevant when `update_focused_file.enable` is true
-		update_cwd = false,
-		-- list of buffer names / filetypes that will not update the cwd if the file isn't found under the current root directory
-		-- only relevant when `update_focused_file.update_cwd` is true and `update_focused_file.enable` is true
-		ignore_list = {},
-	},
-	-- configuration options for the system open command (`s` in the tree by default)
-	system_open = {
-		-- the command to run this, leaving nil should work in most cases
-		cmd = nil,
-		-- the command arguments as a list
-		args = {},
-	},
-	view = {
-		-- width of the window, can be either a number (columns) or a string in `%`
-		width = 30,
-		-- side of the tree, can be one of 'left' | 'right' | 'top' | 'bottom'
-		side = "left",
-		-- if true the tree will resize itself after opening a file
-		auto_resize = false,
-		mappings = {
-			-- custom only false will merge the list with the default mappings
-			-- if true, it will only use your list to set the mappings
-			custom_only = false,
-			-- list of mappings to set on the tree manually
-			list = {},
-		},
-	},
-	filters = {
-		dotfiles = true,
-		custom = {
-			".git",
-			"node_modules",
-			".cache",
-			".pyc",
-			".pyo",
-			"__pycache__",
-			".ipynb_checkpoints",
-		},
-	},
-})
 
 -- vim.g.nvim_tree_ignore = {'.git', 'node_modules', '.cache', '.pyc', '.pyo', '__pycache__', '.ipynb_checkpoints'}
 vim.g.nvim_tree_indent_markers = 1

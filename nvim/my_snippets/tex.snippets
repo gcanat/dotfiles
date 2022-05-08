@@ -20,6 +20,20 @@ snippet template "Basic template" b
 \usepackage[french]{babel}
 \usepackage{amsmath, amssymb}
 
+\usepackage{amsfonts}
+
+
+%\usepackage{algorithm2e}
+\usepackage[ruled,vlined]{algorithm2e}
+\SetKwComment{Comment}{/* }{ */}
+
+% reference citation
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{template.bib}
 
 % figure support
 \usepackage{import}
@@ -32,6 +46,7 @@ snippet template "Basic template" b
 	\import{./figures/}{#1.pdf_tex}
 }
 
+\usepackage{hyperref} \hypersetup{ colorlinks=false}%, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
 \pdfsuppresswarningpagegroup=1
 
 \DeclareMathOperator*{\argmax}{argmax}
@@ -271,10 +286,12 @@ snippet conj "conjugate" iA
 \overline{$1}$0
 endsnippet
 
-snippet sum "sum" w
-\sum_{i=${1:1}}^{${2:n}} ${3:a_n z^n}
+context "math()"
+snippet sum "sum" iA
+\sum_{i=1}^{n} $0
 endsnippet
 
+context "math()"
 snippet taylor "taylor" w
 \sum_{${1:k}=${2:0}}^{${3:\infty}} ${4:c_$1} (x-a)^$1 $0
 endsnippet
