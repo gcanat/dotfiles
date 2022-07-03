@@ -24,6 +24,9 @@ if vim.fn.has("mac") == 1 then
 	vim.cmd([[language en_US]])
 end
 
+-- disable default keymaps for kommentary
+vim.g.kommentary_create_default_mappings = false
+
 local use = require("packer").use
 require("packer").startup(function()
 	use("wbthomason/packer.nvim") -- Package manager
@@ -80,8 +83,10 @@ require("packer").startup(function()
 	use({ "iamcco/markdown-preview.nvim", run = "cd app && yarn install" })
 	use("plasticboy/vim-markdown")
 	use("vim-pandoc/vim-pandoc-syntax")
-	--use "mhartington/formatter.nvim"
+	-- use "mhartington/formatter.nvim"
 	use("lervag/vimtex")
+    -- keymap helper
+    use("folke/which-key.nvim")
 end)
 
 --Incremental live completion
@@ -126,6 +131,9 @@ vim.o.splitright = true -- Vertical split to right of current.
 --Decrease update time
 vim.o.updatetime = 250
 vim.wo.signcolumn = "yes"
+
+-- copy/paste to/from clipboard
+vim.api.nvim_set_option("clipboard","unnamed")
 
 -- highlight current line and column but only for current window
 vim.api.nvim_exec(
@@ -227,20 +235,20 @@ require("telescope").setup({
 })
 --Add leader shortcuts
 map("n", "<leader><space>", [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
-map("n", "<leader>sf", [[<cmd>lua require('telescope.builtin').find_files()<CR>]], { noremap = true, silent = true })
+map("n", "<leader>ff", [[<cmd>lua require('telescope.builtin').find_files()<CR>]], { noremap = true, silent = true })
 map(
 	"n",
-	"<leader>sb",
+	"<leader>fb",
 	[[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]],
 	{ noremap = true, silent = true }
 )
-map("n", "<leader>sh", [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
-map("n", "<leader>st", [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
-map("n", "<leader>sd", [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
-map("n", "<leader>sp", [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+map("n", "<leader>fh", [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
+map("n", "<leader>ft", [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
+map("n", "<leader>fd", [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
+map("n", "<leader>fp", [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
 map(
 	"n",
-	"<leader>so",
+	"<leader>fo",
 	[[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]],
 	{ noremap = true, silent = true }
 )
@@ -709,46 +717,36 @@ end
 vim.lsp.handlers["textDocument/definition"] = goto_definition("split")
 
 -- iron.nvim config
-local iron = require("iron")
+local iron = require("iron.core")
 
-iron.core.add_repl_definitions({
-	python = {
-		mycustom = {
-			command = { "python3" },
-		},
-	},
-	clojure = {
-		lein_connect = {
-			command = { "lein", "repl", ":connect" },
-		},
-	},
-})
 
-iron.core.set_config({
-	preferred = {
-		python = "ipython",
-		clojure = "lein",
-	},
-	repl_open_cmd = "90vsplit",
-})
+iron.setup {
+  config = {
+    -- If iron should expose `<plug>(...)` mappings for the plugins
+    should_map_plug = false,
+    -- Whether a repl should be discarded or not
+    scratch_repl = true,
+    -- Your repl definitions come here
+    repl_definition = {
+      sh = {
+        command = {"zsh"}
+      }
+    }
+  },
+  -- Iron doesn't set keymaps by default anymore. Set them here
+  -- or use `should_map_plug = true` and map from you vim files
+  keymaps = {
+    send_motion = "<leader>sc",
+    visual_send = "<leader>sc",
+    send_line = "<leader>sl",
+    send_mark = "<leader>s.",
+    cr = "<leader>s<cr>",
+    interrupt = "<leader>si",
+    exit = "<leader>sq",
+    clear = "<leader>cl",
+  }
+}
 
-_G.my_iron_open_fn = function(orientation)
-	local old_config = iron.config.repl_open_cmd
-	iron.core.set_config({ repl_open_cmd = orientation })
-	iron.core.repl_for(vim.api.nvim_buf_get_option(0, "ft"))
-	iron.core.set_config({ repl_open_cmd = old_config })
-end
-
--- iron.nvim mappings
-local mapopts = { noremap = false }
-map("n", "<leader>ct", "<Plug>(iron.iron-send-motion)", mapopts)
-map("v", "<leader>cv", "<Plug>(iron-visual-send)", mapopts)
-map("n", "<leader>cr", "<Plug>(iron-repeat-cmd)", mapopts)
-map("n", "<leader>cl", "<Plug>(iron-send-line)", mapopts)
-map("n", "<leader>c<CR>", "<Plug>(iron-cr)", mapopts)
-map("n", "<leader>ci", "<Plug>(iron-interrupt)", mapopts)
-map("n", "<leader>cq", "<Plug>(iron-exit)", mapopts)
-map("n", "<leader>cc", "<Plug>(iron-clear)", mapopts)
 -- remap the key to exit insert mode in terminal
 map("t", "<leader><Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 
@@ -776,13 +774,15 @@ vim.g.nvim_tree_show_icons = {
 
 map("n", "<F3>", ":NvimTreeToggle<CR>", { noremap = true, silent = true })
 -- tab navigation mappings
-map("n", "tt", ":tabnew", { noremap = true, silent = true })
+map("n", "<leader>tt", ":tabnew", { noremap = true, silent = true })
 map("n", "<M-Right>", ":BufferLineCycleNext<CR>", { noremap = true, silent = true })
 map("i", "<M-Right>", "<ESC>:BufferLineCycleNext<CR>", { noremap = true, silent = true })
 map("n", "<M-Left>", ":BufferLineCyclePrev<CR>", { noremap = true, silent = true })
 map("i", "<M-Left>", "<ESC>:BufferLineCyclePrev<CR>", { noremap = true, silent = true })
+map("n", "<M-c>", ":bd<CR>", { noremap = true, silent = true })
+map("i", "<M-c>", "<ESC>:bd<CR>", { noremap = true, silent = true })
 -- Search and Replace
-map("n", "<Leader>s", ":%s//g<Left><Left>", { noremap = false, silent = true })
+map("n", "<leader>sr", ":%s//g<Left><Left>", { noremap = false, silent = true })
 
 -- vim.markdown options
 -- disable header folding
@@ -807,6 +807,11 @@ vim.g.vim_markdown_json_frontmatter = 1 -- for JSON format
 -- false
 -- )
 
+-- kommentary
+map("n", "<leader>cc", "<Plug>kommentary_line_default", {})
+map("n", "<leader>c", "<Plug>kommentary_motion_default", {})
+map("x", "<leader>c", "<Plug>kommentary_visual_default", {})
+
 -- UltiSnips
 vim.g.UltiSnipsExpandTrigger = "<M-tab>"
 vim.g.UltiSnipsJumpForwardTrigger = "<c-b>"
@@ -824,42 +829,9 @@ vim.g.vimtex_view_general_viewer = "zathura"
 vim.g.vimtex_view_method = "zathura"
 vim.g.vimtex_quickfix_mode = 0
 
--- formatter.nvim
---[[ require("formatter").setup(
-  {
-    filetype = {
-      python = {
-        -- Configuration for psf/black
-        function()
-          return {
-            exe = "black", -- this should be available on your $PATH
-            args = {"-"},
-            stdin = true
-          }
-        end
-      },
-      lua = {
-        -- luafmt
-        function()
-          return {
-            exe = "luafmt",
-            args = {"--indent-count", 2, "--stdin"},
-            stdin = true
-          }
-        end
-      }
-    }
-  }
-) ]]
-
--- vim.api.nvim_exec(
---  [[
--- augroup FormatAutogroup
---  autocmd!
---  autocmd BufWritePost *.py,*.R FormatWrite
---  augroup END
--- ]],
---  true
---)
-
--- vim.api.nvim_set_keymap("n", "<leader>f", ":Format<CR>", {})
+-- which-key
+require("which-key").setup({
+  window = {
+    border = "single",
+  },
+})
