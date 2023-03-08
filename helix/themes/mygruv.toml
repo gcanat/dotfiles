@@ -1,0 +1,5 @@
+inherits = "gruvbox_dark_hard"
+
+"ui.background" = {bg = "bg0", fg = "yellow0"}
+# "ui.linenr" = { bg = "#262626" }
+# "ui.gutter" = { bg = "#2c2e2e"}

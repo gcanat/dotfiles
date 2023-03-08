@@ -1,0 +1,144 @@
+-- Install packer
+local install_path = vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim"
+
+if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
+  vim.fn.execute("!git clone https://github.com/wbthomason/packer.nvim " .. install_path)
+end
+
+vim.cmd([[
+  if has('nvim') && executable('nvr')
+    let $GIT_EDITOR = "nvr -cc split --remote-wait +'set bufhidden=wipe'"
+  endif
+]])
+
+
+vim.api.nvim_exec(
+  [[
+  augroup Packer
+    autocmd!
+    autocmd BufWritePost init.lua PackerCompile
+  augroup end
+  ]],
+  false
+)
+
+local use = require("packer").use
+require("packer").startup(function()
+  use('wbthomason/packer.nvim')
+  -- many basic stuff covered
+  use('echasnovski/mini.nvim')
+  -- lsp
+  use('neovim/nvim-lspconfig')
+  use('williamboman/nvim-lsp-installer')
+  -- use("ray-x/lsp_signature.nvim")
+  use({ 'glepnir/lspsaga.nvim', branch = 'main' })
+  -- syntax highlight
+  use {
+    'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate'
+  }
+  use("nvim-treesitter/nvim-treesitter-textobjects")
+  -- add signs in the gutter indicating git status
+  use('lewis6991/gitsigns.nvim')
+  use('kyazdani42/nvim-web-devicons')
+  -- searching files, buffers etc
+  use {
+    'nvim-telescope/telescope.nvim',
+    requires = { { 'nvim-lua/plenary.nvim' } }
+  }
+  use {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
+  -- file tree explorer
+  use({ "kyazdani42/nvim-tree.lua", requires = { "kyazdani42/nvim-web-devicons" } }) -- file tree browser
+  -- hints for key mappings
+  use("folke/which-key.nvim")
+  -- lsp for formating (and linting if wanted)
+  use("jose-elias-alvarez/null-ls.nvim")
+  -- completion
+  use({ 'ms-jpq/coq_nvim', branch = 'coq' })
+  use({ 'ms-jpq/coq.artifacts', branch = 'artifacts' })
+  use({ 'ms-jpq/coq.thirdparty', branch = '3p' })
+  -- theme
+  use('Mofiqul/dracula.nvim')
+  -- use('folke/tokyonight.nvim')
+  -- statusline
+  use({ "nvim-lualine/lualine.nvim", requires = { "kyazdani42/nvim-web-devicons", opt = true } })
+  -- tabs and buffers
+  use({ "akinsho/bufferline.nvim", requires = "kyazdani42/nvim-web-devicons" })
+  -- autoclosing " ( [ etc
+  use("windwp/nvim-autopairs")
+  -- correct indentation
+  use({ "yioneko/nvim-yati", requires = "nvim-treesitter/nvim-treesitter" })
+  -- fancy UI for messages, cmdline and popupmenu
+  use("rcarriga/nvim-notify")
+  use("MunifTanjim/nui.nvim")
+  use({
+    "folke/noice.nvim",
+    -- event = "VimEnter",
+    -- config = function()
+    --   require("noice").setup({notify = {enabled = true }})
+    -- end,
+    requires = {
+      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+      "MunifTanjim/nui.nvim",
+      "rcarriga/nvim-notify",
+    },
+  })
+  use({'ojroques/vim-oscyank', branch = 'main'})
+  use({'github/copilot.vim'})
+  use({'kdheepak/lazygit.nvim'})
+end)
+
+-- all the setups that are pretty much oneliners go here
+require('config') -- usual vim options
+require('drac')
+-- require("noi") -- noice
+
+-- vim.cmd("colorscheme minicyan")
+vim.cmd [[colorscheme dracula]]
+-- vim.g.tokyonight_colors = {border = "orange"}
+-- vim.cmd[[colorscheme tokyonight-night]]
+
+require('mini.comment').setup({
+  mappings = {
+    comment = '<leader>c',
+    comment_line = '<leader>cc',
+    textobject = '<leader>c'
+  }
+})
+-- require('mini.completion').setup()
+require('mini.cursorword').setup()
+require('mini.fuzzy').setup()
+require('mini.indentscope').setup()
+require("nvim-tree").setup({
+  filters = {
+    dotfiles = true,
+  },
+})
+require("bufferline").setup({})
+-- require('telescope').setup({
+--   defaults = {
+--     generic_sorter = require('mini.fuzzy').get_telescope_sorter
+--   }
+-- })
+-- which-key
+require("which-key").setup({
+  window = {
+    border = "single",
+  },
+})
+
+-- load settings from other files in lua/ dir
+require('ts') -- treesitter
+require('tele') -- telescope
+require('line') -- lualine
+require('git') -- gitsigns
+require('mapping') -- keymaps
+require('lsp') -- all lsp related stuff (except null-ls...)
+require('null') -- null-ls
+-- require "lsp_signature".setup({
+--   bind = true, -- This is mandatory, otherwise border config won't get registered.
+--   handler_opts = {
+--     border = "rounded"
+--   }
+-- })
+-- require('sag') -- saga, not needed moved to lsp

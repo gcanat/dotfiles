@@ -1,0 +1,26 @@
+theme = "mycat"
+
+[editor]
+line-number = "relative"
+mouse = false
+cursorline = true
+bufferline = "always"
+color-modes = true
+idle-timeout = 150
+
+[editor.statusline]
+left = ["mode","spinner", "file-name"] #"version-control", "file-name"]
+right = [ "diagnostics","selections", "position", "position-percentage", "file-encoding", "file-type","total-line-numbers"]  
+
+[editor.indent-guides]
+render = true
+character = "┊" # Some characters that work well: "▏", "┆", "┊", "⸽"
+skip-levels = 1
+
+[editor.soft-wrap]
+enable = true
+[keys.normal]
+a = ["append_mode", "collapse_selection"]
+A-l = ["goto_next_buffer"]
+A-h = ["goto_previous_buffer"]
+A-c = [":buffer-close"]

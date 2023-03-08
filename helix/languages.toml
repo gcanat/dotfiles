@@ -1,0 +1,31 @@
+[[language]]
+name = "python"
+scope = "source.python"
+injection-regex = "python"
+file-types = ["py"]
+shebangs = ["python"]
+roots = ["pyproject.toml", "setup.py", "Poetry.lock"]
+comment-token = "#"
+# language-server = { command = "pyright-langserver", args = ["--stdio"] }
+# language-server = { command = "jedi-language-server" }
+auto-format = true
+formatter = { command = "black", args = ["-", "-q", "--line-length", "120"] }
+indent = { tab-width = 4, unit = "    " }
+
+[language.config.pylsp.plugins]
+flake8 = {enabled = false} 
+autopep8 = {enabled = false}
+mccabe = {enabled = false}
+pycodestyle = {enabled = false}
+pyflakes = {enabled = false}
+pylint = {enabled = false}
+yapf = {enabled = false}
+ruff = { enabled = true, ignore = ["F401"], lineLength = 120 }
+
+[[language]]
+name = "latex"
+language-server = { command = "texlab"}
+
+[language.config.texlab]
+build = { executable = "tectonic", args = ["-X", "compile", "%f", "--synctex", "--keep-logs", "--keep-intermediates", "-Z", "continue-on-errors"], onSave = true }
+forwardSearch = { executable = "zathura", args = ["--synctex-forward", "%l:1:%f", "%p"] }
