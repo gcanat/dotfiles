@@ -13,7 +13,7 @@ formatter = { command = "black", args = ["-", "-q", "--line-length", "120"] }
 indent = { tab-width = 4, unit = "    " }
 
 [language.config.pylsp.plugins]
-flake8 = {enabled = false} 
+flake8 = {enabled = false}
 autopep8 = {enabled = false}
 mccabe = {enabled = false}
 pycodestyle = {enabled = false}
@@ -21,11 +21,35 @@ pyflakes = {enabled = false}
 pylint = {enabled = false}
 yapf = {enabled = false}
 ruff = { enabled = true, ignore = ["F401"], lineLength = 120 }
+#[[language]]
+#name = "python"
+#scope = "source.python"
+#injection-regex = "python"
+#file-types = ["py"]
+#shebangs = ["python"]
+#roots = ["pyproject.toml", "setup.py", "Poetry.lock"]
+#comment-token = "#"
+#indent = { tab-width = 4, unit = "    " }
+#language-server = { command = "ruff-lsp" }
+#config = { settings = { args = [] } }
 
 [[language]]
-name = "latex"
-language-server = { command = "texlab"}
+name = "json"
+file-types = ["json"]
+[language.config]
+provideFormatter = false
+json.validate.enable = true
+json.format.enable = false
+formatter = { command = 'deno', args = ["fmt", "-", "--ext", "json" ] }
 
-[language.config.texlab]
-build = { executable = "tectonic", args = ["-X", "compile", "%f", "--synctex", "--keep-logs", "--keep-intermediates", "-Z", "continue-on-errors"], onSave = true }
-forwardSearch = { executable = "zathura", args = ["--synctex-forward", "%l:1:%f", "%p"] }
+[[language]]
+name = "markdown"
+file-types = ["md", "qmd"]
+formatter = { command = 'deno', args = ["fmt", "-", "--ext", "md" ] }
+
+
+[[language]]
+name = "yaml"
+formatter = { command = "prettier", args = ["--parser", "yaml"]}
+[language.config]
+yaml = { keyOrdering = false, printWidth = 120, proseWrap = "Always" }

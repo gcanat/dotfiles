@@ -2,8 +2,3 @@ inherits = "catppuccin_macchiato"
 
 "ui.background" = { bg = "base", fg = "mauve" }
 "ui.popup" = { fg = "mauve", bg = "surface0" }
-#"ui.selection" = { bg = "primary_hl" }
-
-# [palette]
-# primary_hl = "#800049"
-

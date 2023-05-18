@@ -2,25 +2,67 @@ theme = "mycat"
 
 [editor]
 line-number = "relative"
-mouse = false
+mouse = true
 cursorline = true
 bufferline = "always"
 color-modes = true
-idle-timeout = 150
+true-color = true
+idle-timeout = 100
+lsp.display-inlay-hints = true
 
 [editor.statusline]
-left = ["mode","spinner", "file-name"] #"version-control", "file-name"]
-right = [ "diagnostics","selections", "position", "position-percentage", "file-encoding", "file-type","total-line-numbers"]  
+left = ["mode","spinner", "version-control", "file-name"]
+right = [ "diagnostics", "selections", "position", "position-percentage", "file-encoding", "file-type", "total-line-numbers"]  
 
 [editor.indent-guides]
 render = true
 character = "┊" # Some characters that work well: "▏", "┆", "┊", "⸽"
 skip-levels = 1
 
+[editor.whitespace.render]
+space = "none"
+tab = "none"
+newline = "all"
+
 [editor.soft-wrap]
 enable = true
+
+[keys.insert]
+A-l = ["goto_next_buffer"]
+A-h = ["goto_previous_buffer"]
+
 [keys.normal]
 a = ["append_mode", "collapse_selection"]
 A-l = ["goto_next_buffer"]
 A-h = ["goto_previous_buffer"]
 A-c = [":buffer-close"]
+
+# Some nice Helix stuff
+C-h = "select_prev_sibling"
+C-j = "shrink_selection"
+C-k = "expand_selection"
+C-l = "select_next_sibling"
+
+# Muscle memory
+"{" = ["goto_prev_paragraph", "collapse_selection"]
+"}" = ["goto_next_paragraph", "collapse_selection"]
+0 = "goto_line_start"
+"$" = "goto_line_end"
+"^" = "goto_first_nonwhitespace"
+G = "goto_file_end"
+"%" = "match_brackets"
+
+[keys.select]
+# Muscle memory
+"{" = ["extend_to_line_bounds", "goto_prev_paragraph"]
+"}" = ["extend_to_line_bounds", "goto_next_paragraph"]
+0 = "goto_line_start"
+"$" = "goto_line_end"
+"^" = "goto_first_nonwhitespace"
+G = "goto_file_end"
+
+[keys.normal." "]
+z = ":pipe-to ~/.local/bin/hepl.sh send"
+Z.p = ":sh ~/.local/bin/hepl.sh spawn python"
+[keys.select." "]
+z = [":pipe-to ~/.local/bin/hepl.sh send"] #, ":sh ~/.local/bin/hepl.sh sendnopaste \\r"]
