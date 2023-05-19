@@ -19,16 +19,17 @@ function send() {
   # python3 -c 'import sys, textwrap; sys.stdout.write(textwrap.dedent(sys.stdin.read()))' | jupyter run --existing="/tmp/hepl.json"
   PANEID=$(wezterm cli get-pane-direction Right)
   wezterm cli send-text --pane-id $PANEID
+  echo -e "\n" | wezterm cli send-text --pane-id $PANEID --no-paste
 }
-function send_nopaste() {
+function send_enter() {
   # python3 -c 'import sys, textwrap; sys.stdout.write(textwrap.dedent(sys.stdin.read()))' | jupyter run --existing="/tmp/hepl.json"
   PANEID=$(wezterm cli get-pane-direction Right)
-  wezterm cli send-text --pane-id $PANEID --no-paste $1
+  echo -e "\n" | wezterm cli send-text --pane-id $PANEID --no-paste
 }
 
 case "$1" in
   spawn) spawn_pane "$2" >/dev/null ;;
   send) send >/dev/null 2>&1 ;;
-  sendnopaste) send_nopaste $2 >/dev/null ;;
+  sendenter) send_enter ;;
   *) exit 1 ;;
 esac
