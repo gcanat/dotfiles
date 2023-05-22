@@ -11,6 +11,7 @@ set clipboard=unnamed
 let mapleader = ","
 set encoding=utf-8
 set updatetime=100
+set laststatus=2
 
 filetype plugin on
 filetype indent on
