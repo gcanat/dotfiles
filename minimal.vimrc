@@ -1,4 +1,5 @@
 set termguicolors
+set nu
 set relativenumber
 set tabstop=2
 set shiftwidth=2
@@ -28,6 +29,8 @@ call plug#begin()
 	" Plug 'kyoz/purify', { 'rtp': 'vim' }
 	" git signs in gutter
 	Plug 'airblade/vim-gitgutter'
+	" git integration
+	Plug 'tpope/vim-fugitive'
 	" comment
 	Plug 'tpope/vim-commentary'
 
@@ -71,6 +74,9 @@ augroup lsp_install
 	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
 augroup END
 
+" use lua if available
+let g:lsp_use_lua = has('nvim-0.4.0') || (has('lua') && has('patch-8.2.0775'))
+
 " Tab completion
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -78,13 +84,24 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 " force completion refresh
 imap <c-space> <Plug>(asyncomplete_force_refresh)
 
-" fzf mappings
-nnoremap <leader>ff :Files<CR>
-nnoremap <leader>gs :GFiles?<CR>
-nnoremap <leader>fb :Buffers<CR>
-nnoremap <leader>fo :History<CR>
+" fzf mappings: lets try to use some similar to helix
+nnoremap <space>f :Files<CR>
+nnoremap <space>b :Buffers<CR>
+nnoremap <space>o :History<CR>
+nnoremap <space>/ :Rg<CR>
 
-" GitGutter mappins
+" others that are not in helix, lets fallacbk to neovim bindings
+nnoremap <leader>gs :GFiles?<CR>
+" commits for the current buffer
+nnoremap <leader>gb :Bcommits<CR>
+nnoremap <leader>fb :Lines<CR>
+
+" keymaps help
+nmap <space>? <plug>(fzf-maps-n)
+xmap <space>? <plug>(fzf-maps-x)
+omap <space>? <plug>(fzf-maps-o)
+
+" GitGutter mappings
 " <Leader>hs : stage hunk
 " <Leader>hu : undo staged hunk
 " <Leader>hp : preview hunk
