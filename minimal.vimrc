@@ -108,6 +108,7 @@ omap <space>? <plug>(fzf-maps-o)
 nnoremap <leader>hd :GitGutterDiffOrig<CR>
 " GitGutterFold : fold all unchanged lines, Use `zr` to unfold 3 lines of context above and below a hunk
 
+set background=dark
 syntax on
 " colorscheme purify
 colorscheme retrobox
