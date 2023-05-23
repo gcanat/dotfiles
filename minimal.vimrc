@@ -85,6 +85,9 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 " force completion refresh
 imap <c-space> <Plug>(asyncomplete_force_refresh)
 
+" fzf options
+let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-p']
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
 " fzf mappings: lets try to use some similar to helix
 nnoremap <space>f :Files<CR>
 nnoremap <space>b :Buffers<CR>
@@ -94,7 +97,7 @@ nnoremap <space>/ :Rg<CR>
 " others that are not in helix, lets fallacbk to neovim bindings
 nnoremap <leader>gs :GFiles?<CR>
 " commits for the current buffer
-nnoremap <leader>gb :Bcommits<CR>
+nnoremap <leader>gc :BCommits<CR>
 nnoremap <leader>fb :Lines<CR>
 
 " keymaps help
