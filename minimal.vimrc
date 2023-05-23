@@ -12,6 +12,7 @@ let mapleader = ","
 set encoding=utf-8
 set updatetime=100
 set laststatus=2
+set shell=/bin/bash
 
 filetype plugin on
 filetype indent on
