@@ -112,6 +112,23 @@ omap <space>? <plug>(fzf-maps-o)
 nnoremap <leader>hd :GitGutterDiffOrig<CR>
 " GitGutterFold : fold all unchanged lines, Use `zr` to unfold 3 lines of context above and below a hunk
 
+" fugitive commands:
+" :G             With no argument, equivalent to git status
+" :Gwrite        git add the current file
+" :Gread         git checkout the current file
+" :Gclog         put the commit history to quickfix list
+" :Gdiffsplit    vimdiff against the current file
+"
+" keymaps on a fugitive window
+" =              toggle inline diff of file under cursor
+" dd             perform :Gdiffsplit on file under cursor
+" s              stage file under cursor
+" cc             create a commit
+" ce             ament last commit, no edit
+" ri             interactive rebase
+
+set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
+
 set background=dark
 syntax on
 " colorscheme purify
