@@ -86,7 +86,7 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 imap <c-space> <Plug>(asyncomplete_force_refresh)
 
 " fzf options
-let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-p']
+let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
 " fzf mappings: lets try to use some similar to helix
 nnoremap <space>f :Files<CR>
