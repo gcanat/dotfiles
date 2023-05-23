@@ -127,6 +127,7 @@ nnoremap <leader>hd :GitGutterDiffOrig<CR>
 " cc             create a commit
 " ce             ament last commit, no edit
 " ri             interactive rebase
+" gq             close fugitive summary window
 
 set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
