@@ -18,10 +18,19 @@ filetype plugin on
 filetype indent on
 set nocompatible
 
+set ttimeout
+set ttimeoutlen=100
+set incsearch
+set scrolloff=4
+set nolangremap
+set sessionoptions-=options
+set viewoptions-=options
+
 call plug#begin()
 	" fuzzy finder
 	Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 	Plug 'junegunn/fzf.vim'
+  Plug 'stsewd/fzf-checkout.vim'
 	" lsp and completion
 	Plug 'prabirshrestha/vim-lsp'
 	Plug 'prabirshrestha/asyncomplete.vim'
@@ -63,6 +72,8 @@ function! s:on_lsp_buffer_enabled() abort
 	nmap <buffer> K <plug>(lsp-hover)
 	nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
 	nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+	nnoremap <space>d :LspDocumentDiagnostics<CR>
+	nnoremap <space>ca :LspCodeAction<CR>
 
 	let g:lsp_format_sync_timeout = 1000
 	autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
@@ -87,19 +98,20 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 imap <c-space> <Plug>(asyncomplete_force_refresh)
 
 " fzf options
+let g:fzf_command_prefix = 'Fzf'
 let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
 " fzf mappings: lets try to use some similar to helix
-nnoremap <space>f :Files<CR>
-nnoremap <space>b :Buffers<CR>
-nnoremap <space>o :History<CR>
-nnoremap <space>/ :Rg<CR>
+nnoremap <space>f :FzfFiles<CR>
+nnoremap <space>b :FzfBuffers<CR>
+nnoremap <space>o :FzfHistory<CR>
+nnoremap <space>/ :FzfRg<CR>
 
 " others that are not in helix, lets fallacbk to neovim bindings
-nnoremap <leader>gs :GFiles?<CR>
+nnoremap <leader>gs :FzfGFiles?<CR>
 " commits for the current buffer
-nnoremap <leader>gc :BCommits<CR>
-nnoremap <leader>fb :Lines<CR>
+nnoremap <leader>gc :FzfBCommits<CR>
+nnoremap <leader>fb :FzfLines<CR>
 
 " keymaps help
 nmap <space>? <plug>(fzf-maps-n)
