@@ -101,6 +101,22 @@ imap <c-space> <Plug>(asyncomplete_force_refresh)
 let g:fzf_command_prefix = 'Fzf'
 let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
+" colors that respect more the current theme
+let g:fzf_colors =
+	\ { 'fg':      ['fg', 'Normal'],
+		\ 'bg':      ['bg', 'Normal'],
+		\ 'hl':      ['fg', 'Comment'],
+		\ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+		\ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+		\ 'hl+':     ['fg', 'Statement'],
+		\ 'info':    ['fg', 'PreProc'],
+		\ 'border':  ['fg', 'Ignore'],
+		\ 'prompt':  ['fg', 'Conditional'],
+		\ 'pointer': ['fg', 'Exception'],
+		\ 'marker':  ['fg', 'Keyword'],
+		\ 'spinner': ['fg', 'Label'],
+		\ 'header':  ['fg', 'Comment'] }
+
 " fzf mappings: lets try to use some similar to helix
 nnoremap <space>f :FzfFiles<CR>
 nnoremap <space>b :FzfBuffers<CR>
