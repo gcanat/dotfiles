@@ -17,21 +17,35 @@ set shell=/bin/bash
 
 filetype plugin on
 filetype indent on
+" disable vi compatibility
 set nocompatible
 
+" Make the escape key more responsive by decreasing the wait time for an
+" escape sequence (e.g., arrow keys).
 set ttimeout
 set ttimeoutlen=100
+" incremental search
 set incsearch
 set scrolloff=4
+" Disable a legacy behavior that can break plugin maps.
 set nolangremap
+" Saving options in session and view files causes more problems than it
+" solves, so disable it.
 set sessionoptions-=options
 set viewoptions-=options
+
+" auto install vim-plug if necessary
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
 call plug#begin()
 	" fuzzy finder
 	Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 	Plug 'junegunn/fzf.vim'
-  Plug 'stsewd/fzf-checkout.vim'
+	Plug 'stsewd/fzf-checkout.vim'
 	" lsp and completion
 	Plug 'prabirshrestha/vim-lsp'
 	Plug 'prabirshrestha/asyncomplete.vim'
@@ -39,6 +53,8 @@ call plug#begin()
 	Plug 'sheerun/vim-polyglot'
 	" colorscheme
 	" Plug 'kyoz/purify', { 'rtp': 'vim' }
+	" Plug 'morhetz/gruvbox'
+	Plug 'catppuccin/vim'
 	" git signs in gutter
 	Plug 'airblade/vim-gitgutter'
 	" git integration
@@ -54,6 +70,13 @@ if executable('pylsp')
 		\ 'name': 'pylsp',
 		\ 'cmd': {server_info->['pylsp']},
 		\ 'allowlist': ['python'],
+		\ 'workspace_config': {
+		\   'pylsp': {
+		\     'plugins': {
+		\       'ruff': { "enabled" : 1, "ignore" : ["F401"], "lineLength" : 120 }
+	  \     }
+	  \   }
+	  \  }
 		\ })
 endif
 
@@ -73,8 +96,9 @@ function! s:on_lsp_buffer_enabled() abort
 	nmap <buffer> K <plug>(lsp-hover)
 	nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
 	nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
-	nnoremap <space>d :LspDocumentDiagnostics<CR>
-	nnoremap <space>ca :LspCodeAction<CR>
+	nnoremap <buffer> <space>d :LspDocumentDiagnostics<CR>
+	nnoremap <buffer> <space>ca :LspCodeAction<CR>
+
 
 	let g:lsp_format_sync_timeout = 1000
 	autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
@@ -90,6 +114,12 @@ augroup END
 
 " use lua if available
 let g:lsp_use_lua = has('nvim-0.4.0') || (has('lua') && has('patch-8.2.0775'))
+let g:lsp_auto_enable = 1
+let g:lsp_diagnostics_float_cursor = 1
+let g:lsp_diagnostics_float_delay = 500
+let g:lsp_diagnostics_virtual_text_enabled = 0
+let g:lsp_diagnostics_virtual_text_align = 'after'
+
 
 " Tab completion
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
@@ -102,21 +132,21 @@ imap <c-space> <Plug>(asyncomplete_force_refresh)
 let g:fzf_command_prefix = 'Fzf'
 let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
-" colors that respect more the current theme
+
 let g:fzf_colors =
-	\ { 'fg':      ['fg', 'Normal'],
-		\ 'bg':      ['bg', 'Normal'],
-		\ 'hl':      ['fg', 'Comment'],
-		\ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-		\ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-		\ 'hl+':     ['fg', 'Statement'],
-		\ 'info':    ['fg', 'PreProc'],
-		\ 'border':  ['fg', 'Ignore'],
-		\ 'prompt':  ['fg', 'Conditional'],
-		\ 'pointer': ['fg', 'Exception'],
-		\ 'marker':  ['fg', 'Keyword'],
-		\ 'spinner': ['fg', 'Label'],
-		\ 'header':  ['fg', 'Comment'] }
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'pointer': ['fg', 'Exception'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
 
 " fzf mappings: lets try to use some similar to helix
 nnoremap <space>f :FzfFiles<CR>
@@ -142,25 +172,12 @@ omap <space>? <plug>(fzf-maps-o)
 nnoremap <leader>hd :GitGutterDiffOrig<CR>
 " GitGutterFold : fold all unchanged lines, Use `zr` to unfold 3 lines of context above and below a hunk
 
-" fugitive commands:
-" :G             With no argument, equivalent to git status
-" :Gwrite        git add the current file
-" :Gread         git checkout the current file
-" :Gclog         put the commit history to quickfix list
-" :Gdiffsplit    vimdiff against the current file
-"
-" keymaps on a fugitive window
-" =              toggle inline diff of file under cursor
-" dd             perform :Gdiffsplit on file under cursor
-" s              stage file under cursor
-" cc             create a commit
-" ce             ament last commit, no edit
-" ri             interactive rebase
-" gq             close fugitive summary window
-
 set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 set background=dark
 syntax on
 " colorscheme purify
-colorscheme retrobox
+" colorscheme retrobox
+" colorscheme gruvbox
+colorscheme catppuccin_macchiato
+" set t_Co=16
