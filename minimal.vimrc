@@ -1,10 +1,7 @@
+" set showtabline=1
 set termguicolors
-set nu
-set relativenumber
-set tabstop=2
-set shiftwidth=2
-set softtabstop=2
-set expandtab
+set nu relativenumber
+set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 set numberwidth=5
 set autoindent
 set clipboard=unnamed
@@ -20,12 +17,19 @@ filetype indent on
 " disable vi compatibility
 set nocompatible
 
+" Search down into subfolders
+" Provides tab-completion for all file-related tasks
+set path+=**
+" Display all matching files when we tab complete
+set wildmenu wildignorecase
+set wildignore+=*.egg-info,.*
+
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
 set ttimeout
 set ttimeoutlen=100
 " incremental search
-set incsearch
+set incsearch ignorecase smartcase hlsearch
 set scrolloff=4
 " Disable a legacy behavior that can break plugin maps.
 set nolangremap
@@ -33,6 +37,16 @@ set nolangremap
 " solves, so disable it.
 set sessionoptions-=options
 set viewoptions-=options
+
+" tweaks for browsing
+let g:netrw_banner=0        " disable annoying banner
+let g:netrw_browse_split=4  " open in prior window
+let g:netrw_altv=1          " open splits to the right
+let g:netrw_liststyle=3     " tree view
+" netrw_gitignore#Hide() causes netrw to be super slow on big repo
+" let g:netrw_list_hide=netrw_gitignore#Hide()
+let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
+nnoremap <F3> :Vex<CR>
 
 " auto install vim-plug if necessary
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
@@ -156,8 +170,11 @@ nnoremap <space>/ :FzfRg<CR>
 
 " others that are not in helix, lets fallacbk to neovim bindings
 nnoremap <leader>gs :FzfGFiles?<CR>
+" commit history
+nnoremap <leader>gc :FzfCommits<CR>
 " commits for the current buffer
-nnoremap <leader>gc :FzfBCommits<CR>
+nnoremap <leader>gf :FzfBCommits<CR>
+" fuzzy search in the current buffer
 nnoremap <leader>fb :FzfLines<CR>
 
 " keymaps help
@@ -176,8 +193,5 @@ set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 set background=dark
 syntax on
-" colorscheme purify
-" colorscheme retrobox
-" colorscheme gruvbox
 colorscheme catppuccin_macchiato
 " set t_Co=16
