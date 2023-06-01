@@ -2,7 +2,7 @@
 set termguicolors
 set nu relativenumber
 set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
-set numberwidth=5
+set scl=yes
 set autoindent
 set clipboard=unnamed
 let mapleader = ","
@@ -46,6 +46,7 @@ let g:netrw_liststyle=3     " tree view
 " netrw_gitignore#Hide() causes netrw to be super slow on big repo
 " let g:netrw_list_hide=netrw_gitignore#Hide()
 let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
+" Ex in a vertical split
 nnoremap <F3> :Vex<CR>
 
 " auto install vim-plug if necessary
