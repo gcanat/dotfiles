@@ -47,7 +47,7 @@ let g:netrw_liststyle=3     " tree view
 " let g:netrw_list_hide=netrw_gitignore#Hide()
 let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
 " Ex in a vertical split
-nnoremap <F3> :Vex<CR>
+nnoremap <F3> :Ex<CR>
 
 " auto install vim-plug if necessary
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
