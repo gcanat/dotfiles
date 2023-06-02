@@ -163,11 +163,26 @@ let g:fzf_colors =
   \ 'spinner': ['fg', 'Label'],
   \ 'header':  ['fg', 'Comment'] }
 
+" restart ripgrep whenever the query string is updated
+function! RipgrepFzf(query, fullscreen)
+  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
+  let initial_command = printf(command_fmt, shellescape(a:query))
+  let reload_command = printf(command_fmt, '{q}')
+  let spec = {'options': ['--disabled', '--query', a:query, '--bind', 'change:reload:'.reload_command, '--delimiter', ':', '--nth', '4..']}
+  let spec = fzf#vim#with_preview(spec, 'right', 'ctrl-f')
+  call fzf#vim#grep(initial_command, 1, spec, a:fullscreen)
+endfunction
+
+" define new command named RG for this
+command! -nargs=* -bang FzfRG call RipgrepFzf(<q-args>, <bang>0)
+
 " fzf mappings: lets try to use some similar to helix
 nnoremap <space>f :FzfFiles<CR>
 nnoremap <space>b :FzfBuffers<CR>
 nnoremap <space>o :FzfHistory<CR>
-nnoremap <space>/ :FzfRg<CR>
+nnoremap <space>/ :FzfRG<CR>
+" list branches
+nnoremap <leader>gb :FzfGBranches<CR>
 
 " others that are not in helix, lets fallacbk to neovim bindings
 nnoremap <leader>gs :FzfGFiles?<CR>
