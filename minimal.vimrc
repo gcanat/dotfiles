@@ -19,10 +19,11 @@ set nocompatible
 
 " Search down into subfolders
 " Provides tab-completion for all file-related tasks
+" Beware it will resursively search in all dirs so dont use it in the root dir
 set path+=**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
-set wildignore+=*.egg-info,.*
+set wildignore+=*.egg-info/**,.*,**/__pycache__/**
 
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
@@ -147,7 +148,7 @@ imap <c-space> <Plug>(asyncomplete_force_refresh)
 let g:fzf_command_prefix = 'Fzf'
 let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
-
+let $FZF_DEFAULT_COMMAND='rg --files'
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
   \ 'bg':      ['bg', 'Normal'],
