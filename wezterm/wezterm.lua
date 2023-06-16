@@ -80,7 +80,12 @@ return {
 	tab_bar_at_bottom = true,
 	enable_scroll_bar = true,
 	scrollback_lines = 50000,
+	disable_default_key_bindings = true,
 	color_scheme = "Catppuccin Macchiato", -- or Macchiato, Frappe, Latte
+	animation_fps = 1,
+  cursor_blink_rate = 0,
+  cursor_blink_ease_in = "Constant",
+  cursor_blink_ease_out = "Constant",
 	colors = {
 		scrollbar_thumb = "gray",
 	},
