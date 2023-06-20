@@ -23,7 +23,38 @@ set nocompatible
 set path+=**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
-set wildignore+=*.egg-info/**,.*,**/__pycache__/**
+set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.git/**,**/build/**,**/target/**
+
+" use ripgrep as external grep tool
+set grepprg=rg\ --vimgrep
+set grepformat=%f:%l:%c:%m
+
+" function to use grepprg with getexpr
+function! Grep(...)
+	return system(join([&grepprg] + [expandcmd(join(a:000, ' '))], ' '))
+endfunction
+" create commands Grep and LGrep
+command! -nargs=+ -complete=file_in_path -bar Grep cgetexpr Grep(<f-args>)
+command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
+" abbrev to replace :grep with :Grep and :lgrep with :LGrep
+cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
+cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
+
+" try to use fd to find files
+set errorformat+=%f
+function! Find(...)
+  let findcmd = "fd \--type\ f"
+	return system(join([findcmd] + [expandcmd(join(a:000, ' '))], ' '))
+endfunction
+command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
+
+" automatically open the quickfix window
+augroup quickfix
+	autocmd!
+	autocmd QuickFixCmdPost cgetexpr cwindow
+	autocmd QuickFixCmdPost lgetexpr lwindow
+augroup END
+
 
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
