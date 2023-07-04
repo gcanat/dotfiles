@@ -19,11 +19,12 @@ set nocompatible
 
 " Search down into subfolders
 " Provides tab-completion for all file-related tasks
-" Beware it will resursively search in all dirs so dont use it in the root dir
+" Beware it will recursively search in all dirs so dont use it in the root dir
 set path+=**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.git/**,**/build/**,**/target/**
+set wildoptions+=pum
 
 " use ripgrep as external grep tool
 set grepprg=rg\ --vimgrep
@@ -163,7 +164,7 @@ augroup END
 let g:lsp_use_lua = has('nvim-0.4.0') || (has('lua') && has('patch-8.2.0775'))
 let g:lsp_auto_enable = 1
 let g:lsp_diagnostics_float_cursor = 1
-let g:lsp_diagnostics_float_delay = 500
+let g:lsp_diagnostics_float_delay = 150
 let g:lsp_diagnostics_virtual_text_enabled = 0
 let g:lsp_diagnostics_virtual_text_align = 'after'
 
