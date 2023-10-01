@@ -95,14 +95,17 @@ call plug#begin()
 	Plug 'junegunn/fzf.vim'
 	Plug 'stsewd/fzf-checkout.vim'
 	" lsp and completion
-	Plug 'prabirshrestha/vim-lsp'
-	Plug 'prabirshrestha/asyncomplete.vim'
-	Plug 'prabirshrestha/asyncomplete-lsp.vim'
-	Plug 'sheerun/vim-polyglot'
+  Plug 'yegappan/lsp'
+  Plug 'girishji/vimcomplete'
+  Plug 'girishji/lsp-complete.vim'
+	" Plug 'prabirshrestha/vim-lsp'
+	" Plug 'prabirshrestha/asyncomplete.vim'
+	" Plug 'prabirshrestha/asyncomplete-lsp.vim'
+	" Plug 'sheerun/vim-polyglot'
 	" colorscheme
 	" Plug 'kyoz/purify', { 'rtp': 'vim' }
 	" Plug 'morhetz/gruvbox'
-	Plug 'catppuccin/vim'
+	" Plug 'catppuccin/vim'
 	" git signs in gutter
 	Plug 'airblade/vim-gitgutter'
 	" git integration
@@ -112,69 +115,41 @@ call plug#begin()
 
 call plug#end()
 
-if executable('pylsp')
-	" pip install python-lsp-server
-	au User lsp_setup call lsp#register_server({
-		\ 'name': 'pylsp',
-		\ 'cmd': {server_info->['pylsp']},
-		\ 'allowlist': ['python'],
-		\ 'workspace_config': {
-		\   'pylsp': {
-		\     'plugins': {
-		\       'ruff': { "enabled" : 1, "ignore" : ["F401"], "lineLength" : 120 }
-	  \     }
-	  \   }
-	  \  }
-		\ })
-endif
+" LSP servers and completion setup
+let lspServers = [
+\   #{
+\     name: 'pylsp',
+\     filetype: 'python',
+\     path: exepath('pylsp'),
+\     debug: v:false,
+\   },
+\   #{
+\     name: 'rustanalyzer',
+\     filetype: ['rust'],
+\     path: exepath('rust-analyzer'),
+\     args: [],
+\     syncInit: v:true
+\   }
+\ ]
+autocmd VimEnter * call LspAddServer(lspServers)
+autocmd VimEnter * VimCompleteEnable c cpp lua markdown python rust text vim
+autocmd VimEnter * set completepopup+=border:off
+let g:vimcomplete_tab_enable = 1
 
-function! s:on_lsp_buffer_enabled() abort
-	setlocal omnifunc=lsp#complete
-	setlocal signcolumn=yes
-	if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
-	nmap <buffer> gd <plug>(lsp-definition)
-	nmap <buffer> gs <plug>(lsp-document-symbol-search)
-	nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
-	nmap <buffer> gr <plug>(lsp-references)
-	nmap <buffer> gi <plug>(lsp-implementation)
-	nmap <buffer> gt <plug>(lsp-type-definition)
-	nmap <buffer> <leader>rn <plug>(lsp-rename)
-	nmap <buffer> [d <plug>(lsp-previous-diagnostic)
-	nmap <buffer> ]d <plug>(lsp-next-diagnostic)
-	nmap <buffer> K <plug>(lsp-hover)
-	nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
-	nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
-	nnoremap <buffer> <space>d :LspDocumentDiagnostics<CR>
-	nnoremap <buffer> <space>ca :LspCodeAction<CR>
-
-
-	let g:lsp_format_sync_timeout = 1000
-	autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
-
-	" refer to doc to add more commands
-endfunction
-
-augroup lsp_install
-	au!
-	" call s:on_lsp_buffer_enabled only for languages that has the server registered.
-	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
-augroup END
-
-" use lua if available
-let g:lsp_use_lua = has('nvim-0.4.0') || (has('lua') && has('patch-8.2.0775'))
-let g:lsp_auto_enable = 1
-let g:lsp_diagnostics_float_cursor = 1
-let g:lsp_diagnostics_float_delay = 150
-let g:lsp_diagnostics_virtual_text_enabled = 0
-let g:lsp_diagnostics_virtual_text_align = 'after'
-
-
-" Tab completion
-inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
-" force completion refresh
-imap <c-space> <Plug>(asyncomplete_force_refresh)
+nnoremap gd :LspGotoDefinition<CR>
+nnoremap gs :LspDocumentSymbol<CR>
+nnoremap gS :LspSymbolSearch<CR>
+nnoremap gr :LspShowReferences<CR>
+nnoremap gi :LspPeekImpl<CR>
+nnoremap gt :LspPeekReferences<CR>
+nnoremap <leader>rn :LspRename<CR>
+nnoremap (d :LspDiagPrev<CR>
+nnoremap )d :LspDiagNext<CR>
+nnoremap K :LspHover<CR>
+" nnoremap <expr><c-f> lsp#scroll(+4)
+" nnoremap <expr><c-d> lsp#scroll(-4)
+nnoremap <space>d :LspDiagShow<CR>
+nnoremap <space>ca :LspCodeAction<CR>
 
 " fzf options
 let g:fzf_command_prefix = 'Fzf'
@@ -242,7 +217,8 @@ set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 set background=dark
 syntax on
-colorscheme catppuccin_macchiato
+" colorscheme catppuccin_macchiato
+colorscheme retrobox
 " set t_Co=16
 
 " Function to diff current file against HEAD or commit
