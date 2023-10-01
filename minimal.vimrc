@@ -131,9 +131,10 @@ let lspServers = [
 \     syncInit: v:true
 \   }
 \ ]
-autocmd VimEnter * call LspAddServer(lspServers)
 autocmd VimEnter * VimCompleteEnable c cpp lua markdown python rust text vim
-autocmd VimEnter * set completepopup+=border:off
+autocmd BufEnter *.c,*.cpp,*.lua,*.md,*.py,*.rs call LspAddServer(lspServers)
+autocmd BufEnter * set completepopup+=border:off
+let g:vimcomplete_noname_buf_enable = 0
 let g:vimcomplete_tab_enable = 1
 
 nnoremap gd :LspGotoDefinition<CR>
@@ -217,8 +218,8 @@ set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 set background=dark
 syntax on
-" colorscheme catppuccin_macchiato
 colorscheme retrobox
+" colorscheme habamax
 " set t_Co=16
 
 " Function to diff current file against HEAD or commit
@@ -236,3 +237,15 @@ function! Diff(spec)
 	diffthis
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
+
+" navigate qflist and llist
+nnoremap <leader>cn :cnext<CR>
+nnoremap <leader>cp :cprev<CR>
+nnoremap <leader>ln :lnext<CR>
+nnoremap <leader>lp :lprev<CR>
+
+" easier window navigation
+nnoremap <C-h> <C-w><C-h>
+nnoremap <C-j> <C-w><C-j>
+nnoremap <C-k> <C-w><C-k>
+nnoremap <C-l> <C-w><C-l>
