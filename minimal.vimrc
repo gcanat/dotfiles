@@ -62,7 +62,7 @@ augroup END
 set ttimeout
 set ttimeoutlen=100
 " incremental search
-set incsearch ignorecase smartcase hlsearch
+set incsearch ignorecase smartcase
 set scrolloff=4
 " Disable a legacy behavior that can break plugin maps.
 set nolangremap
@@ -96,8 +96,8 @@ call plug#begin()
 	Plug 'stsewd/fzf-checkout.vim'
 	" lsp and completion
   Plug 'yegappan/lsp'
-  Plug 'girishji/vimcomplete'
-  Plug 'girishji/lsp-complete.vim'
+  " Plug 'girishji/vimcomplete'
+  " Plug 'girishji/lsp-complete.vim'
 	" Plug 'prabirshrestha/vim-lsp'
 	" Plug 'prabirshrestha/asyncomplete.vim'
 	" Plug 'prabirshrestha/asyncomplete-lsp.vim'
@@ -129,13 +129,31 @@ let lspServers = [
 \     path: exepath('rust-analyzer'),
 \     args: [],
 \     syncInit: v:true
+\   },
+\   #{
+\     name: 'vimls',
+\     filetype: 'vim',
+\     path: exepath('vim-language-server'),
+\     args: ['--stdio']
 \   }
 \ ]
-autocmd VimEnter * VimCompleteEnable c cpp lua markdown python rust text vim
-autocmd BufEnter *.c,*.cpp,*.lua,*.md,*.py,*.rs call LspAddServer(lspServers)
+
+let lspOpts = #{
+  \ autoHighlightDiags: v:true,
+  \ diagSignErrorText: '●',
+  \ diagSignInfoText: '●',
+  \ diagSignHintText: '●',
+  \ diagSignWarningText: '●',
+\}
+
+autocmd VimEnter * call LspAddServer(lspServers)
+autocmd VimEnter * call LspOptionsSet(lspOpts)
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+" autocmd VimEnter * VimCompleteEnable c cpp lua markdown python rust text vim
+" let g:vimcomplete_noname_buf_enable = 0
+" let g:vimcomplete_tab_enable = 1
 autocmd BufEnter * set completepopup+=border:off
-let g:vimcomplete_noname_buf_enable = 0
-let g:vimcomplete_tab_enable = 1
 
 nnoremap gd :LspGotoDefinition<CR>
 nnoremap gs :LspDocumentSymbol<CR>
