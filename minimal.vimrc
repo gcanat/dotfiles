@@ -267,3 +267,7 @@ nnoremap <C-h> <C-w><C-h>
 nnoremap <C-j> <C-w><C-j>
 nnoremap <C-k> <C-w><C-k>
 nnoremap <C-l> <C-w><C-l>
+
+" quickly show the buffer list in a completion menu
+set wildcharm=<C-Z>
+nnoremap <leader>b :b <C-Z>
