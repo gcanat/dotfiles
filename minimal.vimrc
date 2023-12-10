@@ -91,9 +91,9 @@ endif
 
 call plug#begin()
 	" fuzzy finder
-	Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-	Plug 'junegunn/fzf.vim'
-	Plug 'stsewd/fzf-checkout.vim'
+	" Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+	" Plug 'junegunn/fzf.vim'
+	" Plug 'stsewd/fzf-checkout.vim'
 	" lsp and completion
   Plug 'yegappan/lsp'
   " Plug 'girishji/vimcomplete'
@@ -107,16 +107,23 @@ call plug#begin()
 	" Plug 'morhetz/gruvbox'
 	" Plug 'catppuccin/vim'
 	" git signs in gutter
-	Plug 'airblade/vim-gitgutter'
+	" Plug 'airblade/vim-gitgutter'
 	" git integration
 	Plug 'tpope/vim-fugitive'
 	" comment
 	Plug 'tpope/vim-commentary'
+  Plug 'liuchengxu/vim-clap', { 'do': ':Clap install-binary' }
 
 call plug#end()
 
 " LSP servers and completion setup
 let lspServers = [
+\    #{
+\      name: 'clangd',
+\      filetype: ['c', 'cpp'],
+\      path: exepath('clangd'),
+\      args: ['--background-index']
+\   },
 \   #{
 \     name: 'pylsp',
 \     filetype: 'python',
@@ -169,75 +176,80 @@ nnoremap K :LspHover<CR>
 " nnoremap <expr><c-d> lsp#scroll(-4)
 nnoremap <space>d :LspDiagShow<CR>
 nnoremap <space>ca :LspCodeAction<CR>
+nnoremap <leader>lf :LspFormat<CR>
 
 " fzf options
-let g:fzf_command_prefix = 'Fzf'
-let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
-let $FZF_DEFAULT_COMMAND='rg --files'
-let g:fzf_colors =
-\ { 'fg':      ['fg', 'Normal'],
-  \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Comment'],
-  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-  \ 'hl+':     ['fg', 'Statement'],
-  \ 'info':    ['fg', 'PreProc'],
-  \ 'border':  ['fg', 'Ignore'],
-  \ 'prompt':  ['fg', 'Conditional'],
-  \ 'pointer': ['fg', 'Exception'],
-  \ 'marker':  ['fg', 'Keyword'],
-  \ 'spinner': ['fg', 'Label'],
-  \ 'header':  ['fg', 'Comment'] }
+" let g:fzf_command_prefix = 'Fzf'
+" let g:fzf_preview_window = ['right,60%,<70(up,40%)', 'ctrl-f']
+" let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.8 } }
+" let $FZF_DEFAULT_COMMAND='rg --files'
+" let g:fzf_colors =
+" \ { 'fg':      ['fg', 'Normal'],
+"   \ 'bg':      ['bg', 'Normal'],
+"   \ 'hl':      ['fg', 'Comment'],
+"   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+"   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+"   \ 'hl+':     ['fg', 'Statement'],
+"   \ 'info':    ['fg', 'PreProc'],
+"   \ 'border':  ['fg', 'Ignore'],
+"   \ 'prompt':  ['fg', 'Conditional'],
+"   \ 'pointer': ['fg', 'Exception'],
+"   \ 'marker':  ['fg', 'Keyword'],
+"   \ 'spinner': ['fg', 'Label'],
+"   \ 'header':  ['fg', 'Comment'] }
 
-" restart ripgrep whenever the query string is updated
-function! RipgrepFzf(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
-  let initial_command = printf(command_fmt, shellescape(a:query))
-  let reload_command = printf(command_fmt, '{q}')
-  let spec = {'options': ['--disabled', '--query', a:query, '--bind', 'change:reload:'.reload_command, '--delimiter', ':', '--nth', '4..']}
-  let spec = fzf#vim#with_preview(spec, 'right', 'ctrl-f')
-  call fzf#vim#grep(initial_command, 1, spec, a:fullscreen)
-endfunction
+" " restart ripgrep whenever the query string is updated
+" function! RipgrepFzf(query, fullscreen)
+"   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
+"   let initial_command = printf(command_fmt, shellescape(a:query))
+"   let reload_command = printf(command_fmt, '{q}')
+"   let spec = {'options': ['--disabled', '--query', a:query, '--bind', 'change:reload:'.reload_command, '--delimiter', ':', '--nth', '4..']}
+"   let spec = fzf#vim#with_preview(spec, 'right', 'ctrl-f')
+"   call fzf#vim#grep(initial_command, 1, spec, a:fullscreen)
+" endfunction
 
-" define new command named RG for this
-command! -nargs=* -bang FzfRG call RipgrepFzf(<q-args>, <bang>0)
+" " define new command named RG for this
+" command! -nargs=* -bang FzfRG call RipgrepFzf(<q-args>, <bang>0)
 
-" fzf mappings: lets try to use some similar to helix
-nnoremap <space>f :FzfFiles<CR>
-nnoremap <space>b :FzfBuffers<CR>
-nnoremap <space>o :FzfHistory<CR>
-nnoremap <space>/ :FzfRG<CR>
-" list branches
-nnoremap <leader>gb :FzfGBranches<CR>
+" " fzf mappings: lets try to use some similar to helix
+" nnoremap <space>f :FzfFiles<CR>
+" nnoremap <space>b :FzfBuffers<CR>
+" nnoremap <space>o :FzfHistory<CR>
+" nnoremap <space>/ :FzfRG<CR>
+" " list branches
+" nnoremap <leader>gb :FzfGBranches<CR>
 
-" others that are not in helix, lets fallacbk to neovim bindings
-nnoremap <leader>gs :FzfGFiles?<CR>
-" commit history
-nnoremap <leader>gc :FzfCommits<CR>
-" commits for the current buffer
-nnoremap <leader>gf :FzfBCommits<CR>
-" fuzzy search in the current buffer
-nnoremap <leader>fb :FzfLines<CR>
+" " others that are not in helix, lets fallacbk to neovim bindings
+" nnoremap <leader>gs :FzfGFiles?<CR>
+" " commit history
+" nnoremap <leader>gc :FzfCommits<CR>
+" " commits for the current buffer
+" nnoremap <leader>gf :FzfBCommits<CR>
+" " fuzzy search in the current buffer
+" nnoremap <leader>fb :FzfLines<CR>
 
-" keymaps help
-nmap <space>? <plug>(fzf-maps-n)
-xmap <space>? <plug>(fzf-maps-x)
-omap <space>? <plug>(fzf-maps-o)
+" " keymaps help
+" nmap <space>? <plug>(fzf-maps-n)
+" xmap <space>? <plug>(fzf-maps-x)
+" omap <space>? <plug>(fzf-maps-o)
 
 " GitGutter mappings
 " <Leader>hs : stage hunk
 " <Leader>hu : undo staged hunk
 " <Leader>hp : preview hunk
-nnoremap <leader>hd :GitGutterDiffOrig<CR>
+" nnoremap <leader>hd :GitGutterDiffOrig<CR>
 " GitGutterFold : fold all unchanged lines, Use `zr` to unfold 3 lines of context above and below a hunk
 
 set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 set background=dark
+" let g:gruvbox_contrast_dark = 'hard'
+" colorscheme retrobox
+" colorscheme gruvbox
+" colorscheme tokyonight
 syntax on
-colorscheme retrobox
 " colorscheme habamax
+colorscheme zaibatsu
 " set t_Co=16
 
 " Function to diff current file against HEAD or commit
@@ -271,3 +283,49 @@ nnoremap <C-l> <C-w><C-l>
 " quickly show the buffer list in a completion menu
 set wildcharm=<C-Z>
 nnoremap <leader>b :b <C-Z>
+
+" vim hardcodes background color erase even if the terminfo file does
+" not contain bce (not to mention that libvte based terminals
+" incorrectly contain bce in their terminfo files). This causes
+" incorrect background rendering when using a color theme with a
+" background color.
+let &t_ut=''
+
+" General colors
+if has('gui_running') || has('nvim')
+  " gruvbox
+  " hi Normal     guifg=#f6f3e8 guibg=#242424
+  " zaibatsu
+  hi Normal guifg=#ffffff guibg=#0e0024 gui=NONE cterm=NONE
+else
+  " Set the terminal default background and foreground colors, thereby
+  " improving performance by not needing to set these colors on empty cells.
+  hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
+  let &t_ti = &t_ti . "\033]10;#ffffff\007\033]11;#0e0024\007"
+  let &t_te = &t_te . "\033]110\007\033]111\007"
+endif
+
+" Specify this variable to enable the plugin feature.
+let g:clap_plugin_experimental = v:true
+let g:clap_theme = 'material_design_dark'
+let g:clap_popup_input_delay = 50
+let g:clap_provider_live_grep_delay = 100
+let g:clap_layout = {'width': '44%', 'height': '80%', 'row': '12%', 'col': '17%', 'relative': 'editor'}
+" vim-clap mappings
+nnoremap <space>f :Clap files<CR>
+nnoremap <space>b :Clap buffers<CR>
+nnoremap <space>o :Clap history<CR>
+nnoremap <space>/ :Clap live_grep<CR>
+" list branches
+" nnoremap <leader>gb ?? no mapping for that ?
+
+" others that are not in helix, lets fallacbk to neovim bindings
+nnoremap <leader>gs :Clap git_files<CR>
+" commit history
+nnoremap <leader>gc :Clap commits<CR>
+" commits for the current buffer
+nnoremap <leader>gf :Clap bcommits<CR>
+" fuzzy search in the current buffer
+nnoremap <leader>fb :Clap blines<CR>
+" enable tree-sitter-highlighting
+autocmd BufEnter *.py,*.rs,*.c,*.go,*.sh,*.js,*.json,*.md,*.toml,*.viml :ClapAction syntax/tree-sitter-highlight
