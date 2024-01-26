@@ -17,7 +17,7 @@ export def ShowAtCursor(text: any, Setup: func(number) = null_function): number
     endif
     var winid = popup_atcursor(new_text, {
         padding: [0, 1, 0, 1],
-        border: [0, 0, 0, 0],
+        border: [],
         borderchars: borderchars,
         borderhighlight: borderhighlight,
         highlight: popuphighlight,
