@@ -60,92 +60,17 @@ let g:netrw_liststyle=3     " tree view
 " netrw_gitignore#Hide() causes netrw to be super slow on big repo
 " let g:netrw_list_hide=netrw_gitignore#Hide()
 let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
-nnoremap <F3> :Ex<CR>
-
-" nnoremap <M-h> :bp<CR>
-" inoremap <ESC><M-h> :bp<CR>
-" nnoremap <M-l> :bn<CR>
-" inoremap <ESC><M-l> :bn<CR>
-
 
 set background=dark
 syntax on
 
-" Diff against a specificy commit hash or HEAD
-function! Diff(spec)
-	vertical new
-	setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
-    let cmd = "++edit #"
-	if len(a:spec)
-    let cmd = "!git -C " . shellescape(fnamemodify(finddir('.git', '.;'), ':p:h:h')) . " show " . a:spec . ":#"
-	endif
-	execute "read " . cmd
-	silent 0d_
-	diffthis
-	wincmd p
-	diffthis
-endfunction
-command! -nargs=? Diff call Diff(<q-args>)
-
 " Builtin grep
 set grepprg=rg\ --vimgrep
 
-function! Grep(...)
-	return system(join([&grepprg] + [expandcmd(join(a:000, ' '))], ' '))
-endfunction
-
-command! -nargs=+ -complete=file_in_path -bar Grep  cgetexpr Grep(<f-args>)
-command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
-
-cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
-cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
-
-augroup quickfix
-	autocmd!
-	autocmd QuickFixCmdPost cgetexpr cwindow
-	autocmd QuickFixCmdPost lgetexpr lwindow
-augroup END
-
-" Grep the word under the cursor
-nnoremap <leader>s :Grep <C-R><C-W><CR>
-
-" try to use fd to find files
-set errorformat+=%f
-function! Find(...)
-  let findcmd = "fdfind \--type f"
-	return system(join([findcmd] + [expandcmd(join(a:000, ' '))], ' '))
-endfunction
-command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
-
-" automatically open the quickfix window
-augroup quickfix
-	autocmd!
-	autocmd QuickFixCmdPost cgetexpr cwindow
-	autocmd QuickFixCmdPost lgetexpr lwindow
-augroup END
-
 " Useful tips
 " merging 2 blocks of line, put cursor on last line of first block and do :1,g/^/''+m.|-j!
-"
-function! Commit(...)
-	let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
-	return system(commitcmd)
-endfunction
-command! -nargs=0 -bar Commit cgetexpr Commit()
-
-" :GB to git blame current line :%GB to blame the whole file, :7,13GB blame range
-command! -range GB echo join(systemlist("git -C " . shellescape(expand('%:p:h')) . " blame -L <line1>,<line2> " . expand('%:t')), "\n")
-
-command! -bang -nargs=1 Global call setloclist(0, [], ' ',
-	\ {'title': 'Global<bang> ' .. <q-args>,
-	\  'efm':   '%f:%l:%c\ %m,%f:%l',
-	\  'lines': execute('g<bang>/' .. <q-args> .. '/#')
-	\           ->split('\n')
-	\           ->map({_, val -> expand("%") .. ":" .. trim(val)->substitute('^\d\+','&:' .. trim(val)->substitute('^\d\+ ','','')->charidx(trim(val)->substitute('^\d\+','','')->match(<q-args>)),'')})
-	\ })
 
 " disable Background Color Erase
-" set t_ut=
 let &t_ut=''
 
 " use tab to trigger omnifunc competion
@@ -155,115 +80,29 @@ set completeopt=menuone,preview
 
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
-nnoremap <space>b :b <C-Z>
-
-nmap ç ]
-nmap é [
-nnoremap ]q :cne<CR>
-nnoremap [q :cpr<CR>
-
-" Commenting blocks of code
-" augroup commenting_blocks_of_code
-"   autocmd!
-"   autocmd FileType c,cpp,java,scala,rust let b:comment_leader = '// '
-"   autocmd FileType sh,ruby,python        let b:comment_leader = '# '
-"   autocmd FileType conf,fstab,ini        let b:comment_leader = '# '
-"   autocmd FileType mail                  let b:comment_leader = '> '
-"   autocmd FileType vim                   let b:comment_leader = '" '
-"   autocmd FileType lua                   let b:comment_leader = '-- '
-" augroup END
-" noremap <silent> gcc :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:nohlsearch<CR>
-" noremap <silent> gcu :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
 
 " General colors
 if has('gui_running') || has('nvim')
   " zaibatsu
-  " hi Normal     guifg=#f6f3e8 guibg=#242424
+  hi Normal     guifg=#f6f3e8 guibg=#242424
   " retrobox
-  hi Normal    guifg=#ebdbb2 guibg=#1c1c1c
+  " hi Normal    guifg=#ebdbb2 guibg=#1c1c1c
 else
   " Set the terminal default background and foreground colors, thereby
   " improving performance by not needing to set these colors on empty cells.
   hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
   " zaibatsu
-  " let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
+  let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
   " retrobox
-  let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
+  " let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
   let &t_te = &t_te . "\033]110\007\033]111\007"
 endif
 
 " set colorscheme at the end
 colorscheme retrobox
 
-" interactive file search using ripgrep + fzf
-" function! FZF() abort
-"     let l:tempname = tempname()
-"     execute 'silent !rg --files . | fzf -m --border' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
-"     try
-"         execute 'cfile ' . l:tempname
-"         redraw!
-"     finally
-"         call delete(l:tempname)
-"     endtry
-" endfunction
-
-" :Files
-" command! -nargs=* Files call FZF()
-" nnoremap <space>f :Files<cr>
-
-" interactive grep file content using ripgrep + fzf
-" function! RG(args) abort
-"     let l:tempname = tempname()
-"     let l:pattern = '.'
-"     if len(a:args) > 0
-"         let l:pattern = a:args
-"     endif
-"     " rg --vimgrep <pattern> | fzf -m > file
-"     execute 'silent !rg --no-heading --line-number --column --smart-case ''' .  l:pattern . ''' | fzf -m --border --delimiter : --nth 3.. > ' . fnameescape(l:tempname)
-"     try
-"         execute 'cfile ' . l:tempname
-"         redraw!
-"     finally
-"         call delete(l:tempname)
-"     endtry
-" endfunction
-
-" :Rg [pattern]
-" command! -nargs=* Rg call RG(<q-args>)
-
-" <space>/
-" nnoremap <space>/ :Rg<cr>
-
-" use comment script from autoload/comment.vim
-nnoremap <silent> <expr> gc comment#Toggle()
-xnoremap <silent> <expr> gc comment#Toggle()
-nnoremap <silent> <expr> gcc comment#Toggle() .. '_'
-
-" send selection to terminal window
-xnoremap <expr> <space>t term#Send()
-nnoremap <expr> <space>t term#Send()
-nnoremap <expr> <space>tt term#Send() .. '_'
-
-" display the commit that introduce the change on this line (or in the
-" selection)
-nnoremap <silent> <leader>gi <scriptcmd>vim9cmd git#ShowCommit(v:count)<CR>
-xnoremap <silent> <leader>gi <scriptcmd>vim9cmd git#ShowCommit(v:count, line("v"), line("."))<CR>
-nnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame()<CR>
-xnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame(line("v"), line("."))<CR>
-
 " Add lsp plugin
 packadd lsp
 packadd vim-fugitive
 
-inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
-inoremap <expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
-
 autocmd BufEnter * set completepopup+=border:off
-
-" fuzzy finder
-nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
-nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
-nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
-nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
-nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
-nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>

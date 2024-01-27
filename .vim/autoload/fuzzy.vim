@@ -1,7 +1,6 @@
 vim9script
 
 import autoload 'popup.vim'
-# import autoload 'os.vim'
 
 const MAX_ELEMENTS: number = 20000
 

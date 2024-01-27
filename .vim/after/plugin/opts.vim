@@ -1,5 +1,12 @@
 vim9script
 
+if exists("g:loaded_fugitive")
+  command! Glog Git log -p --follow -- %
+  command! GlogSummary Git log --follow -- %
+  command! Gpull Git pull
+  command! Gpush Git push
+endif
+
 if exists("g:loaded_lsp")
   g:LspOptionsSet({
     completionMatcher: 'fuzzy',
@@ -54,7 +61,7 @@ if exists("g:loaded_lsp")
   nnoremap gS :LspSymbolSearch<CR>
   nnoremap gr :LspShowReferences<CR>
   nnoremap gi :LspPeekImpl<CR>
-  nnoremap gt :LspPeekReferences<CR>
+  nnoremap <leader>rf :LspPeekReferences<CR>
   nnoremap <leader>rn :LspRename<CR>
   nnoremap [d :LspDiagPrev<CR>
   nnoremap ]d :LspDiagNext<CR>
