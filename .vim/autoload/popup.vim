@@ -111,13 +111,23 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
         if itemsAny[0]->len() == 0 | return [] | endif
         if itemsAny->len() > 1
             return itemsAny[0]->mapnew((idx, v) => {
-                return {text: v.text, props: itemsAny[1][idx]->mapnew((_, c) => {
-                    return {col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch'}
-                })}
+                if has_key(v, "file")
+                    return { text: v.text, line: v.line, file: v.file, props: itemsAny[1][idx]->mapnew((_, c) => { 
+                        return {col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch'}
+                    })}
+                else
+                    return {text: v.text, props: itemsAny[1][idx]->mapnew((_, c) => {
+                        return {col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch'}
+                    })}
+                endif
             })
         else
             return itemsAny[0]->mapnew((_, v) => {
-                return {text: v.text}
+                if has_key(v, "file")
+                  return {text: v.text, file: v.file, line: v.line}
+                else
+                  return {text: v.text}
+                endif
             })
         endif
     enddef
@@ -199,9 +209,10 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3
-                        var new_matches = systemlist('rg --no-heading --smart-case "' .. prompt .. '"')
+                        var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
                         filtered_items = [new_matches->mapnew((_, v) => {
-                          return {text: v}
+                          var splitted_text = split(v, ":")
+                          return {text: v, file: splitted_text[0], line: splitted_text[1]}
                         })]
                     endif
                 elseif key =~ '\p'
@@ -210,9 +221,10 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3 
-                        var new_matches = systemlist('rg --no-heading --smart-case "' .. prompt .. '"')
+                        var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
                         filtered_items = [new_matches->mapnew((_, v) => {
-                          return {text: v}
+                          var splitted_text = split(v, ":")
+                          return {text: v, file: splitted_text[0], line: splitted_text[1]}
                         })]
                     endif
                 endif

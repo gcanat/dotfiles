@@ -37,3 +37,4 @@ nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
 nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
 nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
 nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
+nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>

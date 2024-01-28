@@ -278,19 +278,19 @@ enddef
 export def LiveGrep(pattern: string = "")
     var matches = []
     if pattern != ""
-        matches = systemlist('rg --no-heading --smart-case ' .. pattern)
+        matches = systemlist('rg --no-heading --smart-case --column ' .. pattern)
     endif
 
     popup.FilterMenu("File", matches[ : MAX_ELEMENTS - 1],
         (res, key) => {
             if key == "\<c-t>"
-                exe $":tabe {res.text}"
+                exe $":tabe +{res.line} {res.file}"
             elseif key == "\<c-j>"
-                exe $":split {res.text}"
+                exe $":split +{res.line} {res.file}"
             elseif key == "\<c-v>"
-                exe $":vert split {res.text}"
+                exe $":vert split +{res.line} {res.file}"
             else
-                exe $":e {res.text}"
+                exe $":e +{res.line} {res.file}"
             endif
         },
         (winid) => {

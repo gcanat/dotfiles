@@ -29,8 +29,6 @@ set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,t
 set wildoptions+=pum,fuzzy
 set fillchars=vert:│
 set sessionoptions=buffers,curdir,tabpages,winsize
-" display git branch in statusline
-" set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
@@ -65,7 +63,9 @@ set background=dark
 syntax on
 
 " Builtin grep
-set grepprg=rg\ --vimgrep
+if executable('rg')
+  set grepprg=rg\ --vimgrep
+endif
 
 " Useful tips
 " merging 2 blocks of line, put cursor on last line of first block and do :1,g/^/''+m.|-j!
@@ -92,17 +92,18 @@ else
   " improving performance by not needing to set these colors on empty cells.
   hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
   " zaibatsu
-  let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
+  let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
   " retrobox
   " let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
   let &t_te = &t_te . "\033]110\007\033]111\007"
 endif
 
-" set colorscheme at the end
-colorscheme retrobox
 
+" let g:python_highlight_all=1
 " Add lsp plugin
 packadd lsp
 packadd vim-fugitive
+" packadd python-syntax
+
 
 autocmd BufEnter * set completepopup+=border:off

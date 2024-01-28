@@ -5,6 +5,7 @@ if exists("g:loaded_fugitive")
   command! GlogSummary Git log --follow -- %
   command! Gpull Git pull
   command! Gpush Git push
+  set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
 
 if exists("g:loaded_lsp")
