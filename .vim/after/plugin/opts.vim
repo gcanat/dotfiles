@@ -1,8 +1,7 @@
 vim9script
 
 if exists("g:loaded_fugitive")
-  command! Glog Git log -p --follow -- %
-  command! GlogSummary Git log --follow -- %
+  command! -nargs=* Glog Git log --oneline --decorate --graph --follow <args>
   command! Gpull Git pull
   command! Gpush Git push
   set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
@@ -12,13 +11,13 @@ if exists("g:loaded_lsp")
   g:LspOptionsSet({
     completionMatcher: 'fuzzy',
     showInlayHints: false,
-    showDiagWithVirtualText: true,
+    showDiagWithVirtualText: false,
     autoHighlightDiags: true,
     autoComplete: true,
-    diagSignErrorText: '●',
-    diagSignInfoText: '●',
-    diagSignHintText: '●',
-    diagSignWarningText: '●',
+    diagSignErrorText: 'E',
+    diagSignInfoText: 'I',
+    diagSignHintText: 'H',
+    diagSignWarningText: 'W',
     useQuickfixForLocations: true,
     filterCompletionDuplicates: true
   })

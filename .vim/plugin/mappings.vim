@@ -5,6 +5,12 @@ nnoremap <leader>s :Grep <C-R><C-W><CR>
 
 nnoremap <space>b :b <C-Z>
 
+" faster window navigation
+nnoremap <c-h> <c-w>h
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+nnoremap <c-l> <c-w>l
+
 nmap ç ]
 nmap é [
 nnoremap ]q :cne<CR>

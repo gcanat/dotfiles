@@ -29,6 +29,10 @@ set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,t
 set wildoptions+=pum,fuzzy
 set fillchars=vert:│
 set sessionoptions=buffers,curdir,tabpages,winsize
+" Saving options in session and view files causes more problems than it
+" solves, so disable it.
+set sessionoptions-=options
+set viewoptions-=options
 
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
@@ -39,10 +43,7 @@ set incsearch ignorecase smartcase
 set scrolloff=4
 " Disable a legacy behavior that can break plugin maps.
 set nolangremap
-" Saving options in session and view files causes more problems than it
-" solves, so disable it.
-set sessionoptions-=options
-set viewoptions-=options
+set undofile
 " Setup data dirs
 let g:vimdata = expand("~/.local/share/") . 'vim-data'
 let &directory=g:vimdata . '/swap//'
@@ -82,21 +83,22 @@ set completeopt=menuone,preview
 set wildcharm=<C-Z>
 
 " General colors
-if has('gui_running') || has('nvim')
-  " zaibatsu
-  hi Normal     guifg=#f6f3e8 guibg=#242424
-  " retrobox
-  " hi Normal    guifg=#ebdbb2 guibg=#1c1c1c
-else
-  " Set the terminal default background and foreground colors, thereby
-  " improving performance by not needing to set these colors on empty cells.
-  hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
-  " zaibatsu
-  let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
-  " retrobox
-  " let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
-  let &t_te = &t_te . "\033]110\007\033]111\007"
-endif
+" if has('gui_running') || has('nvim')
+"   " zaibatsu
+"   hi Normal     guifg=#f6f3e8 guibg=#242424
+"   " retrobox
+"   " hi Normal    guifg=#ebdbb2 guibg=#1c1c1c
+" else
+"   " Set the terminal default background and foreground colors, thereby
+"   " improving performance by not needing to set these colors on empty cells.
+"   " hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
+"   " zaibatsu
+"   let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
+"   " retrobox
+"   " let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
+"   let &t_te = &t_te . "\033]110\007\033]111\007"
+" endif
+" let &t_te = &t_te . "\033]110\007\033]111\007"
 
 
 " let g:python_highlight_all=1
@@ -106,4 +108,4 @@ packadd vim-fugitive
 " packadd python-syntax
 
 
-autocmd BufEnter * set completepopup+=border:off
+" autocmd BufEnter * set completepopup+=border:off
