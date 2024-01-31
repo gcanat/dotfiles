@@ -278,7 +278,7 @@ enddef
 export def LiveGrep(pattern: string = "")
     var matches = []
     if pattern != ""
-        matches = systemlist('rg --no-heading --smart-case --column ' .. pattern)
+        matches = systemlist('rg --no-heading --smart-case --column "' .. pattern .. '"')
     endif
 
     popup.FilterMenu("File", matches[ : MAX_ELEMENTS - 1],
@@ -294,7 +294,7 @@ export def LiveGrep(pattern: string = "")
             endif
         },
         (winid) => {
-            win_execute(winid, "syn match FilterMenuDirectorySubtle '^.*[\\/]'")
+            win_execute(winid, "syn match FilterMenuDirectorySubtle '^.*:'")
             hi def link FilterMenuDirectorySubtle Comment
         },
         false,

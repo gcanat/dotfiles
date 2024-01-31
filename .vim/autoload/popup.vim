@@ -107,17 +107,19 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
     endif
 
     var filtered_items: list<any> = [items_dict]
+
     def Printify(itemsAny: list<any>, props: list<any>): list<any>
         if itemsAny[0]->len() == 0 | return [] | endif
         if itemsAny->len() > 1
             return itemsAny[0]->mapnew((idx, v) => {
                 if has_key(v, "file")
                     return { text: v.text, line: v.line, file: v.file, props: itemsAny[1][idx]->mapnew((_, c) => { 
-                        return {col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch'}
+                        var col_index = v.file->len() + v.line->len() + v.col->len() + 3 + c
+                        return { col: col_index, length: v.prompt_len, type: 'FilterMenuMatch'}
                     })}
                 else
-                    return {text: v.text, props: itemsAny[1][idx]->mapnew((_, c) => {
-                        return {col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch'}
+                    return { text: v.text, props: itemsAny[1][idx]->mapnew((_, c) => {
+                        return { col: v.text->byteidx(c) + 1, length: 1, type: 'FilterMenuMatch' }
                     })}
                 endif
             })
@@ -131,6 +133,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
             })
         endif
     enddef
+
     var min_height = 5
     if items->len() < 1
       min_height = (&lines * 0.6)->float2nr()
@@ -210,10 +213,15 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3
                         var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
-                        filtered_items = [new_matches->mapnew((_, v) => {
-                          var splitted_text = split(v, ":")
-                          return {text: v, file: splitted_text[0], line: splitted_text[1]}
-                        })]
+                        var string_matches = new_matches->mapnew((_, v) => {
+                            var splitted_text = split(v, ":")
+                            return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len()}
+                        })
+                        var pos_list = string_matches->mapnew((_, v) => {
+                            return [str2nr(v.col)]
+                            })
+                        filtered_items = [string_matches, pos_list]
+                        items_count = string_matches->len()
                     endif
                 elseif key =~ '\p'
                     prompt ..= key
@@ -222,10 +230,15 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3 
                         var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
-                        filtered_items = [new_matches->mapnew((_, v) => {
-                          var splitted_text = split(v, ":")
-                          return {text: v, file: splitted_text[0], line: splitted_text[1]}
-                        })]
+                        var string_matches = new_matches->mapnew((_, v) => {
+                            var splitted_text = split(v, ":")
+                            return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len()}
+                        })
+                        var pos_list = string_matches->mapnew((_, v) => {
+                          return [str2nr(v.col)]
+                          })
+                        filtered_items = [string_matches, pos_list]
+                        items_count = string_matches->len()
                     endif
                 endif
                 popup_setoptions(id, {title: $" ({items_count > 0 ? filtered_items[0]->len() : 0}/{items_count}) {title} {bordertitle[0]} {prompt} {bordertitle[1]}" })
