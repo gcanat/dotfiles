@@ -294,7 +294,7 @@ export def LiveGrep(pattern: string = "")
             endif
         },
         (winid) => {
-            win_execute(winid, "syn match FilterMenuDirectorySubtle '^.*:'")
+            win_execute(winid, "syn match FilterMenuDirectorySubtle '^[^:]*:\\d\\+:\\d\\+:'")
             hi def link FilterMenuDirectorySubtle Comment
         },
         false,
