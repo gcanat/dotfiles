@@ -14,6 +14,7 @@ set laststatus=2
 set hidden
 set splitright
 set shell=/bin/fish
+set shortmess+=Ta
 
 filetype plugin on
 filetype indent on
@@ -82,30 +83,8 @@ set completeopt=menuone,preview
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
 
-" General colors
-" if has('gui_running') || has('nvim')
-"   " zaibatsu
-"   hi Normal     guifg=#f6f3e8 guibg=#242424
-"   " retrobox
-"   " hi Normal    guifg=#ebdbb2 guibg=#1c1c1c
-" else
-"   " Set the terminal default background and foreground colors, thereby
-"   " improving performance by not needing to set these colors on empty cells.
-"   " hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
-"   " zaibatsu
-"   let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
-"   " retrobox
-"   " let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
-"   let &t_te = &t_te . "\033]110\007\033]111\007"
-" endif
-" let &t_te = &t_te . "\033]110\007\033]111\007"
-
-
-" let g:python_highlight_all=1
 " Add lsp plugin
 packadd lsp
 packadd vim-fugitive
-" packadd python-syntax
-
 
 " autocmd BufEnter * set completepopup+=border:off
