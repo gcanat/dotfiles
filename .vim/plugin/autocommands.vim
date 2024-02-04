@@ -10,8 +10,9 @@ augroup retrotheme
 augroup END
 
 " set colorscheme at the end
-colorscheme zaibatsu
-" colorscheme retrobox
+" colorscheme zaibatsu
+colorscheme retrobox
+" colorscheme kanagawa
 
 augroup quickfix
 	autocmd!

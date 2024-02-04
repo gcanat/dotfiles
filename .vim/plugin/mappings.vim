@@ -1,7 +1,7 @@
 nnoremap <F3> :Ex<CR>
 
 " Grep the word under the cursor
-nnoremap <leader>s :Grep <C-R><C-W><CR>
+nnoremap <leader>wg :Grep <C-R><C-W><CR>
 
 nnoremap <space>b :b <C-Z>
 
@@ -15,6 +15,8 @@ nmap ç ]
 nmap é [
 nnoremap ]q :cne<CR>
 nnoremap [q :cpr<CR>
+nnoremap ]b :bnext<CR>
+nnoremap [b :bprev<CR>
 
 " use comment script from autoload/comment.vim
 nnoremap <silent> <expr> gc comment#Toggle()

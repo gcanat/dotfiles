@@ -10,6 +10,7 @@ endif
 if exists("g:loaded_lsp")
   g:LspOptionsSet({
     completionMatcher: 'fuzzy',
+    completionTextEdit: false,
     showInlayHints: false,
     showDiagWithVirtualText: false,
     autoHighlightDiags: true,

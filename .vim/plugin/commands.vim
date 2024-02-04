@@ -1,3 +1,5 @@
+command! PackUp vim9cmd git#PackUpdate()
+
 " Diff against a specificy commit hash or HEAD
 function! Diff(spec)
 	vertical new
@@ -51,7 +53,7 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
 	\           ->map({_, val -> expand("%") .. ":" .. trim(val)->substitute('^\d\+','&:' .. trim(val)->substitute('^\d\+ ','','')->charidx(trim(val)->substitute('^\d\+','','')->match(<q-args>)),'')})
 	\ })
 
-" interactive file search using ripgrep + fzf
+" " interactive file search using ripgrep + fzf
 " function! FZF() abort
 "     let l:tempname = tempname()
 "     execute 'silent !rg --files . | fzf -m --border' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
@@ -63,11 +65,11 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
 "     endtry
 " endfunction
 
-" :Files
+" " :Files
 " command! -nargs=* Files call FZF()
 " nnoremap <space>f :Files<cr>
 
-" interactive grep file content using ripgrep + fzf
+" " interactive grep file content using ripgrep + fzf
 " function! RG(args) abort
 "     let l:tempname = tempname()
 "     let l:pattern = '.'
@@ -84,8 +86,8 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
 "     endtry
 " endfunction
 
-" :Rg [pattern]
+" " :Rg [pattern]
 " command! -nargs=* Rg call RG(<q-args>)
 
-" <space>/
+" " <space>/
 " nnoremap <space>/ :Rg<cr>
