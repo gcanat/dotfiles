@@ -1,5 +1,3 @@
-command! PackUp vim9cmd git#PackUpdate()
-
 " Diff against a specificy commit hash or HEAD
 function! Diff(spec)
 	vertical new
