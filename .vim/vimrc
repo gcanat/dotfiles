@@ -83,8 +83,9 @@ set completeopt=menuone,preview
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
 
-" Add lsp plugin
-packadd lsp
-packadd vim-fugitive
+" Add plugin
+packadd! lsp
+packadd! vim-fugitive
+packadd! vim-gitgutter
 
 " autocmd BufEnter * set completepopup+=border:off
