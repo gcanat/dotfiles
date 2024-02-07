@@ -176,6 +176,14 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
             endif
             if key == "\<esc>"
                 popup_close(id, -1)
+            elseif key == "\<C-q>"
+                # build the list of items for the quickfix list
+                var qf_items = filtered_items[0]->mapnew((_, v) => {
+                    return {filename: v.file, lnum: char2nr(v.line), col: char2nr(v.col), text: v.line_txt}
+                })
+                setqflist([], ' ', {'items': qf_items, 'nr': '$', 'title': 'LiveGrep'})
+                exe $":copen"
+                popup_close(id, -1)
             elseif ["\<cr>", "\<C-j>", "\<C-v>", "\<C-t>", "\<C-o>"]->index(key) > -1
                     && filtered_items[0]->len() > 0 && items_count > 0
                 popup_close(id, {idx: getcurpos(id)[1], key: key})
