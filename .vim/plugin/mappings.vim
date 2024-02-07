@@ -1,7 +1,7 @@
 nnoremap <F3> :Ex<CR>
 
 " Grep the word under the cursor
-nnoremap <leader>wg :Grep <C-R><C-W><CR>
+nnoremap <leader>gw :Grep <C-R><C-W><CR>
 
 nnoremap <space>b :b <C-Z>
 
@@ -11,8 +11,8 @@ nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 nnoremap <c-l> <c-w>l
 
-nmap ç ]
-nmap é [
+nmap à ]
+nmap ç [
 nnoremap ]q :cne<CR>
 nnoremap [q :cpr<CR>
 nnoremap ]b :bnext<CR>
@@ -46,3 +46,5 @@ nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
 nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
 nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
 nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
+nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
+nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>

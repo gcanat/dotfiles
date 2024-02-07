@@ -19,3 +19,7 @@ augroup quickfix
 	autocmd QuickFixCmdPost cgetexpr cwindow
 	autocmd QuickFixCmdPost lgetexpr lwindow
 augroup END
+
+augroup general | au!
+    au VimLeavePre * :exe $'mksession! {g:vimdata}/sessions/LAST'
+augroup end
