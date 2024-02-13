@@ -69,7 +69,7 @@ hi link WinBarNC StatusLineNC
 hi Cursor gui=NONE term=NONE cterm=NONE guifg=#1a1b26 guibg=#c0caf5 ctermfg=234 ctermbg=251
 hi FloatTitle gui=NONE term=NONE cterm=NONE guifg=#27a1b9 guibg=#16161e ctermfg=37 ctermbg=233
 hi lCursor gui=NONE term=NONE cterm=NONE guifg=#1a1b26 guibg=#c0caf5 ctermfg=234 ctermbg=251
-hi Normal gui=NONE term=NONE cterm=NONE guifg=#c0caf5 guibg=#1a1b26 ctermfg=251 ctermbg=234
+hi Normal gui=NONE term=NONE cterm=NONE guifg=#c0caf5 guibg=NONE ctermfg=251 ctermbg=NONE
 hi Substitute gui=NONE term=NONE cterm=NONE guifg=#15161e guibg=#f7768e ctermfg=233 ctermbg=210
 hi FloatShadow gui=NONE term=NONE cterm=NONE guifg=NONE guibg=#000000 ctermfg=NONE ctermbg=0
 hi FloatShadowThrough gui=NONE term=NONE cterm=NONE guifg=NONE guibg=#000000 ctermfg=NONE ctermbg=0

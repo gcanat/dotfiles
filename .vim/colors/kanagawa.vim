@@ -69,7 +69,8 @@ hi WinBarNC gui=NONE term=NONE cterm=NONE guifg=#c8c093 guibg=NONE ctermfg=7 cte
 hi Cursor gui=NONE term=NONE cterm=NONE guifg=#1f1f28 guibg=#dcd7ba ctermfg=234 ctermbg=187
 hi FloatTitle gui=bold term=bold cterm=bold guifg=#938aa9 guibg=#16161d ctermfg=103 ctermbg=233
 hi link lCursor Cursor
-hi Normal gui=NONE term=NONE cterm=NONE guifg=#dcd7ba guibg=#1f1f28 ctermfg=187 ctermbg=234
+" hi Normal gui=NONE term=NONE cterm=NONE guifg=#dcd7ba guibg=#1f1f28 ctermfg=NONE ctermbg=NONE
+hi Normal gui=NONE term=NONE cterm=NONE guifg=#dcd7ba guibg=NONE ctermfg=NONE ctermbg=NONE
 hi Substitute gui=NONE term=NONE cterm=NONE guifg=#dcd7ba guibg=#c34043 ctermfg=187 ctermbg=131
 hi FloatShadow gui=NONE term=NONE cterm=NONE guifg=NONE guibg=#000000 ctermfg=NONE ctermbg=0
 hi FloatShadowThrough gui=NONE term=NONE cterm=NONE guifg=NONE guibg=#000000 ctermfg=NONE ctermbg=0

@@ -25,6 +25,11 @@ command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
 cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
 cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
 
+" command! -nargs=+ -complete=file_in_path -bar VimGrep noautocmd vimgrep <args> | cw
+command! -nargs=+ -complete=file_in_path -bar VimGrep execute('silent! noautocmd vimgrep /' . split(<q-args>, ' ')[0] . '/j ' . split(<q-args>, ' ')[1] .' | cw')
+command! -nargs=+ -complete=file_in_path -bar GitGrep silent! Ggrep <args> | cw
+
+
 " try to use fd to find files
 set errorformat+=%f
 function! Find(...)
@@ -89,3 +94,31 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
 
 " " <space>/
 " nnoremap <space>/ :Rg<cr>
+
+function! CurrentGitStatus()
+    let gitoutput = systemlist('cd '.expand('%:p:h:S').' && git status -s 2>/dev/null')
+    let gitbranch = system('cd '.expand('%:p:h:S').' && git branch --show-current 2>/dev/null | tr -d "\n"')
+    if len(gitbranch) > 0
+        let b:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
+    else
+        let b:gitstatus = ''
+    endif
+endfunc
+autocmd BufEnter,BufWritePost * call CurrentGitStatus()
+
+set statusline=
+set statusline+=%#PmenuSel#
+" set statusline+=%{StatuslineGit()}
+" set statusline+=%{FugitiveStatusline()}
+set statusline+=%{b:gitstatus}
+set statusline+=%#StatusLine#
+set statusline+=\ %f
+set statusline+=%m\ 
+set statusline+=%=
+set statusline+=%#CursorColumn#
+set statusline+=\ %y
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+set statusline+=\[%{&fileformat}\]
+set statusline+=\ %p%%
+set statusline+=\ %l:%c
+set statusline+=\ 

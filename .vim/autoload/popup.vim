@@ -176,7 +176,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
             endif
             if key == "\<esc>"
                 popup_close(id, -1)
-            elseif key == "\<C-q>"
+            elseif key == "\<M-q>"
                 # build the list of items for the quickfix list
                 var qf_items = filtered_items[0]->mapnew((_, v) => {
                     return {filename: v.file, lnum: char2nr(v.line), col: char2nr(v.col), text: v.line_txt}
