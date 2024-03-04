@@ -25,3 +25,12 @@ augroup END
 augroup general | au!
     au VimLeavePre * :exe $'mksession! {g:vimdata}/sessions/LAST'
 augroup end
+
+
+" autocmd BufEnter * set completepopup+=border:off
+
+augroup CursColLine
+    autocmd!
+    au WinLeave * setlocal nocursorline nocursorcolumn
+    au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
+augroup end

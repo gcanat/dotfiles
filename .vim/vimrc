@@ -1,7 +1,7 @@
 " set showtabline=1
 set termguicolors
 set nu relativenumber
-set cursorline
+" set cursorline
 set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 set numberwidth=5
 set signcolumn=yes
@@ -14,16 +14,18 @@ set laststatus=2
 set hidden
 set splitright
 set shell=/bin/fish
-set shortmess+=Ta
+set shortmess+=TasS
 
 filetype plugin on
 filetype indent on
 " disable vi compatibility
-set nocompatible
+if &compatible
+  set nocompatible
+endif
 
 " Search down into a whitelist of subfolders
 " Provides tab-completion for all file-related tasks
-set path+=data_preparation_tools/**,docker/**,tests/**.py,tools/**,clinical_classification/**,configs/**,data_summary/**,deployment/**,projects/**,research/**,scripts/**,video_algorithms/**,valgo_common/**
+set path+=data_preparation_tools/**,docker/**,tests/**.py,tools/**,config/**,configs/**,data_summary/**,deployment/**,projects/**,research/**,scripts/**,video_algorithms/**,valgo_common/**,src/**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
@@ -85,8 +87,7 @@ set completeopt=menuone,preview
 set wildcharm=<C-Z>
 
 " Add plugin
-packadd! lsp
-packadd! vim-fugitive
-packadd! vim-gitgutter
+packadd lsp
+packadd vim-fugitive
+packadd vim-gitgutter
 
-" autocmd BufEnter * set completepopup+=border:off

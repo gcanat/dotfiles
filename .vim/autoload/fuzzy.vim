@@ -302,29 +302,29 @@ export def LiveGrep(pattern: string = "")
     )
 enddef
 
-export def JumpList()
-    var jump_list = getjumplist()
-    echom jump_list
-    popup.FilterMenu("JumpList", jump_list,
-        (res, key) => {
-            if key == "\<c-t>"
-                exe $":tabe +{res.lnum} {res.filename}"
-            elseif key == "\<c-j>"
-                exe $":split +{res.lnum} {res.filename}"
-            elseif key == "\<c-v>"
-                exe $":vert split +{res.lnum} {res.filename}"
-            else
-                exe $":e +{res.lnum} {res.filename}"
-            endif
-        },
-        (winid) => {
-            win_execute(winid, "syn match FilterMenuDirectorySubtle '^[^:]*:\\d\\+:\\d\\+:'")
-            hi def link FilterMenuDirectorySubtle Comment
-        },
-        false,
-        true
-    )
-enddef
+# export def JumpList()
+#     var jump_list = getjumplist()
+#     echom jump_list
+#     popup.FilterMenu("JumpList", jump_list[0],
+#         (res, key) => {
+#             if key == "\<c-t>"
+#                 exe $":tabe +{res.lnum} {res.filename}"
+#             elseif key == "\<c-j>"
+#                 exe $":split +{res.lnum} {res.filename}"
+#             elseif key == "\<c-v>"
+#                 exe $":vert split +{res.lnum} {res.filename}"
+#             else
+#                 exe $":e +{res.lnum} {res.filename}"
+#             endif
+#         },
+#         (winid) => {
+#             win_execute(winid, "syn match FilterMenuDirectorySubtle '^[^:]*:\\d\\+:\\d\\+:'")
+#             hi def link FilterMenuDirectorySubtle Comment
+#         },
+#         false,
+#         true
+#     )
+# enddef
 
 
 export def Filetype()

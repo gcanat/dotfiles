@@ -13,6 +13,8 @@ nnoremap <c-l> <c-w>l
 
 nmap à ]
 nmap ç [
+nmap ù }
+nmap é {
 nnoremap ]q :cne<CR>
 nnoremap [q :cpr<CR>
 nnoremap ]b :bnext<CR>

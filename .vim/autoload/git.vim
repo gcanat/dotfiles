@@ -29,7 +29,7 @@ export def PackUpdate()
             if pinfo =~ '^\s*#' || pinfo =~ '^\s*$'
                 continue
             endif
-            var [name, url] = pinfo->split("\t")
+            var [name, url] = pinfo->split(" ")
             if empty(name) || empty(url)
                 continue
             endif

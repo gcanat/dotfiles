@@ -96,8 +96,8 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
 " nnoremap <space>/ :Rg<cr>
 
 function! CurrentGitStatus()
-    let gitoutput = systemlist('cd '.expand('%:p:h:S').' && git status -s 2>/dev/null')
-    let gitbranch = system('cd '.expand('%:p:h:S').' && git branch --show-current 2>/dev/null | tr -d "\n"')
+    let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
+    let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
     if len(gitbranch) > 0
         let b:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
     else
