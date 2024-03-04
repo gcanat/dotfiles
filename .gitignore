@@ -1,1 +1,3 @@
 tags
+.vim/pack/*/opt/
+.vim/pack/*/start/
