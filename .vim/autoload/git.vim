@@ -56,7 +56,7 @@ export def PackUpdate()
             helptags ALL
         endif
     enddef
-    timer_start(1000, (t) => TimerHandler(t), {"repeat": 100})
+    timer_start(2000, (t) => TimerHandler(t), {"repeat": 100})
 enddef
 
 # Show commit that introduced current(selected) line

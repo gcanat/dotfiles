@@ -32,9 +32,16 @@ command! -nargs=+ -complete=file_in_path -bar GitGrep silent! Ggrep <args> | cw
 
 " try to use fd to find files
 set errorformat+=%f
+if executable("fd")
+  let g:findcmd = "fd \--type f"
+elseif executable("fdfind")
+  let g:findcmd = "fdfind \--type f"
+else
+  let g:findcmd = "find"
+endif
+
 function! Find(...)
-  let findcmd = "fdfind \--type f"
-	return system(join([findcmd] + [expandcmd(join(a:000, ' '))], ' '))
+	return system(join([g:findcmd] + [expandcmd(join(a:000, ' '))], ' '))
 endfunction
 command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
 

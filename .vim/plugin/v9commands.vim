@@ -11,3 +11,4 @@ command! -nargs=1 -complete=custom,SessionComplete LoadSession :%bd <bar> exe $'
 def SessionComplete(_, _, _): string
     return globpath($'{g:vimdata}/sessions/', "*", 0, 1)->mapnew((_, v) => fnamemodify(v, ":t"))->join("\n")
 enddef
+

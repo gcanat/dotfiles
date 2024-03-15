@@ -1,6 +1,7 @@
 vim9script
 
 import autoload 'popup.vim'
+import autoload 'os.vim'
 
 const MAX_ELEMENTS: number = 20000
 
@@ -45,18 +46,19 @@ export def MRU()
         # use non-filtered v:oldfiles
         mru = v:oldfiles
     else
-        mru = v:oldfiles->filter((_, v) => filereadable(fnamemodify(v, ":p")))
+        mru = v:oldfiles->filter((_, v) =>
+            filereadable(fnamemodify(v, ":p")) && v !~ 'share/vim/.*/doc/.*\.txt')
     endif
     popup.FilterMenu("MRU", mru,
         (res, key) => {
             if key == "\<c-t>"
-                exe $":tabe {res.text}"
+                exe $":tabe {res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-j>"
-                exe $":split {res.text}"
+                exe $":split {res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-v>"
-                exe $":vert split {res.text}"
+                exe $":vert split {res.text->substitute('#', '\\&', 'g')}"
             else
-                exe $":e {res.text}"
+                exe $":e {res.text->substitute('#', '\\&', 'g')}"
             endif
         },
         (winid) => {
@@ -73,13 +75,13 @@ export def GitFile(path: string = "")
     popup.FilterMenu("Git File", git_files,
         (res, key) => {
             if key == "\<c-t>"
-                exe $":tabe {path_e}{res.text}"
+                exe $":tabe {path_e}{res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-j>"
-                exe $":split {path_e}{res.text}"
+                exe $":split {path_e}{res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-v>"
-                exe $":vert split {path_e}{res.text}"
+                exe $":vert split {path_e}{res.text->substitute('#', '\\&', 'g')}"
             else
-                exe $":e {path_e}{res.text}"
+                exe $":e {path_e}{res.text->substitute('#', '\\&', 'g')}"
             endif
         },
         (winid) => {
@@ -175,7 +177,7 @@ enddef
 
 export def File(path: string = "")
     var sep = has("win32") ? '\' : '/'
-    var opath = path ?? expand("%:p:h")
+    var opath = expand(path ?? "%:p:h")
     if !isdirectory(opath)
         opath = getcwd()
     endif
@@ -189,20 +191,22 @@ export def File(path: string = "")
     endif
 
     popup.FilterMenu(pathshorten(opath), files, (res, key) => {
+        var escpath = res.path->substitute('#', '\\&', 'g')
+        var escname = res.name->substitute('#', '\\&', 'g')
         if (key == "\<bs>" || key == "\<c-h>") && isdirectory(fnamemodify(res.path, ':p:h:h'))
             File($"{fnamemodify(res.path, ':p:h:h')}")
-        # elseif key == "\<C-o>"
-        #     os.Open($"{res.path}{sep}{res.name}")
+        elseif key == "\<C-o>"
+            os.Open($"{res.path}{sep}{res.name}")
         elseif isdirectory($"{res.path}{sep}{res.name}")
             File($"{res.path}{res.path[-1] == sep ? '' : sep}{res.name}")
         elseif key == "\<C-j>"
-            exe $"split {res.path}{sep}{res.name}"
+            exe $"split {escpath}{sep}{escname}"
         elseif key == "\<C-v>"
-            exe $"vert split {res.path}{sep}{res.name}"
+            exe $"vert split {escpath}{sep}{escname}"
         elseif key == "\<C-t>"
-            exe $"tabe {res.path}{sep}{res.name}"
+            exe $"tabe {escpath}{sep}{escname}"
         else
-            exe $"confirm e {res.path}{sep}{res.name}"
+            exe $"confirm e {escpath}{sep}{escname}"
         endif
         }, (winid) => {
             win_execute(winid, $"syn match FilterMenuDirectory '^.*{sep->escape('\\')}'")
@@ -239,15 +243,15 @@ export def FileTree(path: string = "")
     popup.FilterMenu("File", files[ : MAX_ELEMENTS - 1],
         (res, key) => {
             if key == "\<c-t>"
-                exe $":tabe {res.text}"
+                exe $":tabe {res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-j>"
-                exe $":split {res.text}"
+                exe $":split {res.text->substitute('#', '\\&', 'g')}"
             elseif key == "\<c-v>"
-                exe $":vert split {res.text}"
-            # elseif key == "\<C-o>"
-            #     os.Open($"{res.text}")
+                exe $":vert split {res.text->substitute('#', '\\&', 'g')}"
+            elseif key == "\<C-o>"
+                os.Open($"{res.text}")
             else
-                exe $":e {res.text}"
+                exe $":e {res.text->substitute('#', '\\&', 'g')}"
             endif
             var projects_file = $'{g:vimdata}/projects.json'
             var projects = []
@@ -301,31 +305,6 @@ export def LiveGrep(pattern: string = "")
         true
     )
 enddef
-
-# export def JumpList()
-#     var jump_list = getjumplist()
-#     echom jump_list
-#     popup.FilterMenu("JumpList", jump_list[0],
-#         (res, key) => {
-#             if key == "\<c-t>"
-#                 exe $":tabe +{res.lnum} {res.filename}"
-#             elseif key == "\<c-j>"
-#                 exe $":split +{res.lnum} {res.filename}"
-#             elseif key == "\<c-v>"
-#                 exe $":vert split +{res.lnum} {res.filename}"
-#             else
-#                 exe $":e +{res.lnum} {res.filename}"
-#             endif
-#         },
-#         (winid) => {
-#             win_execute(winid, "syn match FilterMenuDirectorySubtle '^[^:]*:\\d\\+:\\d\\+:'")
-#             hi def link FilterMenuDirectorySubtle Comment
-#         },
-#         false,
-#         true
-#     )
-# enddef
-
 
 export def Filetype()
     var ft_list = globpath(&rtp, "ftplugin/*.vim", 0, 1)

@@ -1,11 +1,10 @@
 vim9script
-# source https://github.com/habamax/.vim/blob/master/autoload/popup.vim
 
-var borderchars     = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
-# var borderchars     = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
-var bordertitle     = ['─┐', '┌']
+var borderchars     = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
+var bordercharsp    = ['─', '│', '─', '│', '┌', '┐', '┤', '├']
 var borderhighlight = []
 var popuphighlight  = get(g:, "popuphighlight", '')
+var popupcursor = '█'
 
 # Returns winnr of created popup window
 export def ShowAtCursor(text: any, Setup: func(number) = null_function): number
@@ -96,9 +95,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
     var prompt = ""
     var items_dict: list<dict<any>>
     var items_count = items->len()
-    if items_count < 1
-        items_dict = [{text: ""}]
-    elseif items[0]->type() != v:t_dict
+    if items_count > 0 && items[0]->type() != v:t_dict
         items_dict = items->mapnew((_, v) => {
             return {text: v}
         })
@@ -134,13 +131,39 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
         endif
     enddef
 
-    var min_height = 5
-    if items->len() < 1
-      min_height = (&lines * 0.6)->float2nr()
+    var minheight = 5
+    # we dont want to have a small window if we are doing live grep
+    if live_grep
+      minheight = &lines - 15
     endif
-    var height = min([&lines - 6, max([items->len(), min_height])])
+
+    var height = min([&lines - 9, max([items->len(), minheight])])
     var minwidth = (&columns * 0.6)->float2nr()
     var pos_top = ((&lines - height) / 2) - 1
+
+    def AlignPopups(pwinid: number, winid: number)
+        var pos = popup_getpos(winid)
+        if pos.core_width > minwidth
+            minwidth = pos.core_width
+            popup_move(winid, { minwidth: minwidth })
+        endif
+        popup_move(pwinid, {
+            minwidth: minwidth + (pos.scrollbar ? 1 : 0),
+            maxwidth: minwidth + (pos.scrollbar ? 1 : 0)
+        })
+    enddef
+
+    def UpdatePopups(pwinid: number, winid: number)
+        popup_setoptions(pwinid, {title: $" ({items_count > 0 ? filtered_items[0]->len() : 0}/{items_count}) {title} " })
+        popup_settext(pwinid, $"> {prompt}{popupcursor}")
+        popup_settext(winid, Printify(filtered_items, []))
+        if filtered_items[0]->empty()
+            win_execute(winid, "setl nonu nocursorline")
+        else
+            win_execute(winid, "setl nu cursorline")
+        endif
+    enddef
+
     var ignore_input = ["\<cursorhold>", "\<ignore>", "\<Nul>",
           \ "\<LeftMouse>", "\<LeftRelease>", "\<LeftDrag>", $"\<2-LeftMouse>",
           \ "\<RightMouse>", "\<RightRelease>", "\<RightDrag>", "\<2-RightMouse>",
@@ -152,41 +175,54 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
     # this sequence of bytes are generated when left/right mouse is pressed and
     # mouse wheel is rolled
     var ignore_input_wtf = [128, 253, 100]
-    var winid = popup_create(Printify(filtered_items, []), {
-        title: $" ({items_count}/{items_count}) {title} {bordertitle[0]}  {bordertitle[1]}",
-        line: pos_top,
+
+    var popts = {
         minwidth: minwidth,
-        maxwidth: (&columns - 5),
-        minheight: height,
-        maxheight: height,
-        border: [],
-        borderchars: borderchars,
+        maxwidth: minwidth,
         borderhighlight: borderhighlight,
         highlight: popuphighlight,
         drag: 0,
         wrap: 1,
+        scrollbar: true,
         cursorline: false,
-        padding: [0, 1, 0, 1],
+        padding: [0, 0, 0, 0],
         mapping: 0,
+    }
+    var pwinid = popup_create([$"> {popupcursor}"],
+        popts->copy()->extend({
+            border: [1, 1, 1, 1],
+            borderchars: bordercharsp,
+            line: pos_top,
+            maxheight: 1,
+            minheight: 1,
+            title: $" ({items_count}/{items_count}) {title} "
+        })
+    )
+    var winid = popup_create(Printify(filtered_items, []), popts->copy()->extend({
+        border: [0, 1, 1, 1],
+        borderchars: borderchars,
+        line: pos_top + 3,
+        maxheight: height,
+        minheight: height,
         filter: (id, key) => {
-            var new_minwidth = popup_getpos(id).core_width
-            if new_minwidth > minwidth
-                minwidth = new_minwidth
-                popup_move(id, {minwidth: minwidth})
-            endif
             if key == "\<esc>"
                 popup_close(id, -1)
+                popup_close(pwinid)
             elseif key == "\<M-q>"
                 # build the list of items for the quickfix list
+                echom $"{filtered_items[0]}"
                 var qf_items = filtered_items[0]->mapnew((_, v) => {
                     return {filename: v.file, lnum: char2nr(v.line), col: char2nr(v.col), text: v.line_txt}
+                    # return {filename: v.file, lnum: v.line, col: v.col, text: v.line_txt}
                 })
                 setqflist([], ' ', {'items': qf_items, 'nr': '$', 'title': 'LiveGrep'})
-                exe $":copen"
                 popup_close(id, -1)
+                popup_close(pwinid)
+                exe $":copen"
             elseif ["\<cr>", "\<C-j>", "\<C-v>", "\<C-t>", "\<C-o>"]->index(key) > -1
-                    && filtered_items[0]->len() > 0 && items_count > 0
+                    && !filtered_items[0]->empty() && items_count > 0
                 popup_close(id, {idx: getcurpos(id)[1], key: key})
+                popup_close(pwinid)
             elseif key == "\<Right>"
                 win_execute(id, 'normal! ' .. "\<C-d>")
             elseif key == "\<Left>"
@@ -211,6 +247,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                 elseif (key == "\<C-h>" || key == "\<bs>")
                     if empty(prompt) && close_on_bs
                         popup_close(id, {idx: getcurpos(id)[1], key: key})
+                        popup_close(pwinid)
                         return true
                     endif
                     prompt = prompt->strcharpart(0, prompt->strchars() - 1)
@@ -220,9 +257,13 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3
-                        var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
+                        var new_matches = systemlist('rg --column --no-heading --smart-case -g "!*.ipynb" "' .. prompt .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
+                            if splitted_text->len() < 4
+                              echom "Error: rg output is not in the expected format"
+                              echom $"{splitted_text}"
+                            endif
                             return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len()}
                         })
                         var pos_list = string_matches->mapnew((_, v) => {
@@ -234,12 +275,15 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                 elseif key =~ '\p'
                     prompt ..= key
                     if !live_grep
-                        filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
+                      filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3 
-                        var new_matches = systemlist('rg --no-heading --smart-case --column "' .. prompt .. '"')
+                        var new_matches = systemlist('rg --column --no-heading --smart-case -g "!*.ipynb" "' .. prompt .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
+                            if splitted_text->len() < 4
+                              return {text: v, file: splitted_text[0], line: "0", col: "0", line_txt: splitted_text[1], prompt_len: prompt->len()}
+                            endif
                             return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len()}
                         })
                         var pos_list = string_matches->mapnew((_, v) => {
@@ -249,23 +293,27 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         items_count = string_matches->len()
                     endif
                 endif
-                popup_setoptions(id, {title: $" ({items_count > 0 ? filtered_items[0]->len() : 0}/{items_count}) {title} {bordertitle[0]} {prompt} {bordertitle[1]}" })
-                popup_settext(id, Printify(filtered_items, []))
+                UpdatePopups(pwinid, id)
+                AlignPopups(pwinid, id)
             endif
             return true
         },
         callback: (id, result) => {
-                if result->type() == v:t_number
-                    if result > 0
-                        Callback(filtered_items[0][result - 1], "")
-                    endif
-                else
-                    Callback(filtered_items[0][result.idx - 1], result.key)
+            if result->type() == v:t_number
+                if result > 0
+                    Callback(filtered_items[0][result - 1], "")
                 endif
-            }
-        })
+            else
+                Callback(filtered_items[0][result.idx - 1], result.key)
+            endif
+            popup_close(pwinid)
+        }
+    }))
 
-    win_execute(winid, "setl nu cursorline cursorlineopt=both")
+    win_execute(winid, "setl cursorlineopt=both")
+    UpdatePopups(pwinid, winid)
+    AlignPopups(pwinid, winid)
+
     if Setup != null_function
         Setup(winid)
     endif

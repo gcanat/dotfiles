@@ -3,7 +3,7 @@
 SETUVAR --export BAT_THEME:gruvbox\x2ddark
 SETUVAR --export EDITOR:nvim
 SETUVAR --export GIT_EDITOR:nvim
-SETUVAR HELIX_RUNTIME:/home/guillaume/git_repos/helix/runtime
+SETUVAR --export HELIX_RUNTIME:/home/guillaume/git_repos/helix/runtime
 SETUVAR --export --path PYTHONPATH:/home/guillaume/ImVitro/video\x2dalgorithms\x1e\x7e/ImVitro/data\x2dpreparation\x2dtool
 SETUVAR __fish_initialized:3400
 SETUVAR fish_color_autosuggestion:brblack

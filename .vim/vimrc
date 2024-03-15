@@ -25,7 +25,8 @@ endif
 
 " Search down into a whitelist of subfolders
 " Provides tab-completion for all file-related tasks
-set path+=data_preparation_tools/**,docker/**,tests/**.py,tools/**,config/**,configs/**,data_summary/**,deployment/**,projects/**,research/**,scripts/**,video_algorithms/**,valgo_common/**,src/**
+" set path+=data_preparation_tools/**,docker/**,tests/**.py,tools/**,config/**,configs/**,data_summary/**,deployment/**,projects/**,research/**,scripts/**,video_algorithms/**,valgo_common/**,src/**
+set path+=**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
@@ -86,8 +87,13 @@ set completeopt=menuone,preview
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
 
+" disable tab completion for copilot
+" let g:copilot_no_tab_map = v:true
+
 " Add plugin
 packadd lsp
 packadd vim-fugitive
 packadd vim-gitgutter
-
+packadd copilot.vim
+packadd devdocs.vim
+packadd scope.vim

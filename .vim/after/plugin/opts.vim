@@ -7,6 +7,43 @@ if exists("g:loaded_fugitive")
   # set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
 
+if exists('g:loaded_devdocs')
+  autocmd FileType python call g:DevdocsOptionsSet({slugs: ['python~3.8', 'numpy~1.23', 'pytorch~1', 'scikit_learn', 'scikit_image', 'pandas~1']})
+  autocmd FileType rust call g:DevdocsOptionsSet({slugs: ['rust']})
+  nnoremap <leader>df :DevdocsFind<CR>
+  nnoremap <leader>di :DevdocsInstall<CR>
+  nnoremap <leader>du :DevdocsUninstall<CR>
+endif
+
+if exists('g:loaded_scope')
+  import autoload 'scope/fuzzy.vim'
+  fuzzy.OptionsSet({
+    grep_echo_cmd: false,
+    grep_skip_len: 3,
+    # timer_delay: 20,
+    # grep_poll_interval: 100,
+  })
+  import autoload 'scope/popup.vim' as sp
+  sp.OptionsSet({
+    borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
+    bordercharsp: ['─', '│', '─', '│', '╭', '╮', '┤', '├'],
+  })
+  augroup scope-quickfix-history
+    autocmd!
+    autocmd QuickFixCmdPost clist cwindow
+    autocmd QuickFixCmdPost llist lwindow
+  augroup END
+  nnoremap <space>fe <scriptcmd>fuzzy.File('fdfind -tf --follow', 100000)<CR>
+  nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg --column --no-heading -g "!*.ipynb" --smart-case')<CR>
+  nnoremap <space>fx <scriptcmd>fuzzy.Grep()<CR>
+  nnoremap <space>fm <scriptcmd>fuzzy.MRU()<CR>
+  nnoremap <space>fk <scriptcmd>fuzzy.Keymap()<CR>
+  nnoremap <space>fb <scriptcmd>fuzzy.Buffer()<CR>
+  nnoremap <space>fq <scriptcmd>fuzzy.Quickfix()<CR>
+  # search word under cursor
+  nnoremap <space>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
+endif
+
 if exists("g:loaded_lsp")
   g:LspOptionsSet({
     completionMatcher: 'fuzzy',
@@ -20,7 +57,8 @@ if exists("g:loaded_lsp")
     diagSignHintText: 'H',
     diagSignWarningText: 'W',
     useQuickfixForLocations: true,
-    filterCompletionDuplicates: true
+    filterCompletionDuplicates: true,
+    useBufferCompletion: true
   })
   if executable('clangd')
     g:LspAddServer([{
