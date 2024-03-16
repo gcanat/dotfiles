@@ -211,8 +211,11 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
             elseif key == "\<M-q>"
                 # build the list of items for the quickfix list
                 var qf_items = filtered_items[0]->mapnew((_, v) => {
-                    return {filename: v.file, lnum: str2nr(v.line), col: str2nr(v.col), text: v.line_txt}
-                    # return {filename: v.file, lnum: v.line, col: v.col, text: v.line_txt}
+                    if has_key(v, "line")
+                      return {filename: v.file, lnum: str2nr(v.line), col: str2nr(v.col), text: v.line_txt}
+                    else
+                      return {filename: v.text}
+                    endif
                 })
                 setqflist([], ' ', {'items': qf_items, 'nr': '$', 'title': 'LiveGrep'})
                 popup_close(id, -1)
