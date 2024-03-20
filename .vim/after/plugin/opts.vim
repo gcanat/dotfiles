@@ -35,13 +35,15 @@ if exists('g:loaded_scope')
   augroup END
   nnoremap <space>fe <scriptcmd>fuzzy.File('fdfind -tf --follow', 100000)<CR>
   nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg --column --no-heading -g "!*.ipynb" --smart-case')<CR>
-  nnoremap <space>fx <scriptcmd>fuzzy.Grep()<CR>
+  # nnoremap <space>fx <scriptcmd>fuzzy.Grep()<CR>
   nnoremap <space>fm <scriptcmd>fuzzy.MRU()<CR>
   nnoremap <space>fk <scriptcmd>fuzzy.Keymap()<CR>
   nnoremap <space>fb <scriptcmd>fuzzy.Buffer()<CR>
   nnoremap <space>fq <scriptcmd>fuzzy.Quickfix()<CR>
   # search word under cursor
   nnoremap <space>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
+else
+  nnoremap <space>gw silent! noautocmd Grep <cword><CR>
 endif
 
 if exists("g:loaded_lsp")

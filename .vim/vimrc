@@ -71,6 +71,8 @@ syntax on
 " Builtin grep
 if executable('rg')
   set grepprg=rg\ --vimgrep
+else
+  set grepprg=grep\ --color=never\ -REHIns\ --exclude={\"*.git*\",\"*.swp\",\"*.zwc\"}
 endif
 
 " Useful tips
@@ -96,4 +98,4 @@ packadd vim-fugitive
 packadd vim-gitgutter
 packadd copilot.vim
 packadd devdocs.vim
-packadd scope.vim
+" packadd scope.vim
