@@ -9,9 +9,11 @@ augroup retrotheme
   autocmd ColorScheme retrobox silent! let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
 augroup END
 
-" set colorscheme at the end
-" colorscheme zaibatsu
-" colorscheme retrobox
+augroup nod
+  autocmd!
+  autocmd ColorScheme nod* silent! hi Normal guifg=NONE guibg=NONE
+augroup END
+
 colorscheme kanagawa
 
 augroup quickfix
