@@ -19,8 +19,11 @@ set termguicolors
 set background=dark
 set path+=**
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,tags,target/**,bin/**,build/**
+if has("patch-8.2.4325")
+  set wildoptions+=pum,fuzzy
+endif
 set fillchars=vert:│
-set shortmess+=Tas
+set shortmess+=OTas
 set undofile
 set completeopt=menuone,preview
 set wildcharm=<C-Z>
@@ -115,6 +118,9 @@ function! Diff(spec)
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
 
+" show diff of current file in a new buffer
+nnoremap <leader>gf :new <bar> set ft=diff <bar> r !git diff #<CR>
+
 
 function! CurrentGitStatus()
     let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
@@ -150,3 +156,9 @@ function! Commit(...)
     return system(commitcmd)
 endfunction
 command! -nargs=0 -bar Commit cgetexpr Commit()
+
+augroup CursColLine
+    autocmd!
+    au WinLeave * setlocal nocursorline nocursorcolumn
+    au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
+augroup end
