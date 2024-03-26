@@ -61,7 +61,7 @@ nnoremap <leader>gw :Grep <C-R><C-W><CR>
 if executable('rg')
     set grepprg=rg\ --vimgrep
 else
-    set grepprg=grep\ --color=never\ -REHIns\ --exclude={\"*.git*\",\"*.swp\",\"*.zwc\"}
+    set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=.git\ --exclude-dir=target\ --exclude-dir=build\ --exclude=*.swp\ --exclude=*.zwc
 endif
 
 " Grep using grepprg
@@ -82,6 +82,17 @@ augroup quickfix
     autocmd QuickFixCmdPost cgetexpr cwindow
     autocmd QuickFixCmdPost lgetexpr lwindow
 augroup END
+
+" Function to grep the opened buffers
+function! GrepallBuf(...)
+  let s:buffers = []
+  for buf in getbufinfo({'buflisted': 1})
+    let s:buffers += [buf.name]
+  endfor
+  return system(join([&grepprg] + ['"' . expandcmd(join(a:000, ' ')) . '"'] + s:buffers, ' '))
+endfunc
+
+command! -nargs=1 Gbuf cgetexpr GrepallBuf(<f-args>)     
 
 " try to use fd to find files
 set errorformat+=%f
