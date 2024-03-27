@@ -85,10 +85,7 @@ augroup END
 
 " Function to grep the opened buffers
 function! GrepallBuf(...)
-  let s:buffers = []
-  for buf in getbufinfo({'buflisted': 1})
-    let s:buffers += [buf.name]
-  endfor
+  let s:buffers = map(getbufinfo({'buflisted': 1}), 'v:val.name')
   return system(join([&grepprg] + ['"' . expandcmd(join(a:000, ' ')) . '"'] + s:buffers, ' '))
 endfunc
 
