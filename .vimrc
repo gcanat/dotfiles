@@ -132,9 +132,7 @@ nnoremap <leader>gf :new <bar> set ft=diff <bar> r !git diff #<CR>
 
 function! CurrentGitStatus()
     let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
-    echom join(gitoutput, ' ')
     let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
-    echom gitbranch
     if len(gitbranch) > 0
         let b:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
     else
@@ -142,22 +140,22 @@ function! CurrentGitStatus()
     endif
 endfunc
 
-" autocmd BufEnter,BufWritePost * call CurrentGitStatus()
+autocmd BufEnter,BufWritePost * call CurrentGitStatus()
  
-" set statusline=
-" set statusline+=%#PmenuSel#
-" set statusline+=%{b:gitstatus}
-" set statusline+=%#StatusLine#
-" set statusline+=\ %f
-" set statusline+=%m\
-" set statusline+=%=
-" set statusline+=%#CursorColumn#
-" set statusline+=\ %y
-" set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
-" set statusline+=\[%{&fileformat}\]
-" set statusline+=\ %p%%
-" set statusline+=\ %l:%c
-" set statusline+=\
+set statusline=
+set statusline+=%#PmenuSel#
+set statusline+=%{b:gitstatus}
+set statusline+=%#StatusLine#
+set statusline+=\ %f
+set statusline+=%m\ 
+set statusline+=%=
+set statusline+=%#CursorColumn#
+set statusline+=\ %y
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+set statusline+=\[%{&fileformat}\]
+set statusline+=\ %p%%
+set statusline+=\ %l:%c
+set statusline+=\ 
 
 function! Commit(...)
     let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
