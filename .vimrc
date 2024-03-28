@@ -126,8 +126,6 @@ function! Diff(spec)
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
 
-" show diff of current file in a new buffer
-nnoremap <leader>gf :new <bar> set ft=diff <bar> r !git diff #<CR>
 
 
 function! CurrentGitStatus()
@@ -157,11 +155,39 @@ set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
 
+" Poor man's fugitive
 function! Commit(...)
     let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
     return system(commitcmd)
 endfunction
 command! -nargs=0 -bar Commit cgetexpr Commit()
+
+" show diff of current file in a new buffer
+nnoremap <leader>gf :new <bar> set ft=diff <bar> r !git diff #<CR>
+nnoremap <leader>gs :new gitstatus <bar> setl ft=gitattributes nobuflisted noswapfile <bar> r !git status --porcelain<CR>
+
+function! GitAdd(...)
+  let addcmd = "git add " . shellescape(expand('<cfile>'))
+  silent let f = system(addcmd)
+  execute "1,$d | r !git status --porcelain"
+  endfunction
+command! -nargs=0 -bar GitAdd call GitAdd()
+
+function! GitReset(...)
+  let addcmd = "git reset HEAD " . shellescape(expand('<cfile>'))
+  silent let f = system(addcmd)
+  execute "1,$d | r !git status --porcelain"
+  endfunction
+command! -nargs=0 -bar GitReset call GitReset()
+
+" add 's' and 'S' mappings to stage/unstage files in gitstatus window
+augroup Gitbuffer
+  autocmd!
+  au WinLeave gitstatus unmap s
+  au WinLeave gitstatus unmap S
+  au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap s :GitAdd<CR>
+  au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap S :GitReset<CR>
+augroup end
 
 augroup CursColLine
     autocmd!
