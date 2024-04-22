@@ -38,7 +38,7 @@ if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
 set fillchars=vert:│
-set shortmess+=OTas
+set shortmess+=Tas
 set undofile
 set completeopt=menuone,preview
 set wildcharm=<C-Z>
@@ -54,6 +54,7 @@ let g:netrw_liststyle=3
 filetype plugin on
 filetype indent on
 
+colorscheme retrobox
 hi Normal guifg=NONE guibg=NONE
 
 " easier on azerty keyboard
@@ -66,6 +67,7 @@ vmap é {
 nnoremap <leader>b :b <C-Z>
 nnoremap <leader>ft :Lex <bar> vert resize 25<CR>
 nnoremap <leader>fe :fin **
+nnoremap <leader>fm :bro ol<CR>
 nnoremap ]q :cnext<CR>
 nnoremap [q :cprev<CR>
 nnoremap ]b :bnext<CR>
@@ -75,7 +77,7 @@ nnoremap <leader>gw :Grep <C-R><C-W><CR>
 if executable('rg')
   set grepprg=rg\ --vimgrep
 else
-  set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=.git\ --exclude-dir=target\ --exclude-dir=build\ --exclude=*.swp\ --exclude=*.zwc
+  set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=.git\ --exclude-dir=target\ --exclude-dir=build\ --exclude=*.swp\ --exclude=*.zwc\ --exclude=*.ipynb
 endif
 
 " Grep using grepprg
@@ -103,7 +105,7 @@ function! GrepallBuf(...)
   return system(join([&grepprg] + ['"' . expandcmd(join(a:000, ' ')) . '"'] + s:buffers, ' '))
 endfunc
 
-command! -nargs=1 Gbuf cgetexpr GrepallBuf(<f-args>)     
+command! -nargs=1 Gbuf cgetexpr GrepallBuf(<f-args>)
 
 " try to use fd to find files
 set errorformat+=%f
@@ -115,10 +117,10 @@ else
   let g:findcmd = 'find . ! -path "./.git/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" -type f -name'
 endif
 
-function! Find(...)
-  let s:arg_list = g:findcmd[0:3] != "find" ? [a:1] : ["*" . a:1 . "*"]
-  if a:0 > 1
-    s:arg_list += a:000[1:]
+function! Find(pat, ...)
+  let s:arg_list = g:findcmd[0:3] != "find" ? [a:pat] : ["*" . a:pat . "*"]
+  if a:0 > 0
+    s:arg_list += a:000
   endif
   if exists('*expandcmd')
     return system(join([g:findcmd] + [expandcmd(join(s:arg_list, ' '))], ' '))
@@ -143,8 +145,6 @@ function! Diff(spec)
   diffthis
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
-
-
 
 function! CurrentGitStatus()
   let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
@@ -173,19 +173,22 @@ set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
 
-" Poor man's fugitive
-function! Commit(...)
+function! Glog(...)
   let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
   return system(commitcmd)
 endfunction
-command! -nargs=0 -bar Commit cgetexpr Commit()
+command! -nargs=0 -bar GcLog cgetexpr Glog()
 
-" show the diff of the current buffer against HEAD
-nnoremap <leader>gf :new <bar> setl ft=diff <bar> r !git diff #<CR>1Gdd
-" show git status in a new buffer
+" diff current file against HEAD
+nnoremap <leader>gf :new gitlog <bar> setl ft=diff <bar> r !git diff #<CR>1Gdd
+" Open window with git status info
 nnoremap <leader>gs :new gitstatus <bar> setl ft=git nobuflisted noswapfile <bar> r !git status --porcelain<CR>1Gdd
-" show the diff of the commit under the cursor
+" show the diff for the commit SHA under the cursor
 nnoremap <leader>gc yiw<C-W>w:e! gitlog <bar> setl ft=git nobuflisted noswapfile <bar> r !git show <C-R>"<CR>1Gdd
+" assuming qflist is popuplated with list of files modified by a PR, diff
+" against master
+nnoremap ]r :cn<CR>:Diff master<CR>
+nnoremap [r :cp<CR>:Diff master<CR>
 
 function! GitAdd(...)
   let addcmd = "git add " . shellescape(expand('<cfile>'))
@@ -201,7 +204,7 @@ function! GitReset(...)
 endfunction
 command! -nargs=0 -bar GitReset call GitReset()
 
-" add 's' and 'S' mappings to stage/unstage files in gitstatus window
+" add mappings similar to fugitive
 augroup Gitbuffer
   autocmd!
   au WinLeave gitstatus unmap s
@@ -213,7 +216,7 @@ augroup Gitbuffer
   au WinLeave gitstatus unmap <leader>r
   au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap s :GitAdd<CR>1Gdd
   au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap S :GitReset<CR>1Gdd
-  au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap = :r !git diff <cfile><CR>g;k2e
+  au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap = $:r !git diff <cfile><CR>g;k2e
   au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap cc :!git commit -m ""<Left>
   au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap ce :!git commit --amend --no-edit<CR>
   au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap <leader>r :1,$d <bar> r !git status --porcelain<CR>
@@ -226,8 +229,6 @@ augroup CursColLine
   au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
 augroup end
 
-" Put all files changed in the quickfix list
-" Usage: :DiffRev HEAD~1 or :DiffRev master
 let s:git_status_dictionary = {
   \ "A": "Added",
   \ "B": "Broken",
@@ -250,7 +251,7 @@ function! s:get_diff_files(rev)
   copen
 endfunction
 
-" populate qflist with the list of files changed in the current branch
-" compared to the given commit or branch supplied as argument
+" populate qflist with files changed in a branch compared to commit or branch
+" given as arg
 command! -nargs=1 DiffRev call s:get_diff_files(<q-args>)
 " vim:ts=2:sw=2
