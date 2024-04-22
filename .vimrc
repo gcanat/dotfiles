@@ -19,14 +19,18 @@ set termguicolors
 set background=dark
 
 func! MapPath(key, val)
-  return a:val != "." ? a:val[2:] . "/**" : a:val
+  if a:val != "." 
+    return a:val[2:] . "/**" 
+  else
+    return a:val 
+  endif
 endfunc
 
-function! SetPath()
+func! SetPath()
   let path_list = systemlist('find . -maxdepth 1 ! -path "./.git" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
   let paths = map(path_list, function('MapPath'))
   return join(paths, ",")
-endfunction
+endfunc
 execute "set path=,," . SetPath()
 
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,tags
