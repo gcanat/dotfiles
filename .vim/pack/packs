@@ -3,4 +3,4 @@ downloads/opt/lsp https://github.com/yegappan/lsp.git
 downloads/opt/vim-gitgutter https://github.com/airblade/vim-gitgutter
 downloads/opt/copilot.vim https://github.com/github/copilot.vim.git
 downloads/opt/devdocs.vim https://github.com/girishji/devdocs.vim.git
-downloads/opt/scope.vim https://github.com/girishji/scope.vim.git
+downloads/opt/scope.vim https://github.com/ttkap/scope.vim.git
