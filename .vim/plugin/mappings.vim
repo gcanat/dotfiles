@@ -53,6 +53,7 @@ nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
 nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
 nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
 nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
+nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
 " nnoremap <leader>fk <scriptcmd>vim9cmd fuzzy#Keymap()<CR>
 
 " Copilot

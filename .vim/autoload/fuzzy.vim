@@ -306,6 +306,29 @@ export def LiveGrep(pattern: string = "")
     )
 enddef
 
+export def Jumplist()
+    var jumps = execute("jumps")->split("\n")[1 : ]
+    var curr_idx = jumps->match('\v^\s*\>')
+
+    popup.FilterMenu("Jumplist (jump line col file/text)", jumps->mapnew((_, v) => ({text: v})),
+        (res, key) => {
+              var idx = jumps->index(res.text)
+              var delta = curr_idx - idx
+              if delta > 0
+                  exe $"normal! {delta}\<C-o>"
+              else
+                  exe $"normal! {abs(delta)}\<C-i>"
+              endif
+        },
+        (winid) => {
+            win_execute(winid, "syn match FilterMenuDirectorySubtle '^[^:]*:\\d\\+:\\d\\+:'")
+            hi def link FilterMenuDirectorySubtle Comment
+        },
+        false,
+        false
+    )
+enddef
+
 export def Filetype()
     var ft_list = globpath(&rtp, "ftplugin/*.vim", 0, 1)
         ->mapnew((_, v) => ({text: fnamemodify(v, ":t:r")}))
