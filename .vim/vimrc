@@ -25,12 +25,17 @@ endif
 
 " Search down into a whitelist of subfolders
 " Provides tab-completion for all file-related tasks
-" set path+=data_preparation_tools/**,docker/**,tests/**.py,tools/**,config/**,configs/**,data_summary/**,deployment/**,projects/**,research/**,scripts/**,video_algorithms/**,valgo_common/**,src/**
 set path+=**
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
-set wildoptions+=pum,fuzzy
+if has("patch-8.2.4325")
+  set wildoptions+=pum,fuzzy
+endif
+" better looking diff
+if has("patch-8.1.0360")
+    set diffopt+=internal,algorithm:patience
+endif
 set fillchars=vert:│
 set sessionoptions=buffers,curdir,tabpages,winsize
 " Saving options in session and view files causes more problems than it
