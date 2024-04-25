@@ -27,14 +27,24 @@ if exists('g:loaded_scope')
   sp.OptionsSet({
     borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
     bordercharsp: ['─', '│', '─', '│', '╭', '╮', '┤', '├'],
+    maxheight: 30,
+    maxwidth: 140,
   })
   augroup scope-quickfix-history
     autocmd!
     autocmd QuickFixCmdPost clist cwindow
     autocmd QuickFixCmdPost llist lwindow
   augroup END
-  nnoremap <space>fe <scriptcmd>fuzzy.File('fdfind -tf --follow', 100000)<CR>
-  nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg --column --no-heading -g "!*.ipynb" --smart-case')<CR>
+  if g:findcmd == 'find'
+    nnoremap <space>fe :Scope File<CR>
+  else 
+    nnoremap <space>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
+  endif
+  if executable('rg')
+    nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg --column --no-heading -g "!*.ipynb" --smart-case')<CR>
+  else
+    nnoremap <space>fg :Scope Grep<CR>
+  endif
   # nnoremap <space>fx <scriptcmd>fuzzy.Grep()<CR>
   nnoremap <space>fm <scriptcmd>fuzzy.MRU()<CR>
   nnoremap <space>fk <scriptcmd>fuzzy.Keymap()<CR>
