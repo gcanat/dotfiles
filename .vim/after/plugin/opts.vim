@@ -52,6 +52,9 @@ if exists('g:loaded_scope')
   nnoremap <space>fq <scriptcmd>fuzzy.Quickfix()<CR>
   # search word under cursor
   nnoremap <space>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
+  nnoremap <space>jl <scriptcmd>fuzzy.Jumplist()<CR>
+  nnoremap <space>jm <scriptcmd>fuzzy.Mark()<CR>
+  nnoremap <space>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
 else
   nnoremap <space>gw silent! noautocmd Grep <cword><CR>
 endif
