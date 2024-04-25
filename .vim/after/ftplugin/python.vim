@@ -10,7 +10,9 @@ if executable('black')
   # ensure we use formatprg isntead of formatexpr
   setl formatexpr=
 endif
+nnoremap <buffer> <leader>fi :%!isort -<CR>
 b:undo_ftplugin ..= ' | setl foldignore< formatprg<'
+b:undo_ftplugin ..= ' | exe "nunmap <buffer> <leader>fi"'
 
 import autoload 'popup.vim'
 
