@@ -4,7 +4,6 @@ if exists("g:loaded_fugitive")
   command! -nargs=* Glog Git log --oneline --decorate --graph --follow <args>
   command! Gpull Git pull
   command! Gpush Git push
-  # set statusline=%<%f\ %h%m%r%{FugitiveStatusline()}%=%-14.(%l,%c%V%)\ %P
 endif
 
 if exists('g:loaded_devdocs')

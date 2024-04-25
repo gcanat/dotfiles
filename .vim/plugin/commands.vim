@@ -25,10 +25,8 @@ command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
 cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
 cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
 
-" command! -nargs=+ -complete=file_in_path -bar VimGrep noautocmd vimgrep <args> | cw
 command! -nargs=+ -complete=file_in_path -bar VimGrep execute('silent! noautocmd vimgrep /' . split(<q-args>, ' ')[0] . '/j ' . split(<q-args>, ' ')[1] .' | cw')
 command! -nargs=+ -complete=file_in_path -bar GitGrep silent! Ggrep <args> | cw
-
 
 " try to use fd to find files
 set errorformat+=%f
@@ -129,3 +127,4 @@ set statusline+=\[%{&fileformat}\]
 set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
+
