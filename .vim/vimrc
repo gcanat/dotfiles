@@ -70,9 +70,9 @@ syntax on
 
 " Builtin grep
 if executable('rg')
-  set grepprg=rg\ --vimgrep
+  set grepprg=rg\ --column\ --no-heading\ --smart-case\ -g\ \"!*.ipynb\"
 else
-  set grepprg=grep\ --color=never\ -REHIns\ --exclude={\"*.git*\",\"*.swp\",\"*.zwc\"}
+  set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"
 endif
 
 " Useful tips

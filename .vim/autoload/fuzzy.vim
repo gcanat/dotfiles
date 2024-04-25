@@ -282,7 +282,7 @@ enddef
 export def LiveGrep(pattern: string = "")
     var matches = []
     if pattern != ""
-        matches = systemlist('rg --no-heading --smart-case --column "' .. pattern .. '"')
+        matches = systemlist($'{&grepprg} "' .. pattern .. '"')
     endif
 
     popup.FilterMenu("LiveGrep", matches[ : MAX_ELEMENTS - 1],

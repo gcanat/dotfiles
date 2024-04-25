@@ -259,7 +259,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3
-                        var new_matches = systemlist('rg --column --no-heading --smart-case -g "!*.ipynb" "' .. prompt .. '"')
+                        var new_matches = systemlist($'{&grepprg} "' .. prompt .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
                             if splitted_text->len() < 4
@@ -280,7 +280,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                       filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3 
-                        var new_matches = systemlist('rg --column --no-heading --smart-case -g "!*.ipynb" "' .. prompt .. '"')
+                        var new_matches = systemlist($'{&grepprg} "' .. prompt .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
                             if splitted_text->len() < 4
