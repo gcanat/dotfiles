@@ -12,3 +12,12 @@ def SessionComplete(_, _, _): string
     return globpath($'{g:vimdata}/sessions/', "*", 0, 1)->mapnew((_, v) => fnamemodify(v, ":t"))->join("\n")
 enddef
 
+# Grep in the currently opened buffers
+def GrepBuffers(...args: list<string>): string
+  var pattern = $'"{join(args, " ")}"'
+  var buffers = getbufinfo({'buflisted': 1})->mapnew((_, v) => v.name)
+  return system(join([&grepprg] + [pattern] + buffers, ' '))
+enddef
+
+command! -nargs=+ -complete=custom,GrepBuffers Gbuf cgetexpr GrepBuffers(<f-args>)
+  
