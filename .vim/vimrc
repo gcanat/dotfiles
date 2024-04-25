@@ -50,10 +50,22 @@ set nolangremap
 set undofile
 " Setup data dirs
 let g:vimdata = expand("~/.local/share/") . 'vim-data'
+if !isdirectory(g:vimdata)
+  mkdir(g:vimdata, "p")
+endif
 let &directory=g:vimdata . '/swap//'
 let &backupdir=g:vimdata . '/backup//'
 let &undodir=g:vimdata . '/undo//'
-let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if !isdirectory(&undodir)
+  mkdir(&undodir, "p")
+endif
+if !isdirectory(&backupdir)
+  mkdir(&backupdir, "p")
+endif
+if !isdirectory(&directory)
+  mkdir(&directory, "p")
+endif
+" let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 
 " tweaks for browsing
 let g:netrw_banner=0        " disable annoying banner
