@@ -111,7 +111,15 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
             return itemsAny[0]->mapnew((idx, v) => {
                 if has_key(v, "file")
                     return { text: v.text, line: v.line, file: v.file, props: itemsAny[1][idx]->mapnew((_, c) => { 
-                        var col_index = v.file->len() + v.line->len() + v.col->len() + 3 + c
+                        var match_col = str2nr(v.col)
+                        var offset = 3
+                        if match_col == 0
+                            match_col = max([0, stridx(v.line_txt->tolower(), v.prompt->tolower())])
+                            offset = 2
+                        else
+                          match_col = c
+                        endif
+                        var col_index = v.file->len() + v.line->len() + v.col->len() + offset + match_col
                         return { col: col_index, length: v.prompt_len, type: 'FilterMenuMatch'}
                     })}
                 else
@@ -284,9 +292,9 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
                             if splitted_text->len() < 4
-                              return {text: v, file: splitted_text[0], line: "0", col: "0", line_txt: splitted_text[1], prompt_len: prompt->len()}
+                              return {text: v, file: splitted_text[0], line: splitted_text[1], col: "0", line_txt: splitted_text[2], prompt_len: prompt->len(), prompt: prompt}
                             endif
-                            return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len()}
+                            return {text: v, file: splitted_text[0], line: splitted_text[1], col: splitted_text[2], line_txt: splitted_text[3], prompt_len: prompt->len(), prompt: prompt}
                         })
                         var pos_list = string_matches->mapnew((_, v) => {
                           return [str2nr(v.col)]

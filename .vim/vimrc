@@ -89,7 +89,7 @@ syntax on
 if executable('rg')
   set grepprg=rg\ --column\ --no-heading\ --smart-case\ -g\ \"!*.ipynb\"
 else
-  set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"
+  set grepprg=grep\ --color=never\ -REHInsi\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"
 endif
 
 " Useful tips
@@ -115,4 +115,4 @@ packadd vim-fugitive
 packadd vim-gitgutter
 packadd copilot.vim
 packadd devdocs.vim
-" packadd scope.vim
+packadd scope.vim
