@@ -23,11 +23,6 @@ nnoremap [q :cpr<CR>
 nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
 
-" use comment script from autoload/comment.vim
-nnoremap <silent> <expr> gc comment#Toggle()
-xnoremap <silent> <expr> gc comment#Toggle()
-nnoremap <silent> <expr> gcc comment#Toggle() .. '_'
-
 " send selection to terminal window
 xnoremap <expr> <space>t term#Send()
 nnoremap <expr> <space>t term#Send()
@@ -54,7 +49,3 @@ nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
 nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
 nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
 nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
-" nnoremap <leader>fk <scriptcmd>vim9cmd fuzzy#Keymap()<CR>
-
-" Copilot
-" imap <silent><script><expr> <M-l> copilot#Accept("\<CR>")
