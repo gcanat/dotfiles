@@ -110,9 +110,12 @@ set wildcharm=<C-Z>
 " let g:copilot_no_tab_map = v:true
 
 " Add plugin
+packadd comment
 packadd lsp
 packadd vim-fugitive
 packadd vim-gitgutter
 packadd copilot.vim
 packadd devdocs.vim
-packadd scope.vim
+" packadd scope.vim
+let g:vimspector_enable_mappings = 'HUMAN'
+packadd! vimspector
