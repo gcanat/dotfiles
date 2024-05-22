@@ -15,20 +15,14 @@ set hidden
 set wildmenu wildignorecase
 set incsearch ignorecase smartcase
 set updatetime=100
-set termguicolors
+if has('termguicolors') && (has('mac') || has('win32'))
+  set termguicolors
+endif
 set background=dark
 
-func! MapPath(key, val)
-  if a:val != "." 
-    return a:val[2:] . "/**" 
-  else
-    return a:val 
-  endif
-endfunc
-
 func! SetPath()
-  let path_list = systemlist('find . -maxdepth 1 ! -path "./.git" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
-  let paths = map(path_list, function('MapPath'))
+  let path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
+  let paths = map(path_list, {_, val -> val != "." ? val[2:] . "/**" : val})
   return join(paths, ",")
 endfunc
 execute "set path=,," . SetPath()
@@ -50,11 +44,15 @@ let g:netrw_banner=0
 let g:netrw_browse_split=4
 let g:netrw_altv=1 
 let g:netrw_liststyle=3
+let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$'
 
 filetype plugin on
 filetype indent on
 
-colorscheme retrobox
+if filereadable( expand("$VIMRUNTIME/colors/retrobox.vim") )
+  colorscheme retrobox
+endif
+
 hi Normal guifg=NONE guibg=NONE
 
 " easier on azerty keyboard
@@ -114,11 +112,11 @@ if executable("fd")
 elseif executable("fdfind")
   let g:findcmd = "fdfind \--type f"
 else
-  let g:findcmd = 'find . ! -path "./.git/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" -type f -name'
+  let g:findcmd = 'find . ! -path "./.git/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" -type f'
 endif
 
 function! Find(pat, ...)
-  let s:arg_list = g:findcmd[0:3] != "find" ? [a:pat] : ["*" . a:pat . "*"]
+  let s:arg_list = g:findcmd[0:3] != "find" ? [a:pat] : ["-name *" . a:pat . "*"]
   if a:0 > 0
     s:arg_list += a:000
   endif
@@ -174,7 +172,7 @@ set statusline+=\ %l:%c
 set statusline+=\ 
 
 function! Glog(...)
-  let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
+  let commitcmd = "git log -300 --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
   return system(commitcmd)
 endfunction
 command! -nargs=0 -bar GcLog cgetexpr Glog()
@@ -254,4 +252,9 @@ endfunction
 " populate qflist with files changed in a branch compared to commit or branch
 " given as arg
 command! -nargs=1 DiffRev call s:get_diff_files(<q-args>)
+
+" try to use comment builtin plugin
+if has("patch-9.1.374")
+  packadd comment
+endif
 " vim:ts=2:sw=2

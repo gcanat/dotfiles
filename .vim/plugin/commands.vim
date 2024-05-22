@@ -28,19 +28,31 @@ cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'L
 command! -nargs=+ -complete=file_in_path -bar VimGrep execute('silent! noautocmd vimgrep /' . split(<q-args>, ' ')[0] . '/j ' . split(<q-args>, ' ')[1] .' | cw')
 command! -nargs=+ -complete=file_in_path -bar GitGrep silent! Ggrep <args> | cw
 
-" try to use fd to find files
+" try to use fd or rg to find files
 set errorformat+=%f
 if executable("fd")
   let g:findcmd = "fd \--type f"
 elseif executable("fdfind")
   let g:findcmd = "fdfind \--type f"
+elseif executable("rg")
+  let g:findcmd = "rg --files"
 else
-  let g:findcmd = "find"
+  let g:findcmd = 'find . ! -path "./.*/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" ! -path "./**/.*" ! -path "**__pycache__**" -type f'
 endif
 
-function! Find(...)
-	return system(join([g:findcmd] + [expandcmd(join(a:000, ' '))], ' '))
+function! Find(pat, ...)
+  let s:arg_list = [a:pat]
+  if g:findcmd[0:3] == "find" 
+    let s:arg_list = ["-name '*" . a:pat . "*'"]
+  elseif g:findcmd[0:1] == "rg"
+    let s:arg_list = ["-g '*" . a:pat . "*'"]
+  endif
+  if a:0 > 0
+    s:arg_list += a:000
+  endif
+  return system(join([g:findcmd] + [join(s:arg_list, ' ')], ' '))
 endfunction
+command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
 command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
 
 

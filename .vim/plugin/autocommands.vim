@@ -14,7 +14,7 @@ augroup nod
   autocmd ColorScheme nod* silent! hi Normal guifg=NONE guibg=NONE
 augroup END
 
-colorscheme kanagawa
+colorscheme retrobox
 
 augroup quickfix
 	autocmd!

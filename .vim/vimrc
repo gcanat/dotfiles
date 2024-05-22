@@ -1,5 +1,7 @@
 " set showtabline=1
-set termguicolors
+" if has('termguicolors') && (has('mac') || has('win32'))
+  set termguicolors
+" endif
 set nu relativenumber
 " set cursorline
 set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
@@ -15,6 +17,7 @@ set hidden
 set splitright
 set shell=/bin/fish
 set shortmess+=TasS
+" set foldmethod=indent
 
 filetype plugin on
 filetype indent on
@@ -25,7 +28,13 @@ endif
 
 " Search down into a whitelist of subfolders
 " Provides tab-completion for all file-related tasks
-set path+=**
+func! SetPath()
+  let path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
+  let paths = map(path_list, {_, val -> val != "." ? val[2:] . "/**" : val})
+  return join(paths, ",")
+endfunc
+execute "set path=,," . SetPath()
+
 " Display all matching files when we tab complete
 set wildmenu wildignorecase
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
@@ -56,19 +65,19 @@ set undofile
 " Setup data dirs
 let g:vimdata = expand("~/.local/share/") . 'vim-data'
 if !isdirectory(g:vimdata)
-  mkdir(g:vimdata, "p")
+  call mkdir(g:vimdata, "p")
 endif
 let &directory=g:vimdata . '/swap//'
 let &backupdir=g:vimdata . '/backup//'
 let &undodir=g:vimdata . '/undo//'
 if !isdirectory(&undodir)
-  mkdir(&undodir, "p")
+  call mkdir(&undodir, "p")
 endif
 if !isdirectory(&backupdir)
-  mkdir(&backupdir, "p")
+  call mkdir(&backupdir, "p")
 endif
 if !isdirectory(&directory)
-  mkdir(&directory, "p")
+  call mkdir(&directory, "p")
 endif
 " let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 
@@ -89,7 +98,7 @@ syntax on
 if executable('rg')
   set grepprg=rg\ --column\ --no-heading\ --smart-case\ -g\ \"!*.ipynb\"
 else
-  set grepprg=grep\ --color=never\ -REHInsi\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"
+  set grepprg=grep\ --color=never\ -REHInsi\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"\ --exclude-dir=\"*.*_cache*\"\ --exclude-dir=\"target\"\ --exclude-dir=\"build\"
 endif
 
 " Useful tips
@@ -106,16 +115,13 @@ set completeopt=menuone,preview
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
 
-" disable tab completion for copilot
-" let g:copilot_no_tab_map = v:true
-
 " Add plugin
-packadd comment
-packadd lsp
-packadd vim-fugitive
-packadd vim-gitgutter
-packadd copilot.vim
-packadd devdocs.vim
+packadd! comment
+packadd! lsp
+packadd! vim-fugitive
+packadd! vim-gitgutter
+packadd! copilot.vim
+packadd! devdocs.vim
 " packadd scope.vim
 let g:vimspector_enable_mappings = 'HUMAN'
 packadd! vimspector
