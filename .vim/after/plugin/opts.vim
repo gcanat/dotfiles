@@ -63,7 +63,7 @@ if exists("g:loaded_lsp")
     completionMatcher: 'fuzzy',
     completionTextEdit: false,
     showInlayHints: false,
-    showDiagWithVirtualText: true,
+    showDiagWithVirtualText: false,
     diagVirtualTextAlign: 'after',
     autoHighlightDiags: true,
     autoComplete: true,
@@ -92,14 +92,21 @@ if exists("g:loaded_lsp")
       syncInit: true
     }])
   endif
-  if executable('pylsp')
+  if executable('ruff')
     g:LspAddServer([{
-      name: 'pylsp',
+      name: 'ruff',
       filetype: ['python'],
-      path: 'pylsp',
-      args: ['--check-parent-process'],
-      debug: false
+      path: 'ruff',
+      args: ["server", "--preview"],
+      features: {hover: false}
     }])
+  endif
+  if executable('jedi-language-server')
+    g:LspAddServer([{
+      name: 'jedi',
+      filetype: ['python'],
+      path: 'jedi-language-server',
+    }])  
   endif
   if executable('vim-language-server')
     g:LspAddServer([{
