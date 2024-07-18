@@ -142,10 +142,10 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
     var minheight = 5
     # we dont want to have a small window if we are doing live grep
     if live_grep
-      minheight = &lines - 15
+      minheight = max([&lines - 15, 5])
     endif
 
-    var height = min([&lines - 9, max([items->len(), minheight])])
+    var height = min([&lines - 15, max([items->len(), minheight])])
     var minwidth = (&columns * 0.6)->float2nr()
     var pos_top = ((&lines - height) / 2) - 1
 
@@ -267,7 +267,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                         filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3
-                        var new_matches = systemlist($'{&grepprg} "' .. prompt .. '"')
+                        var new_matches = systemlist($'{&grepprg} "' .. escape(prompt, '\\()[]"{}') .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
                             if splitted_text->len() < 4
@@ -288,7 +288,7 @@ export def FilterMenu(title: string, items: list<any>, Callback: func(any, strin
                       filtered_items = items_dict->matchfuzzypos(prompt, {key: "text"})
                     # dont launch live grep with less than 4 chars
                     elseif prompt->len() > 3 
-                        var new_matches = systemlist($'{&grepprg} "' .. prompt .. '"')
+                        var new_matches = systemlist($'{&grepprg} "' .. escape(prompt, '\\()[]"{}') .. '"')
                         var string_matches = new_matches->mapnew((_, v) => {
                             var splitted_text = split(v, ":")
                             if splitted_text->len() < 4

@@ -7,7 +7,7 @@ if exists("g:loaded_fugitive")
 endif
 
 if exists('g:loaded_devdocs')
-  autocmd FileType python call g:DevdocsOptionsSet({slugs: ['python~3.8', 'numpy~1.23', 'pytorch~1', 'scikit_learn', 'scikit_image', 'pandas~1']})
+  autocmd FileType python call g:DevdocsOptionsSet({slugs: ['python~3.11', 'numpy~1.23', 'pytorch~1', 'scikit_learn', 'scikit_image', 'pandas~1']})
   autocmd FileType rust call g:DevdocsOptionsSet({slugs: ['rust']})
   nnoremap <leader>df :DevdocsFind<CR>
   nnoremap <leader>di :DevdocsInstall<CR>
@@ -27,7 +27,7 @@ if exists('g:loaded_scope')
     borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
     bordercharsp: ['─', '│', '─', '│', '╭', '╮', '┤', '├'],
     maxheight: 30,
-    maxwidth: 140,
+    maxwidth: 120,
   })
   augroup scope-quickfix-history
     autocmd!
@@ -40,7 +40,7 @@ if exists('g:loaded_scope')
     nnoremap <space>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
   endif
   if executable('rg')
-    nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg --column --no-heading -g "!*.ipynb" --smart-case')<CR>
+    nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*"')<CR>
   else
     nnoremap <space>fg :Scope Grep<CR>
   endif
@@ -132,4 +132,9 @@ if exists("g:loaded_lsp")
   nnoremap <space>d :LspDiagShow<CR>
   nnoremap <space>ca :LspCodeAction<CR>
   nnoremap <leader>lf :LspFormat<CR>
+endif
+
+if executable('jupytext')
+  g:jupytext_fmt = 'py:percent'
+  packadd jupytext.vim
 endif

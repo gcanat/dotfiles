@@ -3,5 +3,7 @@ downloads/opt/lsp https://github.com/yegappan/lsp.git
 downloads/opt/vim-gitgutter https://github.com/airblade/vim-gitgutter
 downloads/opt/copilot.vim https://github.com/github/copilot.vim.git
 downloads/opt/devdocs.vim https://github.com/girishji/devdocs.vim.git
-# downloads/opt/scope.vim https://github.com/girishji/scope.vim.git
+downloads/opt/scope.vim https://github.com/girishji/scope.vim.git
 downloads/opt/vimspector https://github.com/puremourning/vimspector.git
+downloads/opt/jupytext.vim https://github.com/goerz/jupytext.vim.git
+git-plugins/start/jupyter-vim https://github.com/jupyter-vim/jupyter-vim.git

@@ -38,6 +38,7 @@ set completeopt=menuone,preview
 set wildcharm=<C-Z>
 let &t_ut=''
 let mapleader = ","
+set backspace=indent,eol,start
 
 " netrw
 let g:netrw_banner=0 

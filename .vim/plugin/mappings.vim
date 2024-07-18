@@ -1,4 +1,4 @@
-nnoremap <leader>ft :Lex <bar> vert resize 25<CR>
+nnoremap - :Lex<CR>
 
 " mark current position, format entire file, return to mark
 nnoremap <leader>ff magggqG'a
@@ -13,6 +13,8 @@ nnoremap <c-h> <c-w>h
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 nnoremap <c-l> <c-w>l
+" just for fun
+" nnoremap <c-t> :e <c-r>=system('rg --files . <bar> fzf -m --border --preview "fzf-preview.sh {}"')<cr><cr>:redraw!<cr>
 
 nmap à ]
 nmap ç [
@@ -49,3 +51,12 @@ nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
 nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
 nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
 nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
+nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
+
+" run tests of current file
+nnoremap <leader>tf <scriptcmd>vim9cmd term#TermPopup(['pytest', expand('%')])<CR>
+" run all tests
+nnoremap <leader>ta <scriptcmd>vim9cmd term#TermPopup(['pytest', 'tests/'])<CR>
+
+" easily launch jupyterconnect
+cnoreabbrev jpc JupyterConnect

@@ -1,22 +1,23 @@
 " Diff against a specificy commit hash or HEAD
 function! Diff(spec)
-	vertical new
-	setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
+  vertical new
+  setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
     let cmd = "++edit #"
-	if len(a:spec)
+  if len(a:spec)
     let cmd = "!git -C " . shellescape(fnamemodify(finddir('.git', '.;'), ':p:h:h')) . " show " . a:spec . ":#"
-	endif
-	execute "read " . cmd
-	silent 0d_
-	diffthis
-	wincmd p
-	diffthis
+  endif
+  execute "read " . cmd
+  silent 0d_
+  diffthis
+  wincmd p
+  diffthis
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
 
 " Grep using grepprg
 function! Grep(...)
-	return system(join([&grepprg] + [expandcmd(join(a:000, ' '))], ' '))
+  return system(join([&grepprg] + [expandcmd(join(a:000, ' '))], ' '))
+  " return system(join([&grepprg] + [join(a:000, ' ')], ' '))
 endfunction
 
 command! -nargs=+ -complete=file_in_path -bar Grep  cgetexpr Grep(<f-args>)
@@ -25,8 +26,13 @@ command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
 cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
 cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
 
-command! -nargs=+ -complete=file_in_path -bar VimGrep execute('silent! noautocmd vimgrep /' . split(<q-args>, ' ')[0] . '/j ' . split(<q-args>, ' ')[1] .' | cw')
-command! -nargs=+ -complete=file_in_path -bar GitGrep silent! Ggrep <args> | cw
+func Eatchar(pat)
+  let c = nr2char(getchar(0))
+  return (c =~ a:pat) ? '' : c
+endfunc
+
+" easy insert **/*. in command line
+cnoreabbrev rù **/*.<c-r>=Eatchar('\m\s')<cr>
 
 " try to use fd or rg to find files
 set errorformat+=%f
@@ -57,8 +63,8 @@ command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
 
 
 function! Commit(...)
-	let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
-	return system(commitcmd)
+  let commitcmd = "git log --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
+  return system(commitcmd)
 endfunction
 command! -nargs=0 -bar Commit cgetexpr Commit()
 
@@ -66,17 +72,17 @@ command! -nargs=0 -bar Commit cgetexpr Commit()
 command! -range GB echo join(systemlist("git -C " . shellescape(expand('%:p:h')) . " blame -L <line1>,<line2> " . expand('%:t')), "\n")
 
 command! -bang -nargs=1 Global call setloclist(0, [], ' ',
-	\ {'title': 'Global<bang> ' .. <q-args>,
-	\  'efm':   '%f:%l:%c\ %m,%f:%l',
-	\  'lines': execute('g<bang>/' .. <q-args> .. '/#')
-	\           ->split('\n')
-	\           ->map({_, val -> expand("%") .. ":" .. trim(val)->substitute('^\d\+','&:' .. trim(val)->substitute('^\d\+ ','','')->charidx(trim(val)->substitute('^\d\+','','')->match(<q-args>)),'')})
-	\ })
+  \ {'title': 'Global<bang> ' .. <q-args>,
+  \  'efm':   '%f:%l:%c\ %m,%f:%l',
+  \  'lines': execute('g<bang>/' .. <q-args> .. '/#')
+  \           ->split('\n')
+  \           ->map({_, val -> expand("%") .. ":" .. trim(val)->substitute('^\d\+','&:' .. trim(val)->substitute('^\d\+ ','','')->charidx(trim(val)->substitute('^\d\+','','')->match(<q-args>)),'')})
+  \ })
 
 " " interactive file search using ripgrep + fzf
 " function! FZF() abort
 "     let l:tempname = tempname()
-"     execute 'silent !rg --files . | fzf -m --border' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
+"     execute 'silent !rg --files . | fzf -m --border --height=20' . '| awk ''{ print $1":1:0" }'' > ' . fnameescape(l:tempname)
 "     try
 "         execute 'cfile ' . l:tempname
 "         redraw!
@@ -116,9 +122,9 @@ function! CurrentGitStatus()
     let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
     let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
     if len(gitbranch) > 0
-        let b:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
+        let g:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
     else
-        let b:gitstatus = ''
+        let g:gitstatus = ''
     endif
 endfunc
 autocmd BufEnter,BufWritePost * call CurrentGitStatus()
@@ -127,7 +133,7 @@ set statusline=
 set statusline+=%#PmenuSel#
 " set statusline+=%{StatuslineGit()}
 " set statusline+=%{FugitiveStatusline()}
-set statusline+=%{b:gitstatus}
+set statusline+=%{g:gitstatus}
 set statusline+=%#StatusLine#
 set statusline+=\ %f
 set statusline+=%m\ 

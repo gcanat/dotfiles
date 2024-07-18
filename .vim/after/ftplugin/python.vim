@@ -3,10 +3,10 @@ vim9script
 if executable('black')
   # set formatprg
   # setlocal formatprg=black\ -q\ -l\ 120\ -
-  setlocal formatprg=black\ --fast\ -q\ -l\ 120\ 2>/dev/null\ --stdin-filename\ %\ -
+  # setlocal formatprg=black\ --fast\ -q\ -l\ 120\ 2>/dev/null\ --stdin-filename\ %\ -
   setl textwidth=120
   setl formatoptions=tcqjlron 
-  # setl formatprg=ruff\ format\ -n\ --stdin-filename\ %\ -
+  setl formatprg=ruff\ format\ -n\ --stdin-filename\ %\ -
   # ensure we use formatprg isntead of formatexpr
   setl formatexpr=
 endif

@@ -43,3 +43,35 @@ export def Send(...args: list<any>): string
     &clipboard = clipboard_save
     return ""
 enddef
+
+# Callback to use after the popup is closed
+def MyHandler(bufno: number, timer: number)
+  # delete the buffer forcefully
+  :exe $'bw! {bufno}'
+  # remove link to Pmenu
+  hi link Terminal NONE
+enddef
+
+# Open a terminal popup and run the cmd
+export def TermPopup(cmd: list<string>): void
+  hi link Terminal Pmenu
+  var cols = (&columns * 0.8) ->float2nr()
+  var lines = (&lines * 0.7)->float2nr()
+  var term_opts = {
+    hidden: 1,
+    term_cols: cols,
+    norestore: 1,
+  }
+  var buf = term_start(cmd, term_opts)
+
+  var winid = popup_create(buf, {
+    minwidth: cols,
+    minheight: lines,
+    maxwidth: cols,
+    callback: (id, res) => {
+      # wait 100ms before deleting the terminal buffer
+      timer_start(100, function('MyHandler', [buf]))
+    },
+  })
+
+enddef

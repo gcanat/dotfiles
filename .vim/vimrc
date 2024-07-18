@@ -1,22 +1,15 @@
 " set showtabline=1
-" if has('termguicolors') && (has('mac') || has('win32'))
-  set termguicolors
-" endif
+set termguicolors
 set nu relativenumber
-" set cursorline
 set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
-set numberwidth=5
-set signcolumn=yes
-set autoindent
+set numberwidth=5 signcolumn=yes autoindent
 set clipboard=unnamed
 let mapleader = ","
-set encoding=utf-8
-set updatetime=100
-set laststatus=2
-set hidden
-set splitright
+let maplocalleader = ";"
+set encoding=utf-8 updatetime=250 laststatus=2 hidden splitright
 set shell=/bin/fish
 set shortmess+=TasS
+set mouse=a
 " set foldmethod=indent
 
 filetype plugin on
@@ -36,28 +29,25 @@ endfunc
 execute "set path=,," . SetPath()
 
 " Display all matching files when we tab complete
-set wildmenu wildignorecase
-set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
+set wildmenu wildignorecase wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
 if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
 " better looking diff
 if has("patch-8.1.0360")
-    set diffopt+=internal,algorithm:patience
+    " set diffopt+=internal,algorithm:patience
+    set diffopt+=vertical,algorithm:histogram,indent-heuristic
 endif
-set fillchars=vert:│
 set sessionoptions=buffers,curdir,tabpages,winsize
 " Saving options in session and view files causes more problems than it
 " solves, so disable it.
-set sessionoptions-=options
-set viewoptions-=options
+set sessionoptions-=options viewoptions-=options
 
 " Make the escape key more responsive by decreasing the wait time for an
 " escape sequence (e.g., arrow keys).
-set ttimeout
-set ttimeoutlen=100
+set ttimeout ttimeoutlen=100
 " incremental search
-set incsearch ignorecase smartcase
+set incsearch ignorecase smartcase hlsearch
 set scrolloff=4
 " Disable a legacy behavior that can break plugin maps.
 set nolangremap
@@ -79,26 +69,33 @@ endif
 if !isdirectory(&directory)
   call mkdir(&directory, "p")
 endif
-" let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 
 " tweaks for browsing
 let g:netrw_banner=0        " disable annoying banner
 let g:netrw_browse_split=4  " open in prior window
 let g:netrw_altv=1          " open splits to the right
 let g:netrw_liststyle=3     " tree view
+let g:netrw_winsize = 10
 " netrw_gitignore#Hide() causes netrw to be super slow on big repo
 " let g:netrw_list_hide=netrw_gitignore#Hide()
 let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
-
 
 set background=dark
 syntax on
 
 " Builtin grep
 if executable('rg')
-  set grepprg=rg\ --column\ --no-heading\ --smart-case\ -g\ \"!*.ipynb\"
+  set grepprg=rg\ -HS\ --no-heading\ --vimgrep\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"
+  set grepformat=%f:%l:%c:%m
 else
-  set grepprg=grep\ --color=never\ -REHInsi\ --exclude-dir=\"*.git*\"\ --exclude=\"*.swp\"\ --exclude=\"*.zwc\"\ --exclude=\"*.pyc\"\ --exclude=\"*.pyo\"\ --exclude=\"*.ipynb\"\ --exclude-dir=\"*.*_cache*\"\ --exclude-dir=\"target\"\ --exclude-dir=\"build\"
+  let g:grepcmd = 'grep\ --color=never\ -REHInsi'
+  for pattern in ['*.swp', '*.zwc', '*.pyc', '*.pyo', '*.ipynb']
+    let g:grepcmd .= '\ --exclude=\"' . pattern . '\"'
+  endfor 
+   for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build']
+    let g:grepcmd .= '\ --exclude-dir=\"' . pattern . '\"'
+  endfor
+  execute 'set grepprg=' . g:grepcmd
 endif
 
 " Useful tips
@@ -110,13 +107,24 @@ let &t_ut=''
 " use tab to trigger omnifunc competion
 " inoremap <Tab> <C-X><C-O>
 " set omnifunc=syntaxcomplete#Complete
-set completeopt=menuone,preview
+" set completeopt=menuone,preview
+set completeopt=menuone,popup,fuzzy completepopup=highlight:Pmenu
+set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:…
+set fillchars=vert:│
+set backspace=indent,eol,start
 
 " set wildmode=list:lastused
 set wildcharm=<C-Z>
 
-" Add plugin
+" in case we launch gvim (for some reason...) hide ugly menus
+set guioptions=aegit
+set guifont=Fantasque\ Sans\ Mono\ 19
+
+" Add plugins
 packadd! comment
+if has("patch-9.1.0497")
+  packadd! nohlsearch
+endif
 packadd! lsp
 packadd! vim-fugitive
 packadd! vim-gitgutter
@@ -125,3 +133,14 @@ packadd! devdocs.vim
 " packadd scope.vim
 let g:vimspector_enable_mappings = 'HUMAN'
 packadd! vimspector
+
+" Always use the same virtualenv for vim, regardless of what Python
+" environment is loaded in the shell from which vim is launched
+" let g:vim_virtualenv_path = '/home/guillaume/venv/valgo2'
+" if exists('g:vim_virtualenv_path')
+"   pythonx import os; import vim
+"   pythonx activate_this = os.path.join(vim.eval('g:vim_virtualenv_path'), 'bin/activate')
+"   pythonx with open(activate_this) as f: exec(f.read(), {'__file__': activate_this})
+" endif
+"
+let g:jupyter_highlight_cells = 1

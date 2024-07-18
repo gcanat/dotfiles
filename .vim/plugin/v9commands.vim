@@ -20,4 +20,3 @@ def GrepBuffers(...args: list<string>): string
 enddef
 
 command! -nargs=+ -complete=custom,GrepBuffers Gbuf cgetexpr GrepBuffers(<f-args>)
-  
