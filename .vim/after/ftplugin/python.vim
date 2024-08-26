@@ -1,6 +1,6 @@
 vim9script
 
-if executable('black')
+if executable('ruff')
   # set formatprg
   # setlocal formatprg=black\ -q\ -l\ 120\ -
   # setlocal formatprg=black\ --fast\ -q\ -l\ 120\ 2>/dev/null\ --stdin-filename\ %\ -
