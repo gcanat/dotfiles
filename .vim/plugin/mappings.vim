@@ -13,6 +13,10 @@ nnoremap <c-h> <c-w>h
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 nnoremap <c-l> <c-w>l
+" resize window width
+nnoremap <c-(> <c-w><
+nnoremap <c-)> <c-w>>
+
 " just for fun
 " nnoremap <c-t> :e <c-r>=system('rg --files . <bar> fzf -m --border --preview "fzf-preview.sh {}"')<cr><cr>:redraw!<cr>
 
