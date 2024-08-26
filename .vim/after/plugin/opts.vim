@@ -106,7 +106,7 @@ if exists("g:loaded_lsp")
       name: 'jedi',
       filetype: ['python'],
       path: 'jedi-language-server',
-    }])  
+    }])
   endif
   if executable('vim-language-server')
     g:LspAddServer([{
@@ -114,6 +114,19 @@ if exists("g:loaded_lsp")
      filetype: 'vim',
      path: exepath('vim-language-server'),
      args: ['--stdio']
+   }])
+  endif
+  if executable('texlab')
+    g:LspAddServer([{
+     name: 'texlab',
+     filetype: 'tex',
+     path: exepath('texlab'),
+     # args: ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
+     initializationOptions: {
+       build: {
+         onSave: true
+       }
+     }
    }])
   endif
   # set keymappings
