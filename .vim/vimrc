@@ -1,126 +1,122 @@
-" set showtabline=1
+vim9script
+
+# set showtabline=1
 set termguicolors
 set nu relativenumber
 set tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 set numberwidth=5 signcolumn=yes autoindent
 set clipboard=unnamed
-let mapleader = ","
-let maplocalleader = ";"
+g:mapleader = ","
+g:maplocalleader = ";"
 set encoding=utf-8 updatetime=250 laststatus=2 hidden splitright
 set shell=/bin/fish
 set shortmess+=TasS
 set mouse=a
-" set foldmethod=indent
+# set foldmethod=indent
 
 filetype plugin on
 filetype indent on
-" disable vi compatibility
+# disable vi compatibility
 if &compatible
   set nocompatible
 endif
 
-" Search down into a whitelist of subfolders
-" Provides tab-completion for all file-related tasks
-func! SetPath()
-  let path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
-  let paths = map(path_list, {_, val -> val != "." ? val[2:] . "/**" : val})
-  return join(paths, ",")
-endfunc
-execute "set path=,," . SetPath()
+# Search down into a whitelist of subfolders
+# Provides tab-completion for all file-related tasks
+def SetPath(): string
+  var path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
+  path_list->map((_, val) => val != "." ? val[2 : ] .. "/**" : val)
+  return join(path_list, ",")
+enddef
+execute "set path=,," .. SetPath()
 
-" Display all matching files when we tab complete
+# Display all matching files when we tab complete
 set wildmenu wildignorecase wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
 if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
-" better looking diff
+# better looking diff
 if has("patch-8.1.0360")
-    " set diffopt+=internal,algorithm:patience
+    # set diffopt+=internal,algorithm:patience
     set diffopt+=vertical,algorithm:histogram,indent-heuristic
 endif
 set sessionoptions=buffers,curdir,tabpages,winsize
-" Saving options in session and view files causes more problems than it
-" solves, so disable it.
+# Saving options in session and view files causes more problems than it
+# solves, so disable it.
 set sessionoptions-=options viewoptions-=options
 
-" Make the escape key more responsive by decreasing the wait time for an
-" escape sequence (e.g., arrow keys).
+# Make the escape key more responsive by decreasing the wait time for an
+# escape sequence (e.g., arrow keys).
 set ttimeout ttimeoutlen=100
-" incremental search
+# incremental search
 set incsearch ignorecase smartcase hlsearch
 set scrolloff=4
-" Disable a legacy behavior that can break plugin maps.
+# Disable a legacy behavior that can break plugin maps.
 set nolangremap
 set undofile
-" Setup data dirs
-let g:vimdata = expand("~/.local/share/") . 'vim-data'
+# Setup data dirs
+g:vimdata = expand("~/.local/share/") .. 'vim-data'
 if !isdirectory(g:vimdata)
-  call mkdir(g:vimdata, "p")
+  mkdir(g:vimdata, "p")
 endif
-let &directory=g:vimdata . '/swap//'
-let &backupdir=g:vimdata . '/backup//'
-let &undodir=g:vimdata . '/undo//'
-if !isdirectory(&undodir)
-  call mkdir(&undodir, "p")
-endif
-if !isdirectory(&backupdir)
-  call mkdir(&backupdir, "p")
-endif
-if !isdirectory(&directory)
-  call mkdir(&directory, "p")
-endif
+&directory = g:vimdata .. '/swap//'
+&backupdir = g:vimdata .. '/backup//'
+&undodir = g:vimdata .. '/undo//'
+if !isdirectory(&undodir) | mkdir(&undodir, "p") | endif
+if !isdirectory(&backupdir) | mkdir(&backupdir, "p") | endif
+if !isdirectory(&directory) | mkdir(&directory, "p") | endif
 
-" tweaks for browsing
-let g:netrw_banner=0        " disable annoying banner
-let g:netrw_browse_split=4  " open in prior window
-let g:netrw_altv=1          " open splits to the right
-let g:netrw_liststyle=3     " tree view
-let g:netrw_winsize = 10
-" netrw_gitignore#Hide() causes netrw to be super slow on big repo
-" let g:netrw_list_hide=netrw_gitignore#Hide()
-let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+'
+# tweaks for browsing
+g:netrw_banner = 0        # disable annoying banner
+g:netrw_browse_split = 4  # open in prior window
+g:netrw_altv = 1          # open splits to the right
+g:netrw_liststyle = 3     # tree view
+g:netrw_winsize = 10
+# netrw_gitignore#Hide() causes netrw to be super slow on big repo
+# g:netrw_list_hide=netrw_gitignore#Hide()
+g:netrw_list_hide = ', \(^\|\s\s\)\zs\.\S\+'
 
 set background=dark
 syntax on
 
-" Builtin grep
+# Builtin grep
 if executable('rg')
   set grepprg=rg\ -HS\ --no-heading\ --vimgrep\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"
   set grepformat=%f:%l:%c:%m
 else
-  let g:grepcmd = 'grep\ --color=never\ -REHInsi'
-  for pattern in ['*.swp', '*.zwc', '*.pyc', '*.pyo', '*.ipynb']
-    let g:grepcmd .= '\ --exclude=\"' . pattern . '\"'
+  g:grepcmd = 'grep\ --color=never\ -REHInsi'
+  for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb']
+    g:grepcmd ..= '\ --exclude=\"' .. pattern .. '\"'
   endfor 
-   for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build']
-    let g:grepcmd .= '\ --exclude-dir=\"' . pattern . '\"'
+   for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build', '.*_cache', '.cache', '.cargo', 'node_modules']
+    g:grepcmd ..= '\ --exclude-dir=\"' .. pattern .. '\"'
   endfor
-  execute 'set grepprg=' . g:grepcmd
+  execute 'set grepprg=' .. g:grepcmd
 endif
 
-" Useful tips
-" merging 2 blocks of line, put cursor on last line of first block and do :1,g/^/''+m.|-j!
+# Useful tips
+# merging 2 blocks of line, put cursor on last line of first block and do :1,g/^/''+m.|-j!
 
-" disable Background Color Erase
-let &t_ut=''
+# disable Background Color Erase
+&t_ut = ''
 
-" use tab to trigger omnifunc competion
-" inoremap <Tab> <C-X><C-O>
-" set omnifunc=syntaxcomplete#Complete
-" set completeopt=menuone,preview
+# use tab to trigger omnifunc competion
+# inoremap <Tab> <C-X><C-O>
+# set omnifunc=syntaxcomplete#Complete
+# set completeopt=menuone,preview
 set completeopt=menuone,popup,fuzzy completepopup=highlight:Pmenu
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:…
 set fillchars=vert:│
 set backspace=indent,eol,start
 
-" set wildmode=list:lastused
+# set wildmode=list:lastused
 set wildcharm=<C-Z>
 
-" in case we launch gvim (for some reason...) hide ugly menus
+# in case we launch gvim (for some reason...) hide ugly menus
 set guioptions=aegit
 set guifont=Fantasque\ Sans\ Mono\ 19
 
-" Add plugins
+# Add plugins
 packadd! comment
 if has("patch-9.1.0497")
   packadd! nohlsearch
@@ -129,18 +125,18 @@ packadd! lsp
 packadd! vim-fugitive
 packadd! vim-gitgutter
 packadd! copilot.vim
-packadd! devdocs.vim
-" packadd scope.vim
-let g:vimspector_enable_mappings = 'HUMAN'
+# packadd! devdocs.vim
+# packadd scope.vim
+g:vimspector_enable_mappings = 'HUMAN'
 packadd! vimspector
 
-" Always use the same virtualenv for vim, regardless of what Python
-" environment is loaded in the shell from which vim is launched
-" let g:vim_virtualenv_path = '/home/guillaume/venv/valgo2'
-" if exists('g:vim_virtualenv_path')
-"   pythonx import os; import vim
-"   pythonx activate_this = os.path.join(vim.eval('g:vim_virtualenv_path'), 'bin/activate')
-"   pythonx with open(activate_this) as f: exec(f.read(), {'__file__': activate_this})
-" endif
-"
-let g:jupyter_highlight_cells = 1
+# Always use the same virtualenv for vim, regardless of what Python
+# environment is loaded in the shell from which vim is launched
+# let g:vim_virtualenv_path = '/home/guillaume/venv/valgo2'
+# if exists('g:vim_virtualenv_path')
+#   pythonx import os; import vim
+#   pythonx activate_this = os.path.join(vim.eval('g:vim_virtualenv_path'), 'bin/activate')
+#   pythonx with open(activate_this) as f: exec(f.read(), {'__file__': activate_this})
+# endif
+#
+g:jupyter_highlight_cells = 1
