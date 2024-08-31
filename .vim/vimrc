@@ -140,3 +140,8 @@ packadd! vimspector
 # endif
 #
 g:jupyter_highlight_cells = 1
+
+# set cursor as a vertical bar in insert mode
+&t_SI = "\<Esc>[6 q"
+&t_SR = "\<Esc>[4 q"
+&t_EI = "\<Esc>[2 q"
