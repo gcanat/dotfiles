@@ -26,6 +26,7 @@ command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
 cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
 cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
 
+
 func Eatchar(pat)
   let c = nr2char(getchar(0))
   return (c =~ a:pat) ? '' : c
@@ -122,14 +123,32 @@ function! CurrentGitStatus()
     let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
     let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
     if len(gitbranch) > 0
-        let g:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
+        let g:gitstatus = '.' . gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
     else
         let g:gitstatus = ''
     endif
 endfunc
 autocmd BufEnter,BufWritePost * call CurrentGitStatus()
 
+let g:currentmode = { 'n': 'NORMAL', 'no': 'N·OP·PEND', 'v': 'VISUAL', 'V': 'V·LINE', '': 'V·BLOCK', 's': 'SELECT', 'S': 'S·LINE', '': 'S·BLOCK', 'i': 'INSERT', 'R': 'REPLACE', 'Rv': 'V·REPLACE', 'c': 'COMMAND', 'cv': 'VIM EX', 'ce': 'EX', 'r': 'PROMPT', 'rm': 'MORE', 'r?': 'CONFIRM', '!': 'SHELL', 't': 'TERMINAL'}
+let g:modegroups = { 'n': 'NRM', 'no': 'NRM', 'v': 'VIS', 'V': 'VIS', '': 'VIS', '': 'VIS', 's': 'OTH', 'S': 'OTH', 'i': 'INS', 'R': 'INS', 'Rv': 'INS', 'c': 'OTH', 'cv': 'OTH', 'ce': 'OTH', 'r': 'OTH', 'rm': 'OTH', 'r?': 'OTH', '!': 'OTH', 't': 'OTH'}
+
+function! Modetheme(group)
+  if g:modegroups[mode()]==a:group
+    let g:colthm = g:currentmode[mode()]
+    let g:lineModes = g:colthm
+    return "  ".g:lineModes." "
+  else
+    return ''
+  endif
+endfunction
+
 set statusline=
+set statusline+=%#CursorColumn#%{(Modetheme('NRM'))}
+set statusline+=%#DiffChange#%{(Modetheme('VIS'))}
+set statusline+=%#DiffAdd#%{(Modetheme('INS'))}
+set statusline+=%#ToolbarButton#%{(Modetheme('OTH'))}
+set statusline+=%#StatusLine#
 set statusline+=%#PmenuSel#
 " set statusline+=%{StatuslineGit()}
 " set statusline+=%{FugitiveStatusline()}

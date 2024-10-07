@@ -1,18 +1,12 @@
 augroup zaitheme
   autocmd!
-  autocmd ColorScheme zaibatsu silent! hi Pmenu guifg=#ffffff guibg=#0e0024 gui=NONE cterm=NONE | hi StatusLine guifg=#0e0024 guibg=#9e9e9e gui=NONE cterm=NONE | hi PmenuKind guifg=#878092 guibg=#0e0024 gui=NONE cterm=NONE | hi Cursor guifg=#0e0024 guibg=#ffffff gui=NONE cterm=NONE | hi CursorIM guifg=#0e0024 guibg=#ffffff gui=NONE cterm=NONE | hi Normal ctermfg=231 ctermbg=NONE guifg=#ffffff guibg=NONE
+  autocmd ColorScheme zaibatsu silent! hi Pmenu guifg=#ffffff guibg=#0e0024 gui=NONE cterm=NONE | hi StatusLine guifg=#0e0024 guibg=#9e9e9e gui=NONE cterm=NONE | hi PmenuKind guifg=#878092 guibg=#0e0024 gui=NONE cterm=NONE | hi Cursor guifg=#0e0024 guibg=#ffffff gui=NONE cterm=NONE | hi CursorIM guifg=#0e0024 guibg=#ffffff gui=NONE cterm=NONE
   autocmd ColorScheme zaibatsu silent! let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
 augroup END
 
-augroup retrotheme
+augroup hinormal
   autocmd!
-  autocmd ColorScheme retrobox silent! hi Normal guibg=NONE ctermbg=NONE
-  autocmd ColorScheme retrobox silent! let &t_ti = &t_ti . "\033]10;#ebdbb2\007\033]11;#1c1c1c\007"
-augroup END
-
-augroup nod
-  autocmd!
-  autocmd ColorScheme nod* silent! hi Normal guifg=NONE guibg=NONE
+  autocmd ColorScheme * silent! hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
 augroup END
 
 if has("gui_running")
@@ -20,14 +14,16 @@ if has("gui_running")
   colorscheme habamax
 else
   colorscheme kanagawa
+  " colorscheme nod
+  " colorscheme habamax
 endif
 
 augroup quickfix
-	autocmd!
+  autocmd!
   " open quickfix at the bottom
   autocmd FileType qf wincmd J
-	autocmd QuickFixCmdPost cgetexpr cwindow
-	autocmd QuickFixCmdPost lgetexpr lwindow
+  autocmd QuickFixCmdPost cgetexpr cwindow
+  autocmd QuickFixCmdPost lgetexpr lwindow
 augroup END
 
 augroup general | au!
@@ -41,7 +37,15 @@ augroup CursColLine
     autocmd!
     au WinLeave * setlocal nocursorline nocursorcolumn
     au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
+    " disable cursorline in insert mode
+    au InsertLeave * setlocal cursorline
+    au InsertEnter * setlocal nocursorline
 augroup end
+
+augroup TexColorScheme
+  autocmd!
+  au WinLeave,BufWinLeave *.tex setl background=dark | :colorscheme kanagawa
+  au VimEnter,WinEnter,BufWinEnter *.tex setl background=light | :colorscheme lunaperche
 
 autocmd BufReadPre *.nfo :setlocal fileencodings=cp437,utf-8
 

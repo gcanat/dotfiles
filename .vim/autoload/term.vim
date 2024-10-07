@@ -65,9 +65,14 @@ export def TermPopup(cmd: list<string>): void
   var buf = term_start(cmd, term_opts)
 
   var winid = popup_create(buf, {
+    title: " " .. cmd->join(" ") .. " ",
+    border: [1, 1, 1, 1],
+    borderchars: ['─', '│', '─', '│', '┌', '┐', '┘', '└'],
     minwidth: cols,
     minheight: lines,
     maxwidth: cols,
+    mapping: 0,
+    drag: 0,
     callback: (id, res) => {
       # wait 100ms before deleting the terminal buffer
       timer_start(100, function('MyHandler', [buf]))

@@ -44,18 +44,6 @@ xnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame(line("v"), line("."))<
 inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
 
-" fuzzy finder
-nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
-nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
-nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
-nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
-nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
-nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
-nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
-nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
-nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
-nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
-nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
 
 " run tests of current file
 nnoremap <leader>tf <scriptcmd>vim9cmd term#TermPopup(['pytest', expand('%')])<CR>

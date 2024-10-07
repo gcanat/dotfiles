@@ -8,11 +8,12 @@ set numberwidth=5 signcolumn=yes autoindent
 set clipboard=unnamed
 g:mapleader = ","
 g:maplocalleader = ";"
-set encoding=utf-8 updatetime=250 laststatus=2 hidden splitright
+set encoding=utf-8 updatetime=1000 laststatus=2 hidden splitright
 set shell=/bin/fish
 set shortmess+=TasS
 set mouse=a
 # set foldmethod=indent
+set noshowmode
 
 filetype plugin on
 filetype indent on
@@ -31,7 +32,7 @@ enddef
 execute "set path=,," .. SetPath()
 
 # Display all matching files when we tab complete
-set wildmenu wildignorecase wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,tags
+set wildmenu wildignorecase wildignore+=*.egg-info/*,.*,*/__pycache__/*,*.o,*.obj,*.bak,*.exe,*.swp,tags
 if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
@@ -142,6 +143,6 @@ packadd! vimspector
 g:jupyter_highlight_cells = 1
 
 # set cursor as a vertical bar in insert mode
-&t_SI = "\<Esc>[6 q"
-&t_SR = "\<Esc>[4 q"
-&t_EI = "\<Esc>[2 q"
+# &t_SI = "\<Esc>[6 q"
+# &t_SR = "\<Esc>[4 q"
+# &t_EI = "\<Esc>[2 q"

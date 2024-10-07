@@ -3,7 +3,7 @@ vim9script
 import autoload 'popup.vim'
 import autoload 'os.vim'
 
-const MAX_ELEMENTS: number = 20000
+const MAX_ELEMENTS: number = 6000
 
 
 export def Buffer()
@@ -41,14 +41,12 @@ enddef
 
 export def MRU()
     var mru = []
-    if has("win32")
-        # windows is very slow checking if file exists
-        # use non-filtered v:oldfiles
-        mru = v:oldfiles
-    else
-        mru = v:oldfiles->filter((_, v) =>
-            filereadable(fnamemodify(v, ":p")) && v !~ 'share/vim/.*/doc/.*\.txt')
-    endif
+    mru = v:oldfiles->filter((_, v) =>
+        filereadable(fnamemodify(v, ":p")) &&
+        v !~ '\~\\AppData\\Local\\Temp\\.*\.tmp' &&
+        v !~ '.*\.\?\(vim\|vimfiles\)[/\\]pack[/\\].*doc[/\\].*\.txt' &&
+        fnamemodify(v, ":p") !~ escape($VIMRUNTIME, '\')  .. '.*[/\\]doc[/\\].*\.txt'
+    )
     popup.FilterMenu("MRU", mru,
         (res, key) => {
             if key == "\<c-t>"

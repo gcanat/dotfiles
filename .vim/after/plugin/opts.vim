@@ -19,8 +19,9 @@ if exists('g:loaded_scope')
   fuzzy.OptionsSet({
     grep_echo_cmd: false,
     grep_skip_len: 3,
-    # timer_delay: 20,
-    # grep_poll_interval: 100,
+    timer_delay: 20,
+    # grep_poll_interval: 200,
+    find_echo_cmd: true,
   })
   import autoload 'scope/popup.vim' as sp
   sp.OptionsSet({
@@ -35,27 +36,37 @@ if exists('g:loaded_scope')
     autocmd QuickFixCmdPost llist lwindow
   augroup END
   if g:findcmd == 'find'
-    nnoremap <space>fe :Scope File<CR>
+    nnoremap <leader>fe :Scope File<CR>
   else 
-    nnoremap <space>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
+    nnoremap <leader>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
   endif
   if executable('rg')
-    nnoremap <space>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*"')<CR>
+    nnoremap <leader>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*"')<CR>
   else
-    nnoremap <space>fg :Scope Grep<CR>
+    nnoremap <leader>fg :Scope Grep<CR>
   endif
-  # nnoremap <space>fx <scriptcmd>fuzzy.Grep()<CR>
-  nnoremap <space>fm <scriptcmd>fuzzy.MRU()<CR>
-  nnoremap <space>fk <scriptcmd>fuzzy.Keymap()<CR>
-  nnoremap <space>fb <scriptcmd>fuzzy.Buffer()<CR>
-  nnoremap <space>fq <scriptcmd>fuzzy.Quickfix()<CR>
+  nnoremap <leader>fm <scriptcmd>fuzzy.MRU()<CR>
+  nnoremap <leader>fk <scriptcmd>fuzzy.Keymap()<CR>
+  nnoremap <leader>b <scriptcmd>fuzzy.Buffer()<CR>
+  nnoremap <leader>fq <scriptcmd>fuzzy.Quickfix()<CR>
   # search word under cursor
-  nnoremap <space>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
-  nnoremap <space>jl <scriptcmd>fuzzy.Jumplist()<CR>
-  nnoremap <space>jm <scriptcmd>fuzzy.Mark()<CR>
-  nnoremap <space>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
+  nnoremap <leader>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
+  nnoremap <leader>jl <scriptcmd>fuzzy.Jumplist()<CR>
+  nnoremap <leader>jm <scriptcmd>fuzzy.Mark()<CR>
+  nnoremap <leader>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
 else
-  nnoremap <space>gw silent! noautocmd Grep <cword><CR>
+  nnoremap <leader>gw :Grep <cword><CR>
+  nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
+  nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
+  nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
+  nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
+  nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
+  nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
+  nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
+  nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
+  nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
+  nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
+  nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
 endif
 
 if exists("g:loaded_lsp")
