@@ -258,4 +258,55 @@ command! -nargs=1 DiffRev call s:get_diff_files(<q-args>)
 if has("patch-9.1.374")
   packadd comment
 endif
+
+function! DiffSign()
+  call sign_define('DiffSignChange', {'text': '~', 'texthl': 'DiffChange'})
+  call sign_define('DiffSignAdd', {'text': '+', 'texthl': 'DiffAdd'})
+  call sign_define('DiffSignDel', {'text': '-', 'texthl': 'DiffDelete'})
+
+  if &buftype == ''
+    \&& system('git -C ' . expand("%:p:h") . ' rev-parse --is-inside-work-tree') == "true\n"
+    \&& strlen(system('git -C ' . expand("%:p:h") . ' ls-files -- ' . expand("%:p")))
+
+    let bufnr = bufnr('%')
+    " clear signs
+    call sign_unplace('DiffSignChange', {'buffer': bufnr})
+    call sign_unplace('DiffSignAdd', {'buffer': bufnr})
+    call sign_unplace('DiffSignDel', {'buffer': bufnr})
+
+    let lines = systemlist('git -C ' . expand('%:p:h') . ' diff -U0 ' . expand("%:p")
+      \. ' | grep -Po "^@@ \K-[0-9]+(,[0-9]+)? \+[0-9]+(,[0-9]+)?(?= @@)"')
+
+    for item in lines
+      let del_ins = split(item, ' ')
+      let del = del_ins[0][1:]
+      let start_del = str2nr(split(del, ',')[0])
+      let end_del = del->len() > 1 ? start_del + str2nr(split(del, ',')[1]) : start_del
+      let ins = del_ins[1][1:]
+      let start_ins = str2nr(split(ins, ',')[0])
+      let end_ins = ins->len() > 1 ? start_ins + str2nr(split(ins, ',')[1]) : start_ins
+
+      if (start_ins == end_ins) && (start_del == end_del)
+        " single line modification
+        call sign_place(start_ins, 'DiffSignChange', 'DiffSignChange', bufnr, {'lnum': start_ins})
+      elseif start_ins == end_ins
+        " no insertion, only deletion
+        call sign_place(start_ins, 'DiffSignDel', 'DiffSignDel', bufnr, {'lnum': start_ins})
+      elseif start_del == end_del
+        " new lines added
+        for i in range(start_ins, end_ins - 1)
+          call sign_place(i, 'DiffSignAdd', 'DiffSignAdd', bufnr, {'lnum': i})
+        endfor
+      else
+        " modified block
+        for i in range(start_del, end_del - 1)
+          call sign_place(i, 'DiffSignChange', 'DiffSignChange', bufnr, {'lnum': i})
+        endfor
+      endif
+    endfor
+  endif
+endfunction
+
+autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call DiffSign() | endif
+
 " vim:ts=2:sw=2
