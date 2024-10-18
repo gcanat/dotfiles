@@ -279,12 +279,12 @@ function! DiffSign()
 
     for item in lines
       let del_ins = split(item, ' ')
-      let del = del_ins[0][1:]
-      let start_del = str2nr(split(del, ',')[0])
-      let end_del = del->len() > 1 ? start_del + str2nr(split(del, ',')[1]) : start_del
-      let ins = del_ins[1][1:]
-      let start_ins = str2nr(split(ins, ',')[0])
-      let end_ins = ins->len() > 1 ? start_ins + str2nr(split(ins, ',')[1]) : start_ins
+      let del = split(del_ins[0][1:], ',')
+      let start_del = str2nr(del[0])
+      let end_del = del->len() > 1 ? start_del + str2nr(del[1]) : start_del
+      let ins = split(del_ins[1][1:], ',')
+      let start_ins = str2nr(ins[0])
+      let end_ins = ins->len() > 1 ? start_ins + str2nr(ins[1]) : start_ins
 
       if (start_ins == end_ins) && (start_del == end_del)
         " single line modification
