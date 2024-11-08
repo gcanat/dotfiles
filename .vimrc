@@ -2,19 +2,12 @@ if &compatible
   set nocompatible
 endif
 syntax on
-set autoindent
-set signcolumn=yes
+set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
 set nu relativenumber
-set expandtab
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
-set encoding=utf-8
-set laststatus=2
-set hidden
+set expandtab tabstop=4 softtabstop=4 shiftwidth=4
 set wildmenu wildignorecase
 set incsearch ignorecase smartcase
-set updatetime=100
+set updatetime=2000 ttimeout ttimeoutlen=100
 if has('termguicolors') && (has('mac') || has('win32'))
   set termguicolors
 endif
@@ -26,15 +19,24 @@ func! SetPath()
   return join(paths, ",")
 endfunc
 execute "set path=,," . SetPath()
+" set path+=**
 
-set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,tags
+if has('patch-9.1.0831')
+  func FindFiles(cmdarg, cmdcomplete)
+    let fnames = systemlist('rg --files --color never .')
+      return fnames->filter('v:val =~? a:cmdarg')
+  endfunc
+  set findfunc=FindFiles
+endif
+
+set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,*.un~,*.pyc,tags,target/**,build/**
 if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
 set fillchars=vert:│
 set shortmess+=Tas
 set undofile
-set completeopt=menuone,preview
+set completeopt=menuone,preview pumheight=20
 set wildcharm=<C-Z>
 let &t_ut=''
 let mapleader = ","
@@ -50,11 +52,16 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$'
 filetype plugin on
 filetype indent on
 
-if filereadable( expand("$VIMRUNTIME/colors/retrobox.vim") )
-  colorscheme retrobox
-endif
+" colorscheme retrobox
+" colorscheme wildcharm
+colorscheme habamax
+hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
 
-hi Normal guifg=NONE guibg=NONE
+" use tab to trigger completion
+" inoremap <TAB> <c-n>
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 " easier on azerty keyboard
 nmap à ]
@@ -64,8 +71,8 @@ nmap é {
 vmap ù }
 vmap é {
 nnoremap <leader>b :b <C-Z>
-nnoremap <leader>ft :Lex <bar> vert resize 25<CR>
-nnoremap <leader>fe :fin **
+nnoremap - :Lex <bar> vert resize 25<CR>
+nnoremap <leader>fe :fin **/*
 nnoremap <leader>fm :bro ol<CR>
 nnoremap ]q :cnext<CR>
 nnoremap [q :cprev<CR>
@@ -74,9 +81,15 @@ nnoremap [b :bprev<CR>
 nnoremap <leader>gw :Grep <C-R><C-W><CR>
 
 if executable('rg')
-  set grepprg=rg\ --vimgrep
+  set grepprg=rg\ --vimgrep\ --smart-case
 else
-  set grepprg=grep\ --color=never\ -REHIns\ --exclude-dir=.git\ --exclude-dir=target\ --exclude-dir=build\ --exclude=*.swp\ --exclude=*.zwc\ --exclude=*.ipynb
+  let grepcmd ="
+    \grep\\ --color=never\\ -REHIns\\ --exclude-dir=.git\\ --exclude-dir=.cache
+    \\\ --exclude-dir=target\\ --exclude-dir=build\\ --exclude-dir=.*_cache
+    \\\ --exclude-dir=node_modules\\ --exclude-dir=.venv\\ --exclude-dir=.env
+    \\\ --exclude-dir=.vscode\\ --exclude-dir=.idea\\ --exclude-dir=.cargo
+    \\\ --exclude=*.zwc\\ --exclude=*.swp\\ --exclude=*.un~\\ --exclude=*.ipynb"
+  execute "set grepprg=" . grepcmd
 endif
 
 " Grep using grepprg
@@ -89,6 +102,14 @@ function! Grep(...)
 endfunction
 
 command! -nargs=+ -complete=file_in_path -bar Grep  cgetexpr Grep(<f-args>)
+
+func Eatchar(pat)
+  let c = nr2char(getchar(0))
+  return (c =~ a:pat) ? '' : c
+endfunc
+
+" easy insert **/*. in command line
+cnoreabbrev rù **/*<c-r>=Eatchar('\m\s')<cr>
 
 " Automatically open quickfix window
 augroup quickfix
@@ -109,11 +130,11 @@ command! -nargs=1 Gbuf cgetexpr GrepallBuf(<f-args>)
 " try to use fd to find files
 set errorformat+=%f
 if executable("fd")
-  let g:findcmd = "fd \--type f"
+  let g:findcmd = "fd \--type f -E '*.o' -E '*.pyc' -E '**/bin/*'"
 elseif executable("fdfind")
-  let g:findcmd = "fdfind \--type f"
+  let g:findcmd = "fdfind \--type f -E '*.o' -E '*.pyc' -E '**/bin/*'"
 else
-  let g:findcmd = 'find . ! -path "./.git/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" -type f'
+  let g:findcmd = 'find . ! -path "./.git/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" ! -path "**/*.un~" ! -path "**/*.swp" ! -path "**/*.o" ! -path "./.*_cache/** -type f'
 endif
 
 function! Find(pat, ...)
@@ -145,13 +166,16 @@ function! Diff(spec)
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
 
+" Git Blame
+command! -nargs=? -range GB echo join(systemlist("git -C " . shellescape(expand('%:p:h')) . " blame -L <line1>,<line2> <args> -- " . expand('%:t')), "\n")
+
 function! CurrentGitStatus()
   let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
   let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
   if len(gitbranch) > 0
-    let b:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
+    let g:gitstatus = gitbranch .'/'. strpart(get(gitoutput, 0, ' '), 0, 2)
   else
-    let b:gitstatus = ''
+    let g:gitstatus = ''
   endif
 endfunc
 
@@ -159,7 +183,7 @@ autocmd BufEnter,BufWritePost * call CurrentGitStatus()
  
 set statusline=
 set statusline+=%#PmenuSel#
-set statusline+=%{b:gitstatus}
+set statusline+=%{g:gitstatus}
 set statusline+=%#StatusLine#
 set statusline+=\ %f
 set statusline+=%m\ 
@@ -173,6 +197,7 @@ set statusline+=\ %l:%c
 set statusline+=\ 
 
 function! Glog(...)
+  " display last 300 commits (should be enough and wont slow down on big repos)
   let commitcmd = "git log -300 --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
   return system(commitcmd)
 endfunction
@@ -226,10 +251,12 @@ augroup CursColLine
   autocmd!
   au WinLeave * setlocal nocursorline nocursorcolumn
   au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
+  au InsertEnter * setlocal nocursorline
+  au InsertLeave * setlocal cursorline
 augroup end
 
 let s:git_status_dictionary = {
-  \ "A": "Added",
+\ "A": "Added",
   \ "B": "Broken",
   \ "C": "Copied",
   \ "D": "Deleted",
@@ -260,25 +287,23 @@ if has("patch-9.1.374")
 endif
 
 function! DiffSign()
-  call sign_define('DiffSignChange', {'text': '~', 'texthl': 'DiffChange'})
-  call sign_define('DiffSignAdd', {'text': '+', 'texthl': 'DiffAdd'})
-  call sign_define('DiffSignDel', {'text': '-', 'texthl': 'DiffDelete'})
-
-  if &buftype == ''
-    \&& system('git -C ' . expand("%:p:h") . ' rev-parse --is-inside-work-tree') == "true\n"
-    \&& strlen(system('git -C ' . expand("%:p:h") . ' ls-files -- ' . expand("%:p")))
-
-    let bufnr = bufnr('%')
+	call sign_define('DiffSignChange', {'text': '~', 'texthl': 'DiffChange'})
+	call sign_define('DiffSignAdd', {'text': '+', 'texthl': 'DiffAdd'})
+	call sign_define('DiffSignDel', {'text': '-', 'texthl': 'DiffDelete'})
+	if &buftype == ''
+				\&& system('git -C ' . expand("%:p:h") . ' rev-parse --is-inside-work-tree') == "true\n"
+				\&& strlen(system('git -C ' . expand("%:p:h") . ' ls-files -- ' . expand("%:p")))
+		let bufnr = bufnr('%')
     " clear signs
-    call sign_unplace('DiffSignChange', {'buffer': bufnr})
-    call sign_unplace('DiffSignAdd', {'buffer': bufnr})
-    call sign_unplace('DiffSignDel', {'buffer': bufnr})
+		call sign_unplace('DiffSignChange', {'buffer': bufnr})
+		call sign_unplace('DiffSignAdd', {'buffer': bufnr})
+		call sign_unplace('DiffSignDel', {'buffer': bufnr})
 
     let lines = systemlist('git -C ' . expand('%:p:h') . ' diff -U0 ' . expand("%:p")
       \. ' | grep -Po "^@@ \K-[0-9]+(,[0-9]+)? \+[0-9]+(,[0-9]+)?(?= @@)"')
 
-    for item in lines
-      let del_ins = split(item, ' ')
+		for item in lines
+			let del_ins = split(item, ' ')
       let del = split(del_ins[0][1:], ',')
       let start_del = str2nr(del[0])
       let end_del = del->len() > 1 ? start_del + str2nr(del[1]) : start_del
@@ -303,10 +328,16 @@ function! DiffSign()
           call sign_place(i, 'DiffSignChange', 'DiffSignChange', bufnr, {'lnum': i})
         endfor
       endif
-    endfor
-  endif
+		endfor
+	endif
 endfunction
-
 autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call DiffSign() | endif
+
+" enable vim9 lsp
+" packadd lsp
+" or enable vim8 lsp
+" packadd vim-lsp
+" packadd asyncomplete.vim
+" packadd asyncomplete-lsp.vim
 
 " vim:ts=2:sw=2
