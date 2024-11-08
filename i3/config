@@ -23,7 +23,7 @@ exec --no-startup-id xset r rate 180 50
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-font pango:Fantasque Sans Mono 11
+font pango:Fantasque Sans Mono 14
 # font pango:Symbols Nerd Font Mono 10
 
 # Start XDG autostart .desktop files using dex. See also
@@ -52,8 +52,8 @@ bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ to
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
 
 # Brightness control
-bindsym XF86MonBrightnessUp exec brightnessctl +10%
-bindsym XF86MonBrightnessDown exec brightnessctl 10%-
+bindsym XF86MonBrightnessUp exec brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
 
 # PrintScreen
 bindsym Print exec --no-startup-id maim -s --format=png /dev/stdout | xclip -selection clipboard -t image/png -i
@@ -62,7 +62,7 @@ bindsym Print exec --no-startup-id maim -s --format=png /dev/stdout | xclip -sel
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec alacritty 
+bindsym $mod+Return exec alacritty
 # launch browser
 bindsym $mod+b exec brave-browser
 
@@ -103,6 +103,10 @@ bindsym $mod+Shift+Left move left
 bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
+
+# move focused workspace between monitors
+bindsym $mod+Ctrl+Right  move workspace to output right
+bindsym $mod+Ctrl+Left move workspace to output left
 
 # split in horizontal orientation
 # we use v here to be consistent with vim mappings
@@ -221,18 +225,22 @@ bar {
         focused_workspace       #2f343f #bf616a #d8dee8
         active_workspace        #2f343f #2f343f #d8dee8
         inactive_workspace      #2f343f #2f343f #d8dee8
-        urgent_workspacei       #2f343f #ebcb8b #2f343f
+        urgent_workspace        #2f343f #ebcb8b #2f343f
     }
         status_command i3status
 }
 
+for_window [class="^.*"] border pixel 2
 # colour of                 border  backgr. text    indic.  child_border
-client.focused              #665c54 #665c54 #d8dee8 #bf616a #d8dee8
+client.focused              #2f343f #665c54 #d8dee8 #bf616a #42daf5
 client.focused_inactive     #3c3836 #3c3836 #d8dee8 #2f343f #2f343f
-# client.unfocused          #2f343f #2f343f #d8dee8 #2f343f #2f343f
-# client.urgent             #2f343f #2f343f #d8dee8 #2f343f #2f343f
-# client.placeholder        #2f343f #2f343f #d8dee8 #2f343f #2f343f
-# client.background         #2f343f
+client.unfocused            #2f343f #2f343f #d8dee8 #2f343f #2f343f
+client.urgent               #2f343f #2f343f #d8dee8 #2f343f #2f343f
+client.placeholder          #2f343f #2f343f #d8dee8 #2f343f #2f343f
+client.background           #2f343f
+
+
+#exec_always picom -f -I 0.01 -O 0.01 -D 1 -i 1.0 -e 1.0 -b --experimental-backends
 exec_always picom -f -I 0.01 -O 0.01 -D 1 -i 1.0 -e 1.0 -b
 # low battery notification
 exec --no-startup-id i3-battery-popup -L 15 -n
