@@ -1,6 +1,8 @@
 -- Made with 'mini.colors' module of https://github.com/echasnovski/mini.nvim
 
-if vim.g.colors_name ~= nil then vim.cmd('highlight clear') end
+if vim.g.colors_name ~= nil then
+	vim.cmd("highlight clear")
+end
 vim.g.colors_name = "mycatmach"
 
 -- Highlight groups
@@ -509,7 +511,7 @@ hi(0, "rainbowcol7", { ctermfg = 150, fg = "#a6da95" })
 hi(0, "MiniStatuslineModeNormal", { bg = "#82aaff", bold = true, ctermbg = 239, fg = "#263238" })
 hi(0, "MiniStatuslineModeInsert", { bg = "#c3e88d", bold = true, fg = "#263238" })
 hi(0, "MiniStatuslineModeVisual", { bg = "#c792ea", bold = true, fg = "#263238" })
-hi(0, "MiniStatuslineModeReplace", { bg = "#f07178", bold = true, fg = "#263238"})
+hi(0, "MiniStatuslineModeReplace", { bg = "#f07178", bold = true, fg = "#263238" })
 hi(0, "MiniStatuslineModeCommand", { bg = "#314549", bold = true, fg = "#c792ea" })
 -- hi default link MiniStatuslineModeOther   IncSearch
 
