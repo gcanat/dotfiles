@@ -109,14 +109,6 @@ return {
     },
   -- background = b.background,
   keys = k.keys,
-  ssh_domains = {
-    {
-      name = 'ttkap',
-      remote_address = '136.243.23.68:15050',
-      username = 'ttkap',
-      multiplexing = 'None',
-    },
-  },
   window_frame = {
     font = wezterm.font("Fantasque Sans Mono"),
     font_size = 18,
