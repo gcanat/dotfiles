@@ -456,3 +456,39 @@ export def Window()
             hi def link FilterMenuCurrent Statement
         })
 enddef
+
+
+export def WikiTags()
+    var sep = has("win32") ? '\' : '/'
+    var wiki_tags = wiki#tags#get_all()
+    var root_path = wiki#get_root()
+    var tag_list: list<dict<any>> = []
+    for [tag, locations] in items(wiki_tags)
+        for loc in locations
+          add(tag_list, {text: $'{tag}:{loc[0]}:{loc[1]}', name: $'{loc[0]}', path: $'{root_path}', line_num: $'{loc[1]}'})
+        endfor
+    endfor
+    popup.FilterMenu('Wiki Tags', tag_list,
+        (res, key) => {
+        var escpath = res.path->substitute('#', '\\&', 'g')
+        var escname = res.name->substitute('#', '\\&', 'g')
+        if (key == "\<bs>" || key == "\<c-h>") && isdirectory(fnamemodify(res.path, ':p:h:h'))
+            File($"{fnamemodify(res.path, ':p:h:h')}")
+        elseif key == "\<C-o>"
+            os.Open($"{res.name}")
+        elseif isdirectory($"{res.path}{sep}{res.name}")
+            File($"{res.path}{res.path[-1] == sep ? '' : sep}{res.name}")
+        elseif key == "\<C-j>"
+            exe $"split +{res.line_num} {escname}"
+        elseif key == "\<C-v>"
+            exe $"vert split +{res.line_num} {escname}"
+        elseif key == "\<C-t>"
+            exe $"tabe +{res.line_num} {escname}"
+        else
+          exe $"confirm e +{res.line_num} {escname}"
+        endif
+        }, (winid) => {
+            win_execute(winid, $"syn match FilterMenuDirectory '^.*{sep->escape('\\')}'")
+            hi def link FilterMenuDirectory Directory
+        }, true)
+enddef

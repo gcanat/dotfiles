@@ -3,7 +3,7 @@ vim9script
 var borderchars     = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
 var bordercharsp    = ['─', '│', '─', '│', '┌', '┐', '┤', '├']
 var borderhighlight = []
-var popuphighlight  = get(g:, "popuphighlight", '')
+var popuphighlight  = get(g:, "popuphighlight", 'Normal')
 var popupcursor = '█'
 
 # Returns winnr of created popup window

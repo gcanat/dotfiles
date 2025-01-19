@@ -1,9 +1,26 @@
+# git
 downloads/opt/vim-fugitive https://github.com/tpope/vim-fugitive.git
-downloads/opt/lsp https://github.com/yegappan/lsp.git
 downloads/opt/vim-gitgutter https://github.com/airblade/vim-gitgutter
-downloads/opt/copilot.vim https://github.com/github/copilot.vim.git
-downloads/opt/devdocs.vim https://github.com/girishji/devdocs.vim.git
-downloads/opt/scope.vim https://github.com/girishji/scope.vim.git
+
+# finders
+# downloads/opt/devdocs.vim https://github.com/girishji/devdocs.vim.git
+# downloads/opt/scope.vim https://github.com/girishji/scope.vim.git
+
+# debugger
 downloads/opt/vimspector https://github.com/puremourning/vimspector.git
+
+# interactive python development
 downloads/opt/jupytext.vim https://github.com/goerz/jupytext.vim.git
-git-plugins/start/jupyter-vim https://github.com/jupyter-vim/jupyter-vim.git
+downloads/opt/jupyter-vim https://github.com/jupyter-vim/jupyter-vim.git
+
+# LSP
+# downloads/opt/lsp https://github.com/yegappan/lsp.git
+
+# vim-lsp
+#downloads/opt/vim-lsp https://github.com/prabirshrestha/vim-lsp.git
+#downloads/opt/asyncomplete.vim https://github.com/prabirshrestha/asyncomplete.vim.git
+#downloads/opt/asyncomplete-lsp.vim https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
+#downloads/opt/asyncomplete-buffer.vim https://github.com/prabirshregstha/asyncomplete-buffer.vim.git
+
+# wiki.vim
+downloads/opt/wiki.vim https://github.com/lervag/wiki.vim.git

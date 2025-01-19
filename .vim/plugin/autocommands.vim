@@ -4,15 +4,16 @@ augroup zaitheme
   autocmd ColorScheme zaibatsu silent! let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#0e0024\007"
 augroup END
 
-augroup hinormal
-  autocmd!
-  autocmd ColorScheme * silent! hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
-augroup END
 
 if has("gui_running")
   " use habamax in gvim
   colorscheme habamax
 else
+  augroup hinormal
+    autocmd!
+    autocmd ColorScheme * silent! hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
+  augroup END
+  " colorscheme retrobox
   colorscheme kanagawa
   " colorscheme nod
   " colorscheme habamax
@@ -42,10 +43,11 @@ augroup CursColLine
     au InsertEnter * setlocal nocursorline
 augroup end
 
-augroup TexColorScheme
-  autocmd!
-  au WinLeave,BufWinLeave *.tex setl background=dark | :colorscheme kanagawa
-  au VimEnter,WinEnter,BufWinEnter *.tex setl background=light | :colorscheme lunaperche
+" augroup TexColorScheme
+"   autocmd!
+"   au WinLeave,BufWinLeave *.tex,*.bib setl background=dark | :colorscheme kanagawa
+"   au VimEnter,WinEnter,BufWinEnter *.tex,*.bib setl background=light | :colorscheme lunaperche
+" augroup end
 
 autocmd BufReadPre *.nfo :setlocal fileencodings=cp437,utf-8
 

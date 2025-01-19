@@ -4,7 +4,7 @@ nnoremap - :Lex<CR>
 nnoremap <leader>ff magggqG'a
 
 " Grep the word under the cursor
-nnoremap <leader>gw :Grep <C-R><C-W><CR>
+" nnoremap <leader>gw :Grep <C-R><C-W><CR>
 
 nnoremap <space>b :b <C-Z>
 

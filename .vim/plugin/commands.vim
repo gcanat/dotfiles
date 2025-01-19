@@ -80,6 +80,11 @@ command! -bang -nargs=1 Global call setloclist(0, [], ' ',
   \           ->map({_, val -> expand("%") .. ":" .. trim(val)->substitute('^\d\+','&:' .. trim(val)->substitute('^\d\+ ','','')->charidx(trim(val)->substitute('^\d\+','','')->match(<q-args>)),'')})
   \ })
 
+" use git jump script if possible
+if executable('git-jump')
+  command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
+endif
+
 " " interactive file search using ripgrep + fzf
 " function! FZF() abort
 "     let l:tempname = tempname()
@@ -130,6 +135,7 @@ function! CurrentGitStatus()
 endfunc
 autocmd BufEnter,BufWritePost * call CurrentGitStatus()
 
+
 let g:currentmode = { 'n': 'NORMAL', 'no': 'N·OP·PEND', 'v': 'VISUAL', 'V': 'V·LINE', '': 'V·BLOCK', 's': 'SELECT', 'S': 'S·LINE', '': 'S·BLOCK', 'i': 'INSERT', 'R': 'REPLACE', 'Rv': 'V·REPLACE', 'c': 'COMMAND', 'cv': 'VIM EX', 'ce': 'EX', 'r': 'PROMPT', 'rm': 'MORE', 'r?': 'CONFIRM', '!': 'SHELL', 't': 'TERMINAL'}
 let g:modegroups = { 'n': 'NRM', 'no': 'NRM', 'v': 'VIS', 'V': 'VIS', '': 'VIS', '': 'VIS', 's': 'OTH', 'S': 'OTH', 'i': 'INS', 'R': 'INS', 'Rv': 'INS', 'c': 'OTH', 'cv': 'OTH', 'ce': 'OTH', 'r': 'OTH', 'rm': 'OTH', 'r?': 'OTH', '!': 'OTH', 't': 'OTH'}
 
@@ -155,13 +161,34 @@ set statusline+=%#PmenuSel#
 set statusline+=%{g:gitstatus}
 set statusline+=%#StatusLine#
 set statusline+=\ %f
-set statusline+=%m\ 
+set statusline+=\ %m\ 
 set statusline+=%=
 set statusline+=%#CursorColumn#
 set statusline+=\ %y
-set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
+set statusline+=\ %{&fileencoding?&fileencoding:&encoding}\ 
 set statusline+=\[%{&fileformat}\]
 set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
 
+function! SetWildignore() abort
+  let l:cmd = 'git check-ignore *'
+  let l:files = systemlist(l:cmd)
+  if v:shell_error == 0
+    let l:ignored = join(l:files, ',')
+    execute 'setlocal wildignore+=' . l:ignored
+  endif
+endfunction
+
+augroup gitignore
+  autocmd!
+  autocmd! BufReadPost * call SetWildignore()
+augroup END
+
+autocmd BufReadPost,BufNewFile *
+  \ if executable('git') |
+  \   let s:root_dir = system('git rev-parse --show-toplevel') |
+  \   if s:root_dir[0:5] != 'fatal:' |
+  \     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
+  \   endif |
+  \ endif

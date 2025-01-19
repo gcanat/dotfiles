@@ -9,7 +9,7 @@ set clipboard=unnamed
 g:mapleader = ","
 g:maplocalleader = ";"
 set encoding=utf-8 updatetime=1000 laststatus=2 hidden splitright
-set shell=/bin/fish
+set shell=/bin/bash
 set shortmess+=TasS
 set mouse=a
 # set foldmethod=indent
@@ -25,22 +25,41 @@ endif
 # Search down into a whitelist of subfolders
 # Provides tab-completion for all file-related tasks
 def SetPath(): string
-  var path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
-  path_list->map((_, val) => val != "." ? val[2 : ] .. "/**" : val)
+  var path_list = []
+  if isdirectory('.git') && executable('git')
+    path_list = systemlist('git ls-tree -d --name-only -r HEAD')
+    path_list->map((_, val) => val->substitute(' ', '\\ ', "g"))
+  else
+    path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__"  ! -path "dist" -type d')
+    path_list->map((_, val) => val != "." ? val[2 : ] .. "/**" : val)
+  endif
   return join(path_list, ",")
 enddef
 execute "set path=,," .. SetPath()
 
 # Display all matching files when we tab complete
-set wildmenu wildignorecase wildignore+=*.egg-info/*,.*,*/__pycache__/*,*.o,*.obj,*.bak,*.exe,*.swp,tags
+set wildmenu wildignorecase wildignore+=*.egg-info/*,.*,*/__pycache__/*,*.o,*.obj,*.bak,*.exe,*.swp,tags,*.orig
 if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
+
+if has('patch-9.1.0831')
+  def FindGitFiles(cmdarg: string, cmdcomplete: bool): list<string>
+      var fnames = systemlist('rg --files --color never .')
+      return filter(fnames, (_, x) => x =~? cmdarg)
+  enddef
+  set findfunc=FindGitFiles
+endif
+
 # better looking diff
 if has("patch-8.1.0360")
     # set diffopt+=internal,algorithm:patience
     set diffopt+=vertical,algorithm:histogram,indent-heuristic
 endif
+if has("patch-9.1.1009")
+  set diffopt+=linematch:60
+endif
+
 set sessionoptions=buffers,curdir,tabpages,winsize
 # Saving options in session and view files causes more problems than it
 # solves, so disable it.
@@ -82,11 +101,11 @@ syntax on
 
 # Builtin grep
 if executable('rg')
-  set grepprg=rg\ -HS\ --no-heading\ --vimgrep\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"
+  set grepprg=rg\ -HS\ --no-heading\ --column\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"\ -g\ \"!**/dist/**\"
   set grepformat=%f:%l:%c:%m
 else
   g:grepcmd = 'grep\ --color=never\ -REHInsi'
-  for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb']
+  for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig']
     g:grepcmd ..= '\ --exclude=\"' .. pattern .. '\"'
   endfor 
    for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build', '.*_cache', '.cache', '.cargo', 'node_modules']
@@ -117,32 +136,31 @@ set wildcharm=<C-Z>
 set guioptions=aegit
 set guifont=Fantasque\ Sans\ Mono\ 19
 
+if has("patch-9.1.0911")
+  set messagesopt=wait:500,history:2000
+endif
+
 # Add plugins
 packadd! comment
 if has("patch-9.1.0497")
   packadd! nohlsearch
 endif
-packadd! lsp
+packadd lsp
 packadd! vim-fugitive
 packadd! vim-gitgutter
-packadd! copilot.vim
-# packadd! devdocs.vim
+# packadd! copilot.vim
+packadd! devdocs.vim
 # packadd scope.vim
+# packadd vim-lsp
+# packadd asyncomplete.vim
+# packadd asyncomplete-buffer.vim
+# packadd asyncomplete-lsp.vim
+packadd wiki.vim
+packadd jupyter-vim
+packadd jupytext.vim
+packadd auto-pairs
+
 g:vimspector_enable_mappings = 'HUMAN'
-packadd! vimspector
+# packadd! vimspector
 
-# Always use the same virtualenv for vim, regardless of what Python
-# environment is loaded in the shell from which vim is launched
-# let g:vim_virtualenv_path = '/home/guillaume/venv/valgo2'
-# if exists('g:vim_virtualenv_path')
-#   pythonx import os; import vim
-#   pythonx activate_this = os.path.join(vim.eval('g:vim_virtualenv_path'), 'bin/activate')
-#   pythonx with open(activate_this) as f: exec(f.read(), {'__file__': activate_this})
-# endif
-#
 g:jupyter_highlight_cells = 1
-
-# set cursor as a vertical bar in insert mode
-# &t_SI = "\<Esc>[6 q"
-# &t_SR = "\<Esc>[4 q"
-# &t_EI = "\<Esc>[2 q"

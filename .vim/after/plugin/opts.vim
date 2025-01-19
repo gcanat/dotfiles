@@ -7,7 +7,7 @@ if exists("g:loaded_fugitive")
 endif
 
 if exists('g:loaded_devdocs')
-  autocmd FileType python call g:DevdocsOptionsSet({slugs: ['python~3.11', 'numpy~1.23', 'pytorch~1', 'scikit_learn', 'scikit_image', 'pandas~1']})
+  autocmd FileType python call g:DevdocsOptionsSet({slugs: ['python~3.12', 'numpy~2.0', 'pytorch~2', 'scikit_learn', 'scikit_image', 'pandas~2']})
   autocmd FileType rust call g:DevdocsOptionsSet({slugs: ['rust']})
   nnoremap <leader>df :DevdocsFind<CR>
   nnoremap <leader>di :DevdocsInstall<CR>
@@ -37,7 +37,7 @@ if exists('g:loaded_scope')
   augroup END
   if g:findcmd == 'find'
     nnoremap <leader>fe :Scope File<CR>
-  else 
+  else
     nnoremap <leader>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
   endif
   if executable('rg')
@@ -67,24 +67,30 @@ else
   nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
   nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
   nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
+  nnoremap <leader>wsf <scriptcmd>vim9cmd fuzzy#File('~/wiki')<CR>
 endif
 
 if exists("g:loaded_lsp")
+  # g:LspOptionsSet({
+  #   completionMatcher: 'fuzzy',
+  #   completionTextEdit: false,
+  #   showInlayHints: false,
+  #   showDiagWithVirtualText: false,
+  #   diagVirtualTextAlign: 'after',
+  #   diagVirtualTextWrap: 'truncate',
+  #   autoHighlightDiags: true,
+  #   autoComplete: true,
+  #   diagSignErrorText: 'E',
+  #   diagSignInfoText: 'I',
+  #   diagSignHintText: 'H',
+  #   diagSignWarningText: 'W',
+  #   useQuickfixForLocations: true,
+  #   filterCompletionDuplicates: true,
+  #   useBufferCompletion: true
+  # })
   g:LspOptionsSet({
-    completionMatcher: 'fuzzy',
-    completionTextEdit: false,
-    showInlayHints: false,
-    showDiagWithVirtualText: false,
-    diagVirtualTextAlign: 'after',
-    autoHighlightDiags: true,
-    autoComplete: true,
-    diagSignErrorText: 'E',
-    diagSignInfoText: 'I',
-    diagSignHintText: 'H',
-    diagSignWarningText: 'W',
-    useQuickfixForLocations: true,
-    filterCompletionDuplicates: true,
-    useBufferCompletion: true
+    condensedCompletionMenu: false,
+    semanticHighlight: true,
   })
   if executable('clangd')
     g:LspAddServer([{
@@ -102,6 +108,7 @@ if exists("g:loaded_lsp")
       args: [],
       syncInit: true
     }])
+    autocmd! BufWritePre *.rs call execute('LspFormat')
   endif
   if executable('ruff')
     g:LspAddServer([{
@@ -128,17 +135,45 @@ if exists("g:loaded_lsp")
    }])
   endif
   if executable('texlab')
-    g:LspAddServer([{
-     name: 'texlab',
-     filetype: 'tex',
-     path: exepath('texlab'),
-     # args: ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
-     initializationOptions: {
-       build: {
-         onSave: true
-       }
-     }
-   }])
+    var settings = {
+      args: [],
+      filetype: ["tex", "plaintex", "bib"],
+      name: "texlab",
+      path: "texlab",
+      rootSearch: [".git", ".latexmkrc", ".texlabroot", "texlabroot", "Tectonic.toml"],
+      workspaceConfig: {
+      settings: {
+          texlab: {
+            bibtexFormatter: "texlab",
+            build: {
+              args: ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
+              executable: "latexmk",
+              forwardSearchAfter: false,
+              onSave: true
+            },
+            chktex: {onEdit: false, onOpenAndSave: false},
+            diagnosticsDelay: 300,
+            formatterLineLength: 80,
+            forwardSearch: {executable: "zathura", args: ["--synctex-forward", "%l:1:%f", "%p"]},
+            latexFormatter: "latexindent",
+            latexindent: {modifyLineBreaks: false}
+          }
+        }
+      }
+    }
+    g:LspAddServer([settings])
+
+   #  g:LspAddServer([{
+   #   name: 'texlab',
+   #   filetype: ['tex',, 'plaintex', 'bib'],
+   #   path: exepath('texlab'),
+   #   # args: ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
+   #   initializationOptions: {
+   #     build: {
+   #       onSave: true
+   #     }
+   #   }
+   # }])
   endif
   # set keymappings
   nnoremap gd :LspGotoDefinition<CR>
@@ -162,3 +197,10 @@ if executable('jupytext')
   g:jupytext_fmt = 'py:percent'
   packadd jupytext.vim
 endif
+
+if exists('g:wiki_loaded')
+  g:wiki_root = '~/wiki'
+  g:markdown_fenced_languages = ['python']
+  nnoremap <leader>wst <scriptcmd>vim9cmd fuzzy#WikiTags()<CR>
+endif
+
