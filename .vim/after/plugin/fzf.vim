@@ -47,6 +47,8 @@ nnoremap <space>gc :call FzfGitlog()<CR>
 nnoremap <space>gs :call FzfGitStash()<CR>
 " git blame
 nnoremap <space>gb :call FzfBlame()<CR>
+nnoremap <space>gl :call FzfGitlogLine(line("."), line("."))<CR>
+xnoremap <space>gl :call FzfGitlogLine(line("v"), line("."))<CR>
 
 function! FzfFiles()
 	call fzf#run(fzf#wrap({
@@ -116,9 +118,8 @@ function! FzfGitlog()
 	call fzf#run(fzf#wrap(spec))
 endfunction
 
-function! FzfGitlogLine()
-	let curr_line = line('.')
-	let cmd = 'git log --graph --color -s -L ' . curr_line . ',' . curr_line . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
+function! FzfGitlogLine(...)
+	let cmd = 'git log --graph --color -s -L ' . a:1 . ',' . a:2 . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
 	let git_log = systemlist(cmd)
 	let preview_cmd = 'git show --color $(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") -- ' . buffer_name('%')
 	let spec = {
