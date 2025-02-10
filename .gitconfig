@@ -1,59 +1,31 @@
-[include]
-  path = ~/.config/delta/themes.gitconfig
-  
 [user]
-  email = gui.canat@gmail.com
-  name = gcanat
-  
+	email = gui.canat@gmail.com
+	name = gcanat
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+
 [push]
   default = current
-  #[core]
-  #    pager = delta
-  #
-  #[interactive]
-  #    diffFilter = delta --color-only
-  
+
 [diff]
-  external = difft
-  tool = difftastic
-  colorMoved = default
-  
-[difftool]
-  prompt = false
-  
-[difftool "difftastic"]
-  cmd = difft "$LOCAL" "$REMOTE"
-  
-[pager]
-  difftool = true
-
-[aliase]
-  diff = difftool
-
-[delta]
-  features = calochortus-lyallii
-  navigate = true    # use n and N to move between diff sections
-  light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
-  side-by-side = false
-  line-numbers = true
-  # hyperlinks = true
-  true-color = always
-  paging = always
+  tool = vimdiff
 
 [merge]
   conflictstyle = diff3
-  tool = fugitive
-  # tool = vimdiff
+  tool = vimdiff
+  prompt = false
 
-[credential "https://github.com"]
-  helper = 
-  helper = !/usr/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-  helper = 
-  helper = !/usr/bin/gh auth git-credential
+[mergetool]
+  cmd = vim -f -c "GVdiffsplit!" "$MERGED"
 
-[mergetool "fugitive"]
-  cmd = nvim -f -c "Gvdiffsplit!" "$MERGED"
-[mergetool "vimdiff"]
-  path = nvim
-  # cmd = nvim -d -c "$LOCAL" "$MERGED" "$REMOTE"
+[alias]
+  files = !git diff --name-only $(git merge-base HEAD \"$REV_BASE\")
+  stat = !git diff --stat $(git merge-base HEAD \"$REV_BASE\")
+  review = !vim -p $(git files) +\"tabdo noautocmd Diff $REV_BASE\"
+  pfl = push --force-with-lease
+[init]
+	defaultBranch = main
