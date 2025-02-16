@@ -317,10 +317,17 @@ function! Glog(...)
 endfunction
 command! -nargs=0 -bar GcLog cgetexpr Glog()
 
-" diff current file against HEAD
-nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile <bar> silent! r !git diff #<CR>1Gdd
+function! GStatus()
+  new gitstatus
+  setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile
+  silent! r !git status --porcelain
+  silent 0d_
+endfunction
 " Open window with git status info
-nnoremap <leader>gs :new gitstatus <bar> setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git status --porcelain<CR>1Gdd
+command! -nargs=0 G call GStatus()
+
+" diff current file against HEAD
+nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git diff #<CR>1Gdd
 " show the diff for the commit SHA under the cursor
 nnoremap <leader>gc yiw<C-W>w:e! gitlog <bar> setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git show <C-R>"<CR>1Gdd
 
