@@ -192,3 +192,9 @@ autocmd BufReadPost,BufNewFile *
   \     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
   \   endif |
   \ endif
+
+" search wiki notes
+" function! s:notes_completion(A, L, P) abort
+"   return readdir(expand('~/wiki'))->map('expand("~/wiki/")..v:val')->filter('v:val =~ a:A')
+" endfunction
+" command! -nargs=1 -complete=customlist,s:notes_completion Notes :edit <args>

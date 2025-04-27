@@ -1,6 +1,12 @@
 vim9script
 
-def HighlightedYank(hlgroup = 'Pmenu', duration = 250)
+if has("patch-9.1.1227")
+  packadd hlyank
+  finish
+endif
+
+
+def HighlightedYank(hlgroup = 'IncSearch', duration = 250)
     if v:event.operator !=? 'y' | return | endif
     # if clipboard has autoselect (default on linux) exiting from Visual with ESC
     # generates bogus event and this highlights previous yank

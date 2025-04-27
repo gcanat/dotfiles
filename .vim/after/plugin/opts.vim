@@ -56,41 +56,32 @@ if exists('g:loaded_scope')
   nnoremap <leader>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
 else
   nnoremap <leader>gw :Grep <cword><CR>
-  nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
-  nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
-  nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
-  nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
-  nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
-  nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
+  # nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
+  # nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
+  # nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
+  # nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
+  # nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
+  # nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
   nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
   nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
   nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
   nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
   nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
+  nnoremap <leader>fh <scriptcmd>vim9cmd fuzzy#Help()<CR>
   nnoremap <leader>wsf <scriptcmd>vim9cmd fuzzy#File('~/wiki')<CR>
 endif
 
 if exists("g:loaded_lsp")
-  # g:LspOptionsSet({
-  #   completionMatcher: 'fuzzy',
-  #   completionTextEdit: false,
-  #   showInlayHints: false,
-  #   showDiagWithVirtualText: false,
-  #   diagVirtualTextAlign: 'after',
-  #   diagVirtualTextWrap: 'truncate',
-  #   autoHighlightDiags: true,
-  #   autoComplete: true,
-  #   diagSignErrorText: 'E',
-  #   diagSignInfoText: 'I',
-  #   diagSignHintText: 'H',
-  #   diagSignWarningText: 'W',
-  #   useQuickfixForLocations: true,
-  #   filterCompletionDuplicates: true,
-  #   useBufferCompletion: true
-  # })
   g:LspOptionsSet({
+    # autoComplete: exists("g:loaded_vimcomplete") ? false : true,
+    autoComplete: false,
+    omniComplete: true,
+    completionMatcher: 'icase',
     condensedCompletionMenu: false,
-    semanticHighlight: true,
+    # semanticHighlight: true,
+    filterCompletionDuplicates: true,
+    useQuickfixForLocations: true,
+    useBufferCompletion: false,
   })
   if executable('clangd')
     g:LspAddServer([{
@@ -132,7 +123,8 @@ if exists("g:loaded_lsp")
      filetype: 'vim',
      path: exepath('vim-language-server'),
      args: ['--stdio']
-   }])
+    }])
+    autocmd! BufEnter *.vim nnoremap <buffer> K :LspHover<CR>
   endif
   if executable('texlab')
     var settings = {
@@ -163,17 +155,6 @@ if exists("g:loaded_lsp")
     }
     g:LspAddServer([settings])
 
-   #  g:LspAddServer([{
-   #   name: 'texlab',
-   #   filetype: ['tex',, 'plaintex', 'bib'],
-   #   path: exepath('texlab'),
-   #   # args: ["-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"],
-   #   initializationOptions: {
-   #     build: {
-   #       onSave: true
-   #     }
-   #   }
-   # }])
   endif
   # set keymappings
   nnoremap gd :LspGotoDefinition<CR>
@@ -185,12 +166,17 @@ if exists("g:loaded_lsp")
   nnoremap <leader>rn :LspRename<CR>
   nnoremap [d :LspDiagPrev<CR>
   nnoremap ]d :LspDiagNext<CR>
-  nnoremap K :LspHover<CR>
+  autocmd! BufEnter *.py,*.rs,*.tex nnoremap <buffer> K :LspHover<CR>
   # nnoremap <expr><c-f> lsp#scroll(+4)
   # nnoremap <expr><c-d> lsp#scroll(-4)
   nnoremap <space>d :LspDiagShow<CR>
   nnoremap <space>ca :LspCodeAction<CR>
   nnoremap <leader>lf :LspFormat<CR>
+endif
+
+if exists('g:loaded_jupyter_vim')
+  g:jupyter_highlight_cells = 1
+  g:jupyter_cell_separators = ['##', '#%%', '# %%']
 endif
 
 if executable('jupytext')
@@ -203,4 +189,63 @@ if exists('g:wiki_loaded')
   g:markdown_fenced_languages = ['python']
   nnoremap <leader>wst <scriptcmd>vim9cmd fuzzy#WikiTags()<CR>
 endif
+
+if exists('g:loaded_taglist')
+  g:Tlist_Enable_Fold_Column = 0
+  g:Tlist_Use_Right_Window = 1
+  g:Tlist_Compact_Format = 1
+  nnoremap <leader>tl :TlistToggle<CR>
+  nnoremap <leader>tc :TlistClose<CR>
+  nnoremap [t <plug>(TlistJumpTagUp)
+  nnoremap ]t <plug>(TlistJumpTagDown)
+elseif exists('g:loaded_vista')
+  nnoremap <leader>vt :Vista<CR>
+  nnoremap <leader>vl :Vista yegappan_lsp<CR>
+  nnoremap <leader>vc :Vista!<CR>
+endif
+
+if exists('g:loaded_mundo')
+  nnoremap <leader>ut :MundoToggle<CR>
+endif
+
+if exists('g:loaded_vimcomplete')
+  inoremap <C-u> <Plug>(vimcomplete-info-window-pageup)
+  inoremap <C-f> <Plug>(vimcomplete-info-window-pagedown)
+  var options = {
+    completor: { shuffleEqualPriority: true, postfixHighlight: true },
+    buffer: { enable: true, priority: 7, urlComplete: true, envComplete: true, maxCount: 5 },
+    abbrev: { enable: false, priority: 5 },
+    lsp: { enable: true, priority: 15, maxCount: 10 },
+    omnifunc: { enable: true, priority: 8, filetypes: ['python', 'javascript', 'vim'], maxCount: 5 },
+    vsnip: { enable: false, priority: 11, maxCount: 5 },
+    vimscript: { enable: true, priority: 11, maxCount: 5 },
+    ngram: {
+      enable: true,
+      priority: 10,
+      bigram: false,
+      filetypes: ['text', 'help', 'markdown'],
+      filetypesComments: ['c', 'cpp', 'python', 'java', 'rust', 'vim'],
+    },
+    tag: { enable: true, maxCount: 5, priority: 9 },
+  }
+  g:VimCompleteOptionsSet(options)
+endif
+
+if exists('g:loaded_vimpector')
+  nnoremap <leader>dc <Plug>VimspectorContinue
+  nnoremap <leader>dx <Plug>VimspectorReset
+  nnoremap <leader>dl <Plug>VimspectorRestart
+  nnoremap <leader>dp <Plug>VimspectorPause
+  nnoremap <leader>dt <Plug>VimspectorToggleBreakpoint
+  nnoremap <leader>dT <Plug>VimspectorToggleConditionalBreakpoint
+  nnoremap <leader>di <Plug>VimspectorStepInto
+  nnoremap <leader>do <Plug>VimspectorStepOver
+  nnoremap <leader>du <Plug>VimspectorStepOut
+  nnoremap <leader>dR <Plug>VimspectorRunToCursor
+  # for normal mode - the word under the cursor
+  nmap <Leader>dh <Plug>VimspectorBalloonEval
+  # for visual mode, the visually selected text
+  xmap <Leader>dh <Plug>VimspectorBalloonEval
+endif
+
 

@@ -106,3 +106,10 @@ export def Blame(firstline: number = line("."), lastline: number = line("."))
         setbufvar(winbufnr(winid), "&filetype", "fugitiveblame")
     })
 enddef
+
+# Get the diff log against latest merge commit. Usefull to review changes of a
+# branch against last merge from master
+export def BranchRev()
+  var base_commit = trim(system('git log --merges -1 --format=%h'))
+  exe $'Gclog {base_commit}..HEAD'
+enddef

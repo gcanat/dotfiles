@@ -26,13 +26,9 @@ function! Grepsink(line)
 	exe ':e +' . res[1] . ' ' . res[0]
 endfunction
 
-" select colorscheme
-"nnoremap <leader>fc :call fzf#run({'source': map(split(globpath(&rtp, 'colors/*.vim')),
-"			\               'fnamemodify(v:val, ":t:r")'),
-"			\ 'sink': 'colo', 'left': '25%'})<CR>
-
 " find files
 nnoremap <leader>fe :call FzfFiles()<CR>
+nnoremap <leader>ge :call FzfGitFiles()<CR>
 " grep files
 nnoremap <leader>fg :Rg<CR>
 " grep word under cursor
@@ -47,8 +43,13 @@ nnoremap <space>gc :call FzfGitlog()<CR>
 nnoremap <space>gs :call FzfGitStash()<CR>
 " git blame
 nnoremap <space>gb :call FzfBlame()<CR>
-nnoremap <space>gl :call FzfGitlogLine(line("."), line("."))<CR>
-xnoremap <space>gl :call FzfGitlogLine(line("v"), line("."))<CR>
+xnoremap <space>gb :call FzfBlame()<CR>
+nnoremap <space>gl :call FzfGitlogLine()<CR>
+xnoremap <space>gl :call FzfGitlogLine()<CR>
+" gh pr list
+nnoremap <space>gp :call FzfPRlist()<CR>
+" keymaps
+nnoremap <leader>km :call FzfKeymaps()<CR>
 
 function! FzfFiles()
 	call fzf#run(fzf#wrap({
@@ -118,8 +119,8 @@ function! FzfGitlog()
 	call fzf#run(fzf#wrap(spec))
 endfunction
 
-function! FzfGitlogLine(...)
-	let cmd = 'git log --graph --color -s -L ' . a:1 . ',' . a:2 . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
+function! FzfGitlogLine() range
+	let cmd = 'git log --graph --color -s -L ' . a:firstline . ',' . a:lastline . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
 	let git_log = systemlist(cmd)
 	let preview_cmd = 'git show --color $(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") -- ' . buffer_name('%')
 	let spec = {
@@ -144,12 +145,31 @@ function! FzfGitStash()
 		\ }))
 endfunction
 
-function! FzfBlame()
-	let cmd = 'git blame  ' . expand('%')
+function! FzfBlame() range
+	let cmd = 'git blame -L ' . a:firstline . ',' . a:lastline . ' '  . expand('%')
 	let prev = 'git show --color {1} -- ' . expand('%')
 	call fzf#run(fzf#wrap({
 				\ 'source': systemlist(cmd),
 				\ 'options': ['--reverse', '--prompt', 'Blame> ', '--preview', prev],
 				\ 'window': {'height': 0.9, 'width': 0.9}
 				\ }))
+endfunction
+
+function! FzfGitFiles()
+  let git_cmd = 'git ls-files --other --full-name --cached --exclude-standard'
+  call fzf#run(fzf#wrap({'source': systemlist(git_cmd), 'options': ['--reverse', '--prompt', 'GitFiles> ']}))
+endfunction
+
+" manually defined mappings
+function! FzfKeymaps()
+  let keymaps = execute('map')->split('\n')
+  call fzf#run(fzf#wrap({'source': keymaps, 'options': ['--reverse', '--prompt', 'Keymaps> ']}))
+endfunction
+
+function! FzfPRlist()
+  let preview_cmd = 'gh pr view {1}'
+  call fzf#run(fzf#wrap({
+        \ 'source': systemlist('gh pr list'),
+        \ 'options': ['--reverse', '--prompt', 'PR list> ', '--preview', preview_cmd]
+        \ }))
 endfunction

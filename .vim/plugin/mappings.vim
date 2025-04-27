@@ -1,4 +1,4 @@
-nnoremap - :Lex<CR>
+nnoremap - :15Lex<CR>
 
 " mark current position, format entire file, return to mark
 nnoremap <leader>ff magggqG'a
@@ -6,7 +6,7 @@ nnoremap <leader>ff magggqG'a
 " Grep the word under the cursor
 " nnoremap <leader>gw :Grep <C-R><C-W><CR>
 
-nnoremap <space>b :b <C-Z>
+nnoremap <space>b :b <C-@>
 
 " faster window navigation
 nnoremap <c-h> <c-w>h
@@ -26,6 +26,8 @@ nmap ù }
 nmap é {
 nnoremap ]q :cne<CR>
 nnoremap [q :cpr<CR>
+nnoremap ]l :lne<CR>
+nnoremap [l :lpr<CR>
 nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
 
@@ -40,6 +42,7 @@ nnoremap <silent> <leader>gi <scriptcmd>vim9cmd git#ShowCommit(v:count)<CR>
 xnoremap <silent> <leader>gi <scriptcmd>vim9cmd git#ShowCommit(v:count, line("v"), line("."))<CR>
 nnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame()<CR>
 xnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame(line("v"), line("."))<CR>
+nnoremap <leader>gr <scriptcmd>vim9cmd git#BranchRev()<CR>
 
 inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
@@ -52,3 +55,6 @@ nnoremap <leader>ta <scriptcmd>vim9cmd term#TermPopup(['pytest', 'tests/'])<CR>
 
 " easily launch jupyterconnect
 cnoreabbrev jpc JupyterConnect
+
+" mapping for pythondoc
+exe 'nnoremap <buffer> dK :<c-u>Help <c-r><c-w>'..nr2char(&wildcharm) .. '<CR>'

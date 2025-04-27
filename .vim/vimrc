@@ -8,7 +8,7 @@ set numberwidth=5 signcolumn=yes autoindent
 set clipboard=unnamed
 g:mapleader = ","
 g:maplocalleader = ";"
-set encoding=utf-8 updatetime=1000 laststatus=2 hidden splitright
+set encoding=utf-8 updatetime=300 laststatus=2 hidden splitright
 set shell=/bin/bash
 set shortmess+=TasS
 set mouse=a
@@ -22,16 +22,20 @@ if &compatible
   set nocompatible
 endif
 
+if executable('fzf')
+    set runtimepath+=~/.fzf
+endif
+
 # Search down into a whitelist of subfolders
 # Provides tab-completion for all file-related tasks
 def SetPath(): string
   var path_list = []
-  if isdirectory('.git') && executable('git')
+  if system('git rev-parse --show-toplevel 2> /dev/null') !~ '^\s*$'
     path_list = systemlist('git ls-tree -d --name-only -r HEAD')
     path_list->map((_, val) => val->substitute(' ', '\\ ', "g"))
   else
     path_list = systemlist('find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin" ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__"  ! -path "dist" -type d')
-    path_list->map((_, val) => val != "." ? val[2 : ] .. "/**" : val)
+    path_list->map((_, val) => val != "." ? fnameescape(val[2 : ] .. "/**") : val)
   endif
   return join(path_list, ",")
 enddef
@@ -58,6 +62,9 @@ if has("patch-8.1.0360")
 endif
 if has("patch-9.1.1009")
   set diffopt+=linematch:60
+endif
+if has("patch-9.1.1243")
+  set diffopt+=inline:char
 endif
 
 set sessionoptions=buffers,curdir,tabpages,winsize
@@ -92,20 +99,20 @@ g:netrw_browse_split = 4  # open in prior window
 g:netrw_altv = 1          # open splits to the right
 g:netrw_liststyle = 3     # tree view
 g:netrw_winsize = 10
-# netrw_gitignore#Hide() causes netrw to be super slow on big repo
-# g:netrw_list_hide=netrw_gitignore#Hide()
-g:netrw_list_hide = ', \(^\|\s\s\)\zs\.\S\+'
+g:netrw_sizestyle = 'h'
+g:netrw_list_hide = netrw_gitignore#Hide() .. ',.git'
+# g:netrw_list_hide = ', \(^\|\s\s\)\zs\.\S\+,.git,target'
 
 set background=dark
 syntax on
 
 # Builtin grep
 if executable('rg')
-  set grepprg=rg\ -HS\ --no-heading\ --column\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"\ -g\ \"!**/dist/**\"
+  set grepprg=rg\ -HS\ --no-heading\ --column\ -g\ \"!*.ipynb\"\ -g\ \"!*__pycache__*\"\ -g\ \"!target/**\"\ -g\ \"!build/**\"\ -g\ \"!**/dist/**\"\ -g\ \"!tags\"
   set grepformat=%f:%l:%c:%m
 else
   g:grepcmd = 'grep\ --color=never\ -REHInsi'
-  for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig']
+  for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig', 'tags']
     g:grepcmd ..= '\ --exclude=\"' .. pattern .. '\"'
   endfor 
    for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build', '.*_cache', '.cache', '.cargo', 'node_modules']
@@ -124,43 +131,92 @@ endif
 # inoremap <Tab> <C-X><C-O>
 # set omnifunc=syntaxcomplete#Complete
 # set completeopt=menuone,preview
-set completeopt=menuone,popup,fuzzy completepopup=highlight:Pmenu
+set completeopt=menuone,popup,fuzzy,noinsert,noselect completepopup=highlight:Pmenu inf
+if has("patch-9.1.1308")
+  set cot-=fuzzy
+  set cot+=nearest
+endif
+
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:…
 set fillchars=vert:│
 set backspace=indent,eol,start
 
-# set wildmode=list:lastused
-set wildcharm=<C-Z>
+set wildmode=noselect:lastused
+set wildcharm=<C-@>
 
 # in case we launch gvim (for some reason...) hide ugly menus
 set guioptions=aegit
 set guifont=Fantasque\ Sans\ Mono\ 19
 
-if has("patch-9.1.0911")
-  set messagesopt=wait:500,history:2000
-endif
+# if has("patch-9.1.0911")
+#   set messagesopt=wait:500,history:2000
+# endif
 
 # Add plugins
 packadd! comment
 if has("patch-9.1.0497")
   packadd! nohlsearch
 endif
-packadd lsp
+packadd! lsp
 packadd! vim-fugitive
 packadd! vim-gitgutter
 # packadd! copilot.vim
-packadd! devdocs.vim
+# packadd! devdocs.vim
 # packadd scope.vim
-# packadd vim-lsp
-# packadd asyncomplete.vim
-# packadd asyncomplete-buffer.vim
-# packadd asyncomplete-lsp.vim
-packadd wiki.vim
-packadd jupyter-vim
-packadd jupytext.vim
-packadd auto-pairs
+packadd! wiki.vim
+packadd! jupyter-vim
+packadd! jupytext.vim
+packadd! vim-mundo
+packadd! taglist
 
-g:vimspector_enable_mappings = 'HUMAN'
-# packadd! vimspector
+# completion stuff
+if has("patch-9.1.1301")
+  set cpt+=o
 
+  autocmd TextChangedI * InsComplete()
+
+  def InsComplete()
+    if getcharstr(1) == '' && getline('.')->strpart(0, col('.') - 1) =~ '\k$'
+      SkipTextChangedIEvent()
+      feedkeys("\<c-n>", "n")
+    endif
+  enddef
+
+  inoremap <silent> <c-e> <c-r>=<SID>SkipTextChangedIEvent()<cr><c-e>
+
+  def SkipTextChangedIEvent(): string
+    # Suppress next event caused by <c-e> (or <c-n> when no matches found)
+    set eventignore+=TextChangedI
+    timer_start(1, (_) => {
+        set eventignore-=TextChangedI
+    })
+    return ''
+  enddef
+else
+  packadd! vimcomplete
+endif
+
+if has("patch-9.1-1311")
+  set cpt=.^5,w^5,b^5,u^5,t^5,i^5,o^5
+endif
+
+packadd! pythondoc.vim
+
+g:everforest_background = 'soft'
+g:everforest_better_performance = 1
+# packadd! everforest
+
+g:gruvbox_material_better_performance = 1
+g:gruvbox_material_background = 'hard'
+packadd! gruvbox-material
+
+# g:vimspector_enable_mappings = 'HUMAN'
+packadd! vimspector
 g:jupyter_highlight_cells = 1
+g:jupyter_cell_separators = ['##', '#%%', '# %%', '# <codecell>']
+
+# flag that we are using wayland
+g:is_wayland = 1
+
+g:rust_fold = 2
+g:rustfmt_autosave = 1
