@@ -6,21 +6,21 @@ local M = {
 		cmd = "FzfLua",
 		config = function()
 			require("fzf-lua").setup({
-				-- 'fzf-native',
-				-- previewers = {
-				--   builtin = {
-				--     extensions = {
-				--       ["png"] = { "chafa" },
-				--       ["jpg"] = { "chafa" },
-				--       ["gif"] = { "chafa" },
-				--     },
-				--   },
-				-- },
-				-- winopts = { preview = { default = "bat" } }, -- if this is enabled, image preview wont work
-				-- manpages = { previewer = "man_native" },
-				-- helptags = { previewer = "help_native" },
-				-- tags = { previewer = "bat" },
-				-- btags = { previewer = "bat" },
+        'max-perf',
+        winopts = {
+          preview = { hidden = true },
+          height = 0.70,
+          width = 0.75,
+          row = 0.55,
+          col = 0.50,
+        },
+        keymap = {
+          fzf = {
+            true,
+            -- Use <c-q> to select all items and add them to the quickfix list
+            ["ctrl-q"] = "select-all+accept",
+          },
+        },
 			})
 		end,
 	},

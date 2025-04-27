@@ -8,35 +8,57 @@ local M = {
 	-- 	"kyazdani42/nvim-web-devicons",
 	-- 	lazy = true,
 	-- },
-	{
-		"rebelot/kanagawa.nvim",
-		config = function()
-			require("kanagawa").setup({
-				compile = true, -- enable compiling the colorscheme
-				undercurl = true, -- enable undercurls
-				commentStyle = { italic = true },
-				functionStyle = {},
-				keywordStyle = { italic = true },
-				statementStyle = { bold = true },
-				typeStyle = {},
-				transparent = false, -- do not set background color
-				dimInactive = false, -- dim inactive window `:h hl-NormalNC`
-				terminalColors = true, -- define vim.g.terminal_color_{0,17}
-				colors = { -- add/modify theme and palette colors
-					palette = {},
-					theme = { wave = {}, lotus = {}, dragon = {}, all = { ui = { bg_gutter = "none" } } },
-				},
-				-- overrides = function(colors) -- add/modify highlights
-				--     return {}
-				-- end,
-				theme = "wave", -- Load "wave" theme when 'background' option is not set
-				background = { -- map the value of 'background' option to a theme
-					dark = "wave", -- try "dragon" !
-					light = "lotus",
-				},
-			})
-		end,
-	},
+  -- {
+  --   'skywind3000/vim-color-export',
+  --   lazy = false,
+  --   config = function ()
+  --     vim.g.color_export_all = 1
+  --     vim.g.color_export_convert = 1
+  --   end,
+  -- },
+  -- {
+  --   "romanaverin/charleston.nvim",
+  --   name = "charleston",
+  --   priority = 1000,
+  -- },
+	-- {
+	-- 	"rebelot/kanagawa.nvim",
+	-- 	config = function()
+	-- 		require("kanagawa").setup({
+	-- 			compile = true, -- enable compiling the colorscheme
+	-- 			undercurl = true, -- enable undercurls
+	-- 			commentStyle = { italic = true },
+	-- 			functionStyle = {},
+	-- 			keywordStyle = { italic = true },
+	-- 			statementStyle = { bold = true },
+	-- 			typeStyle = {},
+	-- 			transparent = true, -- do not set background color
+	-- 			dimInactive = true, -- dim inactive window `:h hl-NormalNC`
+	-- 			terminalColors = true, -- define vim.g.terminal_color_{0,17}
+	-- 			colors = { -- add/modify theme and palette colors
+	-- 				palette = {},
+	-- 				theme = { wave = {}, lotus = {}, dragon = {}, all = { ui = { bg_gutter = "none" } } },
+	-- 			},
+	-- 			-- overrides = function(colors) -- add/modify highlights
+	-- 			--     return {}
+	-- 			-- end,
+	-- 			-- theme = "wave", -- Load "wave" theme when 'background' option is not set
+	-- 			-- background = { -- map the value of 'background' option to a theme
+	-- 			-- 	dark = "wave", -- try "dragon" !
+	-- 			-- 	light = "lotus",
+	-- 			-- },
+	-- 		})
+	-- 	end,
+	-- },
+  {"sainnhe/gruvbox-material",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.g.gruvbox_material_background = 'hard'
+      vim.g.gruvbox_material_better_performance = 1
+      vim.g.gruvbox_material_transparent_background = 1
+    end,
+  },
   -- { "samharju/serene.nvim"},
 	{
 		"echasnovski/mini.nvim",
@@ -44,12 +66,17 @@ local M = {
 		config = function()
 			-- require('mini.completion').setup({
 			--    lsp_completion = {
-			--     source_func = 'completefunc',
-			--     auto_setup = true,
+			--     source_func = 'omnifunc',
+			--     auto_setup = false,
 			--   },
 			-- })
+      -- require('mini.snippets').setup({
+      --     snippets = {
+      --     require("mini.snippets").gen_loader.from_lang(),
+      --   },
+      -- })
 			require("mini.cursorword").setup()
-			-- require('mini.pairs').setup()
+			require('mini.pairs').setup()
 			-- require('mini.fuzzy').setup()
 			require("mini.statusline").setup({
 				use_icons = true,
@@ -62,6 +89,7 @@ local M = {
 			})
       require("mini.icons").setup()
       MiniIcons.mock_nvim_web_devicons()
+      -- MiniIcons.tweak_lsp_kind()
 			-- require('mini.indentscope').setup({
 			--   draw = {
 			--     delay = 100,

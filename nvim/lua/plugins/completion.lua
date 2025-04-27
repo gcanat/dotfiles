@@ -1,48 +1,47 @@
 -- Plugins related to code completion/suggestions
 local M = {
 	{
+    -- {
+    --   "rafamadriz/friendly-snippets",
+    --   event = {"BufReadPre", "BufNewFile"},
+    -- },
 		-- completion
     {
       'saghen/blink.cmp',
-      lazy = false, -- lazy loading handled internally
-      -- optional: provides snippets for the snippet source
+      lazy = false,
       dependencies = 'rafamadriz/friendly-snippets',
-
-      -- use a release tag to download pre-built binaries
-      -- version = 'v0.*',
-      -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
       build = 'cargo build --release',
-
       opts = {
-        highlight = {
-          -- sets the fallback highlight groups to nvim-cmp's highlight groups
-          -- useful for when your theme doesn't support blink.cmp
-          -- will be removed in a future release, assuming themes add support
+        appearance = {
           use_nvim_cmp_as_default = true,
+          nerd_font_variant = 'mono',
         },
-        -- set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-        -- adjusts spacing to ensure icons are aligned
-        nerd_font_variant = 'normal',
-
-        -- experimental auto-brackets support
-        -- accept = { auto_brackets = { enabled = true } }
-
-        -- experimental signature help support
-        trigger = { signature_help = { enabled = true } },
-        -- for keymap, all values may be string | string[]
-        -- use an empty table to disable a keymap
         keymap = {
-          preset = 'super-tab',
+          preset = 'default',
           ['<CR>'] = { 'accept', 'fallback' },
+          ['<Tab>'] = { 'select_next', 'fallback' },
+          ['<S-Tab>'] = { 'select_prev', 'fallback' },
+          ['<C-l>'] = { 'snippet_forward', 'fallback' },
+          ['<C-h>'] = { 'snippet_backward', 'fallback' },
         },
+        -- cmdline = { completion = { menu = { auto_show = true } } },
+        cmdline = {
+          sources = {},
+          keymap = { preset = 'none' },
+        },
+        completion = {
+          -- dont display icons in the menu
+          -- menu = { draw = { columns = { {"label", "label_description", gap = 1 } } } },
+          list = { selection = { preselect = false, auto_insert = true} },
+          documentation = { auto_show = true, auto_show_delay_ms = 200 },
+        },
+        signature = { enabled = true },
       }
     },
 		{
 			"neovim/nvim-lspconfig",
 			event = { "BufReadPre", "BufNewFile" },
-			dependencies = { 'VonHeikemen/lsp-zero.nvim' },
 			config = function()
-				-- See `:help vim.diagnostic.*` for documentation on any of the below functions
 				local def_opts = { noremap = true, silent = true }
 				local keymap = function(mode, keys, cmd, opts)
 					local o = vim.tbl_deep_extend("force", def_opts, opts or {})
@@ -50,32 +49,9 @@ local M = {
 				end
 
 				keymap("n", "<space>e", vim.diagnostic.open_float, { desc = "Open diagnostic" })
-				-- keymap("n", "<space>e", "<cmd>Lspsaga show_cursor_diagnostics<CR>", { desc = 'Open diagnotic' })
-
 				keymap("n", "]d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 				keymap("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-				-- keymap("n", "(d", "<cmd>Lspsaga diagnostic_jump_prev<CR>", { desc = 'Previous diagnotssc' })
-				-- keymap("n", ")d", "<cmd>Lspsaga diagnostic_jump_next<CR>", { desc = 'Next diagnostic' })
 				keymap("n", "<space>q", vim.diagnostic.setloclist, { desc = "Add diagnostics to the location list" })
-				-- keymap("n", "(E", function()
-				--   require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
-				-- end, { desc = 'Previous Error' })
-				-- keymap("n", ")E", function()
-				--   require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
-				-- end, { desc = 'Next Error' })
-
-				-- local cmp_nvim_lsp = require("cmp_nvim_lsp")
-				-- local capabilities = vim.lsp.protocol.make_client_capabilities()
-				-- capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-
-				--  for epo.nvim
-				-- local capabilities = vim.tbl_deep_extend(
-				--   'force',
-				--   vim.lsp.protocol.make_client_capabilities(),
-				--   require('epo').register_cap()
-				-- )
-
-				-- capabilities.textDocument.completion.completionItem.snippetSupport = false
 
 				-- Use an on_attach function to only map the following keys
 				-- after the language server attaches to the current buffer
@@ -92,12 +68,8 @@ local M = {
 					-- See `:help vim.lsp.*` for documentation on any of the below functions
 					local def_opts = { noremap = true, silent = true, buffer = bufnr }
 
-					-- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>", { desc = 'Find references' })
-					-- keymap('n', 'gD', vim.lsp.buf.declaration, { desc = 'Goto declaration' })
 					keymap("n", "gd", vim.lsp.buf.definition, { desc = "Goto definition" })
-					-- keymap("n", "gd", "<cmd>Lspsaga goto_definition<CR>", { desc = 'Goto definition' })
 					keymap("n", "K", vim.lsp.buf.hover, { desc = "Hover doc" })
-					-- keymap("n", "K", "<cmd>Lspsaga hover_doc<CR>", { desc = 'Hover documentation' })
 					keymap("n", "gi", vim.lsp.buf.implementation, { desc = "Goto implementation" })
 					keymap("n", "<space>k", vim.lsp.buf.signature_help, { desc = "Signature help" })
 					keymap("n", "<space>wa", vim.lsp.buf.add_workspace_folder, { desc = "Add workspace" })
@@ -107,56 +79,31 @@ local M = {
 					end, { desc = "list workspace folders" })
 					keymap("n", "<space>D", vim.lsp.buf.type_definition, { desc = "type definition" })
 					keymap("n", "<space>rn", vim.lsp.buf.rename, { desc = "Rename buffer" })
-					-- keymap("n", "<space>rn", "<cmd>Lspsaga rename<CR>", { desc = 'Rename symbol' })
 					keymap("n", "<space>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-					-- keymap({ "n", "v" }, "<space>ca", "<cmd>Lspsaga code_action<CR>", { desc = 'Code action' })
 					keymap("n", "gr", vim.lsp.buf.references, { desc = "Buffer references" })
-					-- keymap("n", "<leader>lo", "<cmd>Lspsaga outline<CR>", { desc = 'Outline toggle' })
-					-- Show buffer diagnostic
-					-- keymap("n", "<leader>lb", "<cmd>Lspsaga show_buf_diagnostics<CR>", {desc = 'Show buffer diagnostic'})
-					-- format buffer
 					keymap("n", "<leader>lf", vim.lsp.buf.format, { desc = "Format buffer" })
+
+          -- autoformat on save
+          local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+          if client.supports_method("textDocument/formatting") then
+            vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+            vim.api.nvim_create_autocmd("BufWritePre", {
+              group = augroup,
+              buffer = bufnr,
+              callback = function()
+                vim.lsp.buf.format()
+              end,
+            })
+          end
 				end
 
-				-- lsp_installer.on_server_ready(function(server)
-        local lsp_zero = require("lsp-zero")
-        lsp_zero.extend_lspconfig({
-          sign_text = true,
-          lsp_attach = on_attach,
-          -- capabilities = capabilities
-        })
-        require'lspconfig'.jedi_language_server.setup{}
-        require'lspconfig'.ruff.setup{}
-        require'lspconfig'.rust_analyzer.setup{}
+        local lspconf = require('lspconfig')
+        local capab = require('blink.cmp').get_lsp_capabilities()
+        lspconf.jedi_language_server.setup({ capabilities = capab, on_attach = on_attach })
+        lspconf.ruff.setup({ capabilities = capab, on_attach = on_attach })
+        lspconf.rust_analyzer.setup({ capabilities = capab, on_attach = on_attach })
       end,
 		},
-		-- {
-		-- 	"zbirenbaum/copilot.lua",
-		-- 	event = "InsertEnter",
-		-- 	config = function()
-		-- 		require("copilot").setup({
-		-- 			suggestion = { enabled = true }, -- auto_trigger = true },
-		-- 			panel = { enabled = false },
-		-- 		})
-		-- 	end,
-		-- },
-		-- {
-		-- 	"CopilotC-Nvim/CopilotChat.nvim",
-		--     branch = "canary",
-		--     dependencies = {
-		--       { "zbirenbaum/copilot.lua" }, -- or github/copilot.vim
-		--       { "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
-		--     },
-		--     build = "make tiktoken", --
-		-- 	opts = {
-		-- 		mode = "split", -- newbuffer or split  , default: newbuffer
-		-- 	},
-		-- 	lazy = true,
-		-- 	keys = {
-		-- 		{ "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
-		-- 		{ "<leader>cct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
-		-- 	},
-		-- },
 	},
 }
 

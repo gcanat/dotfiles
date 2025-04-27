@@ -44,9 +44,9 @@ require("lazy").setup("plugins", {
 -- all the setups that are pretty much oneliners go here
 require("config") -- usual vim options
 
-vim.cmd("colorscheme kanagawa")
--- vim.cmd("colorscheme serene-transparent")
-vim.cmd("hi Normal guibg=NONE")
+-- vim.cmd("colorscheme kanagawa-wave")
+vim.cmd.colorscheme "gruvbox-material"
+vim.cmd("hi Normal guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE")
 
 -- load settings from other files in lua/ dir
 require("commands")

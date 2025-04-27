@@ -6,6 +6,8 @@ map("n", "Y", "y$", { noremap = true, desc = "Yank until end of line" })
 map("n", "à", "]", { remap = true, desc = "" })
 map("n", "ç", "[", { remap = true, desc = "" })
 
+map("n", "-", "<Cmd>15Lex<CR>", { noremap = true,  desc = "Open netrw" })
+
 -- stay in the middle of the screen when scrolling
 -- map("n", "J", "mzJ`z")
 map("n", "<C-d>", "<C-d>zz")
@@ -34,8 +36,8 @@ map("n", "<leader>fm", ":FzfLua oldfiles<CR>", { noremap = true, silent = true, 
 map("n", "<leader>gc", ":FzfLua git_commits<CR>", { noremap = true, silent = true, desc = "Git commits" })
 map("n", "<leader>gs", ":FzfLua git_status<CR>", { noremap = true, silent = true, desc = "Git status" })
 map("n", "<leader>gb", ":FzfLua git_branches<CR>", { noremap = true, silent = true, desc = "Git branches" })
-map("n", "<leader>gi", ":FzfLua gh issues<CR>", { noremap = true, silent = true, desc = "Git issues" })
-map("n", "<leader>gp", ":FzfLua gh pull_request<CR>", { noremap = true, silent = true, desc = "Git pull requests" })
+-- map("n", "<leader>gi", ":FzfLua gh issues<CR>", { noremap = true, silent = true, desc = "Git issues" })
+-- map("n", "<leader>gp", ":FzfLua gh pull_request<CR>", { noremap = true, silent = true, desc = "Git pull requests" })
 map(
 	"n",
 	"<leader>gp",
@@ -50,6 +52,12 @@ map("n", "<M-h>", ":bp<CR>", { noremap = true, silent = true, desc = "Previous b
 map("i", "<M-h>", "<ESC>:bp<CR>", { noremap = true, silent = true, desc = "Previous buffer" })
 map("n", "<M-c>", ":bd<CR>", { noremap = true, silent = true, desc = "Close buffer" })
 map("i", "<M-c>", "<ESC>:bd<CR>", { noremap = true, silent = true, desc = "Close buffer" })
+
+-- local imap_expr = function(lhs, rhs)
+--   vim.keymap.set('i', lhs, rhs, { expr = true })
+-- end
+-- imap_expr('<Tab>',   [[pumvisible() ? "\<C-n>" : "\<Tab>"]])
+-- imap_expr('<S-Tab>', [[pumvisible() ? "\<C-p>" : "\<S-Tab>"]])
 
 -- kepmaps from mini.nvim
 -- Helper function
@@ -87,7 +95,7 @@ keymap("x", [[s]], [[<Nop>]])
 -- keymap('n', [[q:]], [[<Nop>]])
 
 -- Delete selection in Select mode (helpful when editing snippet placeholders)
-keymap("s", "<BS>", "<BS>i")
+keymap("s", "<BS>", "i<BS>")
 
 -- quarto nvim
 -- map("n", "<leader>qp", [[cmd require('quarto').quartoPreview<CR>]], {silent = true, noremap = true, desc = 'Qarto Preview'})

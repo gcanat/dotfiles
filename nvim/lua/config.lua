@@ -52,12 +52,23 @@ vim.o.showmode = false
 -- vim.opt.spell = true
 -- vim.opt.spelllang = { 'en_us' }
 
+-- teawks for netrw
+
+vim.g.netrw_banner = 0        -- disable annoying banner
+vim.g.netrw_browse_split = 4  -- open in prior window
+vim.g.netrw_altv = 1          -- open splits to the right
+vim.g.netrw_liststyle = 3     -- tree view
+vim.g.netrw_winsize = 10
+vim.g.netrw_sizestyle = 'h'   -- human readable sizes
+-- vim.g.netrw_list_hide = [[, \(^\|\s\s\)\zs\.\S\+]]
+vim.g.netrw_list_hide = vim.fn['netrw_gitignore#Hide']() .. [[,.git/]]
+
 -- vim.api.nvim_command('guicurosr=n-v-c-sm:block,i-ci-ve:block,r-cr-o:hor20')
 -- vim.o.guicursor='guicursor=v-c-sm:block,n-i-ci-ve:block,r-cr-o:hor20'
 vim.o.guicursor = "v-c-sm:block,n-i-ci-ve:block,r-cr-o:hor20"
 
 -- completion options
-vim.o.completeopt = "menu,menuone,noselect"
+vim.o.completeopt = "menu,menuone,noselect,noinsert"
 -- vim.o.completeopt = 'menuone,noselect,noinsert'
 -- vim.g.coq_settings = {
 --   ["auto_start"] = "shut-up",
@@ -107,7 +118,7 @@ end
 vim.opt.cmdheight = 1
 
 -- python path
-vim.g['python3_host_prog'] = '/home/guillaume/venv/valgo2/bin/python3'
+-- vim.g['python3_host_prog'] = '/home/guillaume/venv/valgo2/bin/python3'
 
 -- vim.g.copilot_no_tab_map = true
 --
@@ -116,3 +127,17 @@ vim.g['python3_host_prog'] = '/home/guillaume/venv/valgo2/bin/python3'
 -- vim.g['magma_image_provider'] = "ueberzug"
 -- vim.g['magma_image_provider'] = "kitty"
 -- vim.g.molten_image_provider = "image.nvim"
+
+vim.o.grepprg = [[rg -HS --no-heading --column -g "!*.ipynb" -g "!*__pycache__*" -g "!target/**" -g "!build/**" -g "!**/dist/**" -g "!tags"]]
+
+function Fd(file_pattern, _)
+  -- if first char is * thenfuzzy search
+  if file_pattern:sub(1, 1) == "*" then
+    file_pattern = file_pattern:gsub(".", ".*%0") .. ".*"
+  end
+  local cmd = 'fdfind  --color=never --full-path --type file --hidden --exclude=".git" "' .. file_pattern .. '"'
+  local result = vim.fn.systemlist(cmd)
+  return result
+end
+
+vim.opt.findfunc = "v:lua.Fd"

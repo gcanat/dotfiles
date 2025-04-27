@@ -5,14 +5,26 @@ local M = {
 		-- dev = false,
 		build = ":TSUpdate",
 		event = "BufReadPost",
+    -- lazy = false,
 		dependencies = {
 			"nvim-treesitter/nvim-treesitter-textobjects",
 		},
 
 		config = function()
 			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "lua", "python", "markdown", "vim", "c", "yaml" },
-				highlight = { enable = true },
+				ensure_installed = { "lua", "python", "markdown", "vim", "c", "yaml", "rust", "toml", "cpp", "bibtex" },
+				highlight = {
+          enable = true,
+          -- we can disable the function below when using neovim 0.11 nightly
+          -- disable = function(lang, buf)
+          --   local max_filesize = 100 * 1024 -- 100 KB
+          --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          --   if ok and stats and stats.size > max_filesize then
+          --     return true
+          --   end
+          -- end,
+          additional_vim_regex_highlighting = false,
+        },
 				indent = { enable = true },
 				textobjects = {
 					select = {
@@ -91,95 +103,98 @@ local M = {
 		"mfussenegger/nvim-dap",
 		enabled = true,
 		lazy = true,
+    cmd = {"RunScriptWithArgs"},
 		dependencies = {
-			"theHamsta/nvim-dap-virtual-text",
-			"rcarriga/nvim-dap-ui",
-			"mfussenegger/nvim-dap-python",
-			-- "nvim-telescope/telescope-dap.nvim",
+      { "igorlfs/nvim-dap-view", opts = {} },
 		},
 		keys = {
 			{ "<leader>dR", "<cmd>lua require'dap'.run_to_cursor()<cr>", desc = "Run to Cursor" },
 			{
-				"<leader>dE",
-				"<cmd>lua require'dapui'.eval(vim.fn.input '[Expression] > ')<cr>",
-				desc = "Evaluate Input",
-			},
-			{
-				"<leader>dC",
+				"<leader>dT",
 				"<cmd>lua require'dap'.set_breakpoint(vim.fn.input '[Condition] > ')<cr>",
 				desc = "Conditional Breakpoint",
 			},
-			{ "<leader>dU", "<cmd>lua require'dapui'.toggle()<cr>", desc = "Toggle UI" },
+			{ "<leader>dU", "<cmd>lua require'dap-view'.toggle()<cr>", desc = "Toggle UI" },
 			{ "<leader>db", "<cmd>lua require'dap'.step_back()<cr>", desc = "Step Back" },
 			{ "<leader>dc", "<cmd>lua require'dap'.continue()<cr>", desc = "Continue" },
 			{ "<leader>dd", "<cmd>lua require'dap'.disconnect()<cr>", desc = "Disconnect" },
-			{ "<leader>de", "<cmd>lua require'dapui'.eval()<cr>", desc = "Evaluate" },
 			{ "<leader>dg", "<cmd>lua require'dap'.session()<cr>", desc = "Get Session" },
-			{ "<leader>dh", "<cmd>lua require'dap.ui.widgets'.hover()<cr>", desc = "Hover Variables" },
-			{ "<leader>dS", "<cmd>lua require'dap.ui.widgets'.scopes()<cr>", desc = "Scopes" },
 			{ "<leader>di", "<cmd>lua require'dap'.step_into()<cr>", desc = "Step Into" },
+			{ "<leader>dl", "<cmd>lua require'dap'.run_last()<cr>", desc = "Run last" },
 			{ "<leader>do", "<cmd>lua require'dap'.step_over()<cr>", desc = "Step Over" },
 			{ "<leader>dp", "<cmd>lua require'dap'.pause.toggle()<cr>", desc = "Pause" },
 			{ "<leader>dq", "<cmd>lua require'dap'.close()<cr>", desc = "Quit" },
 			{ "<leader>dr", "<cmd>lua require'dap'.repl.toggle()<cr>", desc = "Toggle Repl" },
-			{ "<leader>ds", "<cmd>lua require'dap'.continue()<cr>", desc = "Start" },
+			{ "<leader>ds", "<cmd>lua require'dap'.continue()<cr>", desc = "Continue" },
 			{ "<leader>dt", "<cmd>lua require'dap'.toggle_breakpoint()<cr>", desc = "Toggle Breakpoint" },
 			{ "<leader>dx", "<cmd>lua require'dap'.terminate()<cr>", desc = "Terminate" },
 			{ "<leader>du", "<cmd>lua require'dap'.step_out()<cr>", desc = "Step Out" },
-			{ "<leader>de", "<cmd>lua require'dapui'.eval()<cr>", mode = "v", desc = "Evaluate" },
+      { "<leader>dh", "<cmd>lua require'dap.ui.widgets'.hover(nil, { border = 'rounded' })<cr>", desc = "Hover variable"},
+      { "<leader>dS", "<cmd>lua require'dap.ui.widgets'.centered_float(require'dap.ui.widgets'.scopes, { border = 'rounded' })<cr>", desc = "Variables in scope"},
 		},
-		config = function()
-			-- config
-			local dap_breakpoint = {
-				error = {
-					text = "🟥",
-					texthl = "LspDiagnosticsSignError",
-					linehl = "",
-					numhl = "",
-				},
-				rejected = {
-					text = "",
-					texthl = "LspDiagnosticsSignHint",
-					linehl = "",
-					numhl = "",
-				},
-				stopped = {
-					text = "⭐️",
-					texthl = "LspDiagnosticsSignInformation",
-					linehl = "DiagnosticUnderlineInfo",
-					numhl = "LspDiagnosticsSignInformation",
-				},
-			}
+    config = function()
+      local dap, dv = require("dap"), require("dap-view")
+      dap.listeners.before.attach["dap-view-config"] = function()
+        dv.open()
+      end
+      dap.listeners.before.launch["dap-view-config"] = function()
+        dv.open()
+      end
+      dap.listeners.before.event_terminated["dap-view-config"] = function()
+        dv.close()
+      end
+      dap.listeners.before.event_exited["dap-view-config"] = function()
+        dv.close()
+      end
 
-			vim.fn.sign_define("DapBreakpoint", dap_breakpoint.error)
-			vim.fn.sign_define("DapStopped", dap_breakpoint.stopped)
-			vim.fn.sign_define("DapBreakpointRejected", dap_breakpoint.rejected)
+      dap.adapters.python = {
+        type = 'executable';
+        command = os.getenv('VIRTUAL_ENV') .. '/bin/python';
+        args = { '-m', 'debugpy.adapter' };
+      }
 
-			-- extensions
-			require("nvim-dap-virtual-text").setup({
-				commented = true,
-			})
+      vim.api.nvim_set_hl(0, "blue",   { fg = "#3d59a1" }) 
+      vim.api.nvim_set_hl(0, "green",  { fg = "#9ece6a" }) 
+      vim.api.nvim_set_hl(0, "yellow", { fg = "#FFFF00" }) 
+      vim.api.nvim_set_hl(0, "orange", { fg = "#f09000" })
 
-			local dap, dapui = require("dap"), require("dapui")
-			dapui.setup({}) -- use default
-			dap.listeners.after.event_initialized["dapui_config"] = function()
-				dapui.open()
-			end
-			dap.listeners.before.event_terminated["dapui_config"] = function()
-				dapui.close()
-			end
-			dap.listeners.before.event_exited["dapui_config"] = function()
-				dapui.close()
-			end
+      vim.fn.sign_define('DapBreakpoint',          { text='●', texthl='blue',   linehl='DapBreakpoint', numhl='DapBreakpoint' })
+      vim.fn.sign_define('DapBreakpointCondition', { text='●', texthl='blue',   linehl='DapBreakpoint', numhl='DapBreakpoint' })
+      vim.fn.sign_define('DapBreakpointRejected',  { text='●', texthl='orange', linehl='DapBreakpoint', numhl='DapBreakpoint' })
+      vim.fn.sign_define('DapStopped',             { text='●', texthl='green',  linehl='DapBreakpoint', numhl='DapBreakpoint' })
+      vim.fn.sign_define('DapLogPoint',            { text='●', texthl='yellow', linehl='DapBreakpoint', numhl='DapBreakpoint' })
 
-			-- debuggers
-			require("dap-python").setup("python", {})
+      vim.api.nvim_create_user_command("RunScriptWithArgs", function(t)
+      args = vim.split(vim.fn.expand(t.args), '\n')
+      approval = vim.fn.confirm(
+        "Will try to run:\n    " ..
+        vim.bo.filetype .. " " ..
+        vim.fn.expand('%') .. " " ..
+        t.args .. "\n\n" ..
+        "Do you approve? ",
+        "&Yes\n&No", 1
+      )
+      if approval == 1 then
+        dap.run({
+          type = vim.bo.filetype,
+          request = 'launch',
+          name = 'Launch file with custom arguments (adhoc)',
+          program = '${file}',
+          args = args,
+        })
+      end
+    end, {
+      complete = 'file',
+      nargs = '*'
+    })
+    vim.keymap.set('n', '<leader>R', ":RunScriptWithArgs ")
 		end,
 	},
 	{
 		"nvim-neotest/neotest",
 		enabled = true,
 		dependencies = {
+      "nvim-neotest/nvim-nio",
 			"nvim-neotest/neotest-python",
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",

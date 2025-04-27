@@ -125,3 +125,7 @@ end
 vim.cmd([[
 :command JupRun lua JupRun()
 ]])
+
+vim.cmd([[
+:command! -nargs=+ -complete=file_in_path Grep :grep <f-args> | cw
+]])
