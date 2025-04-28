@@ -15,19 +15,11 @@ b:undo_ftplugin ..= ' | setl foldignore< formatprg<'
 b:undo_ftplugin ..= ' | exe "nunmap <buffer> <leader>fi"'
 
 # small utilities to set/unset ipdb breakpoints
-def SetBreakpoint()
-  append('.', repeat(' ', strlen(matchstr(getline('.'), '^\s*'))) .. 'import ipdb; ipdb.set_trace()')
-enddef
-
-def RemoveBreakpoint()
-  exe 'silent! g/^\s*import\sipdb\;\?\n*\s*ipdb.set_trace()/d'
-enddef
-
 def ToggleBreakpoint()
   if getline('.') =~# '^\s*import\sipdb'
-    RemoveBreakpoint()
+    exe 'silent! g/^\s*import\sipdb\;\?\n*\s*ipdb.set_trace()/d'
   else
-    SetBreakpoint()
+    append('.', repeat(' ', strlen(matchstr(getline('.'), '^\s*'))) .. 'import ipdb; ipdb.set_trace()')
   endif
 enddef
 nnoremap <buffer> <F6> :call <SID>ToggleBreakpoint()<CR>
