@@ -131,7 +131,7 @@ endif
 # inoremap <Tab> <C-X><C-O>
 # set omnifunc=syntaxcomplete#Complete
 # set completeopt=menuone,preview
-set completeopt=menuone,popup,fuzzy,noinsert,noselect completepopup=highlight:Pmenu inf
+set completeopt=menuone,popuphidden,fuzzy,noinsert,noselect completepopup=highlight:Pmenu inf
 if has("patch-9.1.1308")
   set cot-=fuzzy
   set cot+=nearest
@@ -157,6 +157,7 @@ packadd! comment
 if has("patch-9.1.0497")
   packadd! nohlsearch
 endif
+
 packadd! lsp
 packadd! vim-fugitive
 packadd! vim-gitgutter
@@ -201,10 +202,6 @@ if has("patch-9.1-1311")
 endif
 
 packadd! pythondoc.vim
-
-g:gruvbox_material_better_performance = 1
-g:gruvbox_material_background = 'hard'
-packadd! gruvbox-material
 
 # g:vimspector_enable_mappings = 'HUMAN'
 # packadd! vimspector
