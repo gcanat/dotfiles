@@ -92,28 +92,22 @@ pytestefm ..= "%-G%.%#,"
 # need to suppress warning to correctly parse pytest output
 $PYTHONWARNINGS = "ignore"
 
-def RunTest(filename: string)
-  # exe ":set cpo-=C"
-  var cmd = 'python3 -m pytest --tb=short -q ' .. expand(filename)
+def AsyncQf(cmd: string, qfefm: string)
   setqflist([], ' ', {'title': $'{cmd}'})
   var qfid = getqflist({'id': 0}).id
-  var lines = []
   var job = job_start( cmd, {
     err_cb: (_, line) => {
       echom line
     },
     out_cb: (_, line) => {
     if getqflist({'id': qfid}).id == qfid
-      setqflist([], 'a', {'id': qfid, 'lines': [line], 'efm': pytestefm})
-      lines->add(line)
+      setqflist([], 'a', {'id': qfid, 'lines': [line], 'efm': qfefm})
     endif
     },
     exit_cb: (job, status) => {
       if status == 1
         exe 'copen'
-      elseif status == 0
-        echow $'[SUCCESS] All tests passed!'
-      else
+      elseif status != 0
         echow $'[ERROR] Job failed with status {status}'
       endif
     }
@@ -121,7 +115,8 @@ def RunTest(filename: string)
   if job_status(job) == 'failed'
     echom 'Job failed'
   endif
-  enddef
+enddef
 
-nnoremap <buffer> <F2> <scriptcmd>RunTest('%')<CR>
-b:undo_ftplugin ..= ' | exe "nunmap <buffer> <F2>"'
+nnoremap <buffer> <F2> <scriptcmd>AsyncQf('python3 -m pytest --tb=short -q ' .. expand('%'), pytestefm)<CR>
+nnoremap <buffer> <F3> <scriptcmd>AsyncQf('mypy --no-color-output --no-error-summary ' .. expand('%'), &errorformat)<CR>
+b:undo_ftplugin ..= ' | exe "nunmap <buffer> <F2>" | exe "nunmap <buffer> <F3>"'
