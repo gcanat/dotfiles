@@ -6,6 +6,11 @@ set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
 set nu relativenumber
 set expandtab tabstop=4 softtabstop=4 shiftwidth=4
 set wildmenu wildignorecase
+if has("patch-9.1.1166")
+    set wildmode=noselect:lastused
+else
+    set wildmode=list:longest,list:full
+endif
 set incsearch ignorecase smartcase
 set updatetime=2000 ttimeout ttimeoutlen=250
 if has('termguicolors') && (has('mac') || has('win32'))
@@ -22,10 +27,21 @@ execute "set path=,," . SetPath()
 
 if has('patch-9.1.0831')
   func FindFiles(cmdarg, cmdcomplete)
-    let fnames = systemlist('rg --files --color never -g "!*.pyc" -g "!*.bak" -g "!*.old" .')
+    let fnames = systemlist('rg --files --color never -g "!*.pyc" -g "!*.bak" -g "!*.old" -g "!*.o" -g "!build/*" -g "!target/*" .')
       return fnames->filter('v:val =~? a:cmdarg')
   endfunc
   set findfunc=FindFiles
+endif
+
+" better looking diff
+if has("patch-8.1.0360")
+  set diffopt+=vertical,algorithm:histogram,indent-heuristic
+endif
+if has("patch-9.1.1009")
+  set diffopt+=linematch:60
+endif
+if has("patch-9.1.1243")
+  set diffopt+=inline:char
 endif
 
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,*.un~,*.pyc,tags,target/**,build/**
@@ -35,16 +51,26 @@ endif
 
 set fillchars=vert:│ shortmess+=Tas undofile
 
-set completeopt=menuone,preview,noinsert,noselect pumheight=20
+set completeopt=menuone,preview,noinsert,noselect pumheight=20 inf
 if has("patch-8.1.1884")
   set completeopt+=popup
   autocmd! VimEnter * set completepopup+=border:off
 endif
+if has("patch-9.1.1308")
+  set cot-=fuzzy
+  set cot+=nearest
+endif
+if has("patch-9.1.1311")
+  set complete=.^5,w,u,t^5,o^5
+endif
 
-set wildcharm=<C-Z>
+set wildcharm=<C-@>
 let &t_ut=''
 let mapleader = ","
 set backspace=indent,eol,start
+set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:…
+set fillchars=vert:│
+
 
 let g:vimdata=expand("~/.local/share/") . 'vim-data'
 execute "set directory=" . g:vimdata . '/swap//'
@@ -59,16 +85,40 @@ let g:netrw_banner=0
 let g:netrw_browse_split=4
 let g:netrw_altv=1 
 let g:netrw_liststyle=3
-let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$'
+let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
+" let g:netrw_list_hide=netrw_gitignore#Hide() .. ',.git,.*\.swp$,.*\.un~$'
 
 filetype plugin on
 filetype indent on
 
 " colorscheme retrobox
 " colorscheme wildcharm
-autocmd! Colorscheme * hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE
+autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE
+autocmd! Colorscheme * hi link EndOfBuffer Normal
 
-if filereadable(expand($VIMRUNTIME . "/colors/habamax.vim"))
+augroup diffcolors
+	autocmd!
+	autocmd Colorscheme * call s:SetDiffHighlights()
+augroup END
+
+function! s:SetDiffHighlights()
+	if &background == "dark"
+		highlight DiffAdd gui=bold guifg=NONE guibg=#2e4b2e
+		highlight DiffDelete gui=bold guifg=NONE guibg=#4c1e15
+		highlight DiffChange gui=bold guifg=NONE guibg=#45565c
+		highlight DiffText gui=bold guifg=NONE guibg=#996d74
+	else
+		highlight DiffAdd gui=bold guifg=NONE guibg=palegreen
+		highlight DiffDelete gui=bold guifg=NONE guibg=tomato
+		highlight DiffChange gui=bold guifg=NONE guibg=lightblue
+		highlight DiffText gui=bold guifg=NONE guibg=lightpink
+	endif
+endfunction
+
+if isdirectory(expand($HOME) . "/.vim/pack/themes/opt/srcery-vim")
+  packadd! srcery-vim
+  colorscheme srcery
+elseif filereadable(expand($VIMRUNTIME . "/colors/habamax.vim"))
   colorscheme habamax
 else
   colorscheme slate
@@ -101,7 +151,7 @@ nnoremap <c-h> <c-w><c-h>
 nnoremap <c-l> <c-w><c-l>
 nnoremap <c-j> <c-w><c-j>
 nnoremap <c-k> <c-w><c-k>
-nnoremap <leader>b :b <C-Z>
+nnoremap <leader>b :b <C-@>
 nnoremap - :Lex <bar> vert resize 25<CR>
 nnoremap <leader>fe :fin **/*
 nnoremap <leader>fm :bro ol<CR>
@@ -112,6 +162,7 @@ nnoremap [l :lprev<CR>
 nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
 nnoremap <leader>gw :Grep <C-R><C-W><CR>
+nnoremap <leader>ff magggqG'a
 
 
 if executable('rg')
@@ -284,7 +335,7 @@ endfunc
 
 augroup gitstatus
   autocmd!
-  autocmd BufEnter,BufWritePost * call CurrentGitStatus()
+  autocmd BufEnter,BufWritePost,ShellCmdPost * call CurrentGitStatus()
 augroup END
  
 set statusline=
@@ -304,14 +355,13 @@ set statusline+=\
 
 " set errorformat+=%o:%l:%c:%m
 function! s:parse_log(val)
-    let cmt_msg = split(a:val[2:], ' - ')
+    let cmt_msg = split(a:val, ' - ')
     return cmt_msg[0] . ':1:1:' . cmt_msg[1]
 endfunction
 
 function! Glog(...)
   " display last 300 commits (should be enough and wont slow down on big repos)
-  let commitcmd = "git log -300 --graph --pretty=format:'%h - %d %s (%cr) <%an>'"
-  " let commitcmd = 'git log --graph --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
+  let commitcmd = "git log -300 --oneline --pretty=format:'%h - %s (%cr) <%an>'"
   let result = systemlist(commitcmd)
   return result->mapnew({ _, val -> s:parse_log(val)})
 endfunction
@@ -327,12 +377,12 @@ endfunction
 command! -nargs=0 G call GStatus()
 
 " diff current file against HEAD
-nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git diff #<CR>1Gdd
+nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile <bar> silent! r !git diff #<CR>1Gdd
 " show the diff for the commit SHA under the cursor
-nnoremap <leader>gc yiw<C-W>w:e! gitlog <bar> setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git show <C-R>"<CR>1Gdd
+nnoremap <leader>gc yiw<C-W>w:e! gitlog <bar> setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git show <C-R>"<CR>1Gdd<C-W>w
 
 " assuming qflist is popuplated with list of files modified by a PR, diff
-" against master
+" against last merge commit
 function! Diffqf(spec)
   ccl
   wincmd o
@@ -341,7 +391,9 @@ function! Diffqf(spec)
   else
     cprev
   endif
-  silent! call Diff('master')
+  " Diff against last merge commit
+  let base_commit = trim(system('git log --merges -1 --format=%h'))
+  silent! call Diff(base_commit)
   cope
   wincmd j
 endfunction
@@ -474,24 +526,27 @@ if has("patch-8.1.0673")
   autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call DiffSign() | endif
 endif
 
+if has("patch-9.1.1227")
+  packadd hlyank
+endif
+
 if has('vim9script') ||  v:version > 900
   packadd lsp
 endif
-" packadd vim-lsp
-" packadd asyncomplete.vim
-" packadd asyncomplete-lsp.vim
-" packadd complete
+" packadd taglist
 
 if executable('git-jump')
   command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
 endif
 
 autocmd BufReadPost,BufNewFile *
-      \ if executable('git') |
-      \   let s:root_dir = system('git rev-parse --show-toplevel') |
-      \   if s:root_dir[0:5] != 'fatal:' |
-      \     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
-      \   endif |
-      \ endif
+  \ if executable('git') |
+  \   let s:root_dir = system('git rev-parse --show-toplevel') |
+  \   if s:root_dir[0:5] != 'fatal:' |
+  \     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
+  \   endif |
+  \ endif
+
+nnoremap <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter({_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ? fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose buffer: ") .. '<CR>'
 
 " vim:ts=2:sw=2
