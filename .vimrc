@@ -261,6 +261,7 @@ function! Diff(spec)
   endif
   execute "read " . cmd
   silent 0d_
+  exe 'set ft=' . getbufvar(bufnr('#'), '&filetype')
   diffthis
   wincmd p
   diffthis
@@ -360,8 +361,7 @@ function! s:parse_log(val)
 endfunction
 
 function! Glog(...)
-  " display last 300 commits (should be enough and wont slow down on big repos)
-  let commitcmd = "git log -300 --oneline --pretty=format:'%h - %s (%cr) <%an>'"
+  let commitcmd = "git log --oneline --pretty=format:'%h - %s (%cr) <%an>' " . join(a:000, ' ')
   let result = systemlist(commitcmd)
   return result->mapnew({ _, val -> s:parse_log(val)})
 endfunction
@@ -455,8 +455,8 @@ let s:git_status_dictionary = {
   \ }
 function! s:get_diff_files(rev)
   let gitroot = system('git rev-parse --show-toplevel')[:-2]
-  let list = map(split(system(
-    \ 'git diff --name-status '.a:rev), '\n'),
+  let list = map(systemlist(
+    \ 'git diff --name-status '.a:rev),
     \ '{"filename":"' . fnameescape(gitroot) 
     \ . '/" . matchstr(v:val, "\\S\\+$"),"text":s:git_status_dictionary[matchstr(v:val, "^\\w")]}'
     \ )
@@ -544,6 +544,7 @@ autocmd BufReadPost,BufNewFile *
   \   let s:root_dir = system('git rev-parse --show-toplevel') |
   \   if s:root_dir[0:5] != 'fatal:' |
   \     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
+  \     let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\') |
   \   endif |
   \ endif
 
