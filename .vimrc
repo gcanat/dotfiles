@@ -96,25 +96,6 @@ filetype indent on
 autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE
 autocmd! Colorscheme * hi link EndOfBuffer Normal
 
-augroup diffcolors
-	autocmd!
-	autocmd Colorscheme * call s:SetDiffHighlights()
-augroup END
-
-function! s:SetDiffHighlights()
-	if &background == "dark"
-		highlight DiffAdd gui=bold guifg=NONE guibg=#2e4b2e
-		highlight DiffDelete gui=bold guifg=NONE guibg=#4c1e15
-		highlight DiffChange gui=bold guifg=NONE guibg=#45565c
-		highlight DiffText gui=bold guifg=NONE guibg=#996d74
-	else
-		highlight DiffAdd gui=bold guifg=NONE guibg=palegreen
-		highlight DiffDelete gui=bold guifg=NONE guibg=tomato
-		highlight DiffChange gui=bold guifg=NONE guibg=lightblue
-		highlight DiffText gui=bold guifg=NONE guibg=lightpink
-	endif
-endfunction
-
 if isdirectory(expand($HOME) . "/.vim/pack/themes/opt/srcery-vim")
   packadd! srcery-vim
   colorscheme srcery
@@ -479,9 +460,9 @@ endif
 
 if has("patch-8.1.0673")
   function! DiffSign()
-    call sign_define('DiffSignChange', {'text': '~', 'texthl': 'DiffChange'})
-    call sign_define('DiffSignAdd', {'text': '+', 'texthl': 'DiffAdd'})
-    call sign_define('DiffSignDel', {'text': '-', 'texthl': 'DiffDelete'})
+    call sign_define('DiffSignChange', {'text': '~', 'texthl': 'Changed'})
+    call sign_define('DiffSignAdd', {'text': '+', 'texthl': 'Added'})
+    call sign_define('DiffSignDel', {'text': '-', 'texthl': 'Removed'})
     if &buftype == ''
           \&& system('git -C ' . expand("%:p:h") . ' rev-parse --is-inside-work-tree') == "true\n"
           \&& strlen(system('git -C ' . expand("%:p:h") . ' ls-files -- ' . expand("%:p")))
