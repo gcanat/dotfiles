@@ -91,8 +91,6 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 filetype plugin on
 filetype indent on
 
-" colorscheme retrobox
-" colorscheme wildcharm
 autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE
 autocmd! Colorscheme * hi link EndOfBuffer Normal
 
@@ -346,7 +344,7 @@ function! Glog(...)
   let result = systemlist(commitcmd)
   return result->mapnew({ _, val -> s:parse_log(val)})
 endfunction
-command! -nargs=0 -bar GcLog cgetexpr Glog()
+command! -nargs=* -bar GcLog cgetexpr Glog(<f-args>)
 
 function! GStatus()
   new gitstatus
@@ -372,9 +370,10 @@ function! Diffqf(spec)
   else
     cprev
   endif
-  " Diff against last merge commit
-  let base_commit = trim(system('git log --merges -1 --format=%h'))
-  silent! call Diff(base_commit)
+  " Diff against merge_base
+  let default_branch = trim(system('git rev-parse --abbrev-ref origin/HEAD | cut -c8-'))
+  let merge_base = trim(system($'git merge-base HEAD {default_branch} || echo {default_branch}'))
+  silent! call Diff(merge_base)
   cope
   wincmd j
 endfunction
@@ -511,10 +510,12 @@ if has("patch-9.1.1227")
   packadd hlyank
 endif
 
-if has('vim9script') ||  v:version > 900
+if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/download/opt/lsp")
   packadd lsp
 endif
-" packadd taglist
+if isdirectory($HOME . "/.vim/pack/download/opt/taglist")
+    packadd taglist
+endif
 
 if executable('git-jump')
   command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
