@@ -6,10 +6,10 @@ set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
 set nu relativenumber
 set expandtab tabstop=4 softtabstop=4 shiftwidth=4
 set wildmenu wildignorecase
-if has("patch-9.1.1166")
-    set wildmode=noselect:lastused
+if has('patch-9.1.1166')
+  set wildmode=noselect:lastused,full
 else
-    set wildmode=list:longest,list:full
+  set wildmode=list:longest,list:full
 endif
 set incsearch ignorecase smartcase
 set updatetime=2000 ttimeout ttimeoutlen=250
@@ -49,7 +49,10 @@ if has("patch-8.2.4325")
   set wildoptions+=pum,fuzzy
 endif
 
-set fillchars=vert:│ shortmess+=Tas undofile
+set fillchars=vert:│ shortmess+=Tasc undofile
+if has('patch-9.0.0738')
+  set shortmess+=C
+endif
 
 set completeopt=menuone,preview,noinsert,noselect pumheight=20 inf
 if has("patch-8.1.1884")
@@ -61,7 +64,7 @@ if has("patch-9.1.1308")
   set cot+=nearest
 endif
 if has("patch-9.1.1311")
-  set complete=.^5,w,u,t^5,o^5
+  set complete=.^5,w^5,b^5,t^5
 endif
 
 set wildcharm=<C-@>
@@ -91,7 +94,7 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 filetype plugin on
 filetype indent on
 
-autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE
+autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE | hi VertSplit guibg=NONE ctermbg=NONE | hi! link TabPanelFill Normal | hi! link TabPanel Normal
 autocmd! Colorscheme * hi link EndOfBuffer Normal
 
 if isdirectory(expand($HOME) . "/.vim/pack/themes/opt/srcery-vim")
@@ -130,9 +133,9 @@ nnoremap <c-h> <c-w><c-h>
 nnoremap <c-l> <c-w><c-l>
 nnoremap <c-j> <c-w><c-j>
 nnoremap <c-k> <c-w><c-k>
-nnoremap <leader>b :b <C-@>
-nnoremap - :Lex <bar> vert resize 25<CR>
-nnoremap <leader>fe :fin **/*
+nnoremap <leader>b :b <c-@>
+nnoremap - :15Lex<CR>
+nnoremap <leader>fe :fin 
 nnoremap <leader>fm :bro ol<CR>
 nnoremap ]q :cnext<CR>
 nnoremap [q :cprev<CR>
@@ -531,5 +534,45 @@ autocmd BufReadPost,BufNewFile *
   \ endif
 
 nnoremap <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter({_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ? fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose buffer: ") .. '<CR>'
+
+if has('patch-9.1.1576')
+	autocmd CmdlineChanged [:/\?] call wildtrigger()
+
+	func! GrepComplete(arglead, cmdline, cursorpos)
+		return a:arglead != '' ? systemlist(&grepprg .. ' ' .. a:arglead) : []
+  endfunc
+
+	func! VisitFile(line)
+		let qfitem = getqflist({'lines': [a:line]}).items[0]
+		if qfitem->has_key('bufnr')
+			let pos = qfitem.vcol > 0 ? 'setcharpos' : 'setpos'
+			exec ':b +call\ ' .. pos ..'(".",\ [0,\ ' .. qfitem.lnum .. ',\ ' .. qfitem.col .. ',\ 0]) ' .. qfitem.bufnr
+			call setbufvar(qfitem.bufnr, '&buflisted', 1)
+		endif
+  endfunc
+
+	" Live grep in command line
+	command! -nargs=+ -complete=customlist,GrepComplete LiveGrep call VisitFile(<q-args>)
+  nnoremap <leader>fg :LiveGrep 
+
+	command! -nargs=+ -complete=custom,MruComplete MRU edit <args>
+	nnoremap <leader>fm :MRU 
+
+	func! MruComplete(_a, _b, _c)
+		return v:oldfiles->join("\n")
+  endfunc
+
+	command! -nargs=+ -complete=custom,GitFilesComplete GitFiles edit <args>
+	nnoremap <leader>ge :GitFiles 
+
+	func! GitFilesComplete(_a, _b, _c)
+		return system('git ls-files')
+  endfunc
+endif
+
+if has('patch-9.1.1590')
+  set ac
+  set cpt=o^10,.^5,w^5,b^5,t^5
+endif
 
 " vim:ts=2:sw=2
