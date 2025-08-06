@@ -25,27 +25,35 @@ enddef
 nnoremap <buffer> <F6> :call <SID>ToggleBreakpoint()<CR>
 b:undo_ftplugin ..= ' | exe "nunmap <buffer> <F6>"'
 
-
 import autoload 'popup.vim'
+def PopupHelp(symbol: string)
+  popup.ShowAtCursor(systemlist("python -m pydoc " .. symbol), (winid) => {
+    setbufvar(winbufnr(winid), "&ft", "man")
+  })
+enddef
+nnoremap <silent><buffer> <localleader>h <scriptcmd>PopupHelp(expand("<cfile>"))<CR>
+xnoremap <silent><buffer> <localleader>h y<scriptcmd>PopupHelp(getreg('"'))<CR>
+b:undo_ftplugin ..= ' | exe "nunmap <buffer> <localleader>h"'
+b:undo_ftplugin ..= ' | exe "xunmap <buffer> <localleader>h"'
+
 
 def Things()
-    # var things = []
-    var things = matchbufline(bufnr(),
-        '\v(^\s*(def|class)\s+\k+.*$)|(if __name__ \=\= .*)',
-        1, '$')->foreach((_, v) => {
-            v.text = $"{v.text} ({v.lnum})"
-        })
-    popup.FilterMenu("Py Things", things,
-        (res, key) => {
-            exe $":{res.lnum}"
-            normal! zz
-        },
-        (winid) => {
-            win_execute(winid, "syn match FilterMenuLineNr '(\\d\\+)$'")
-            win_execute(winid, "syn match FilterMenuFuncName '\\k\\+\\ze('")
-            hi def link FilterMenuLineNr Comment
-            hi def link FilterMenuFuncName Function
-        })
+  var things = matchbufline(bufnr(),
+    '\v(^\s*(def|class)\s+\k+.*$)|(if __name__ \=\= .*)',
+    1, '$')->foreach((_, v) => {
+      v.text = $"{v.text} ({v.lnum})"
+    })
+  popup.FilterMenu("Py Things", things,
+    (res, key) => {
+      exe $":{res.lnum}"
+      normal! zz
+    },
+    (winid) => {
+      win_execute(winid, "syn match FilterMenuLineNr '(\\d\\+)$'")
+      win_execute(winid, "syn match FilterMenuFuncName '\\k\\+\\ze('")
+      hi def link FilterMenuLineNr Comment
+      hi def link FilterMenuFuncName Function
+    })
 enddef
 nnoremap <buffer> <space>z <scriptcmd>Things()<CR>
 b:undo_ftplugin ..= ' | exe "nunmap <buffer> <space>z"'
@@ -100,9 +108,9 @@ def AsyncQf(cmd: string, qfefm: string)
       echom line
     },
     out_cb: (_, line) => {
-    if getqflist({'id': qfid}).id == qfid
-      setqflist([], 'a', {'id': qfid, 'lines': [line], 'efm': qfefm})
-    endif
+      if getqflist({'id': qfid}).id == qfid
+        setqflist([], 'a', {'id': qfid, 'lines': [line], 'efm': qfefm})
+      endif
     },
     exit_cb: (job, status) => {
       if status == 1
@@ -120,3 +128,5 @@ enddef
 nnoremap <buffer> <F2> <scriptcmd>AsyncQf('python3 -m pytest --tb=short -q ' .. expand('%'), pytestefm)<CR>
 nnoremap <buffer> <F3> <scriptcmd>AsyncQf('mypy --no-color-output --no-error-summary ' .. expand('%'), &errorformat)<CR>
 b:undo_ftplugin ..= ' | exe "nunmap <buffer> <F2>" | exe "nunmap <buffer> <F3>"'
+
+# vim: ts=2 sts=2 sw=2 et

@@ -43,6 +43,9 @@ xnoremap <silent> <leader>gi <scriptcmd>vim9cmd git#ShowCommit(v:count, line("v"
 nnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame()<CR>
 xnoremap <silent> <leader>gb <scriptcmd>vim9cmd git#Blame(line("v"), line("."))<CR>
 nnoremap <leader>gr <scriptcmd>vim9cmd git#BranchRev()<CR>
+nnoremap <leader>gv <scriptcmd>vim9cmd git#PRreview()<CR>
+" nnoremap <leader>gs <scriptcmd>vim9cmd git#SubmitReview()<CR>
+
 
 inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
@@ -58,3 +61,7 @@ cnoreabbrev jpc JupyterConnect
 
 " mapping for pythondoc
 exe 'nnoremap <buffer> dK :<c-u>Help <c-r><c-w>'..nr2char(&wildcharm) .. '<CR>'
+
+" this messes up with fzf popup window:
+" it will no close anymore when hitting <esc>
+" tnoremap <esc> <c-w>N

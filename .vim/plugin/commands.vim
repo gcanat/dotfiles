@@ -1,18 +1,4 @@
-" Diff against a specificy commit hash or HEAD
-function! Diff(spec)
-  vertical new
-  setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
-    let cmd = "++edit #"
-  if len(a:spec)
-    let cmd = "!git -C " . shellescape(fnamemodify(finddir('.git', '.;'), ':p:h:h')) . " show " . a:spec . ":#"
-  endif
-  execute "read " . cmd
-  silent 0d_
-  diffthis
-  wincmd p
-  diffthis
-endfunction
-command! -nargs=? Diff call Diff(<q-args>)
+command! -nargs=? Diff call git#Diff(<q-args>)
 
 " Grep using grepprg
 function! Grep(...)
@@ -44,13 +30,13 @@ elseif executable("fdfind")
 elseif executable("rg")
   let g:findcmd = "rg --files"
 else
-  let g:findcmd = 'find . ! -path "./.*/**" ! -path "./target/**" ! -path "./bin/**" ! -path "./build/**" ! -path "./**/.*" ! -path "**__pycache__**" -type f'
+  let g:findcmd = "find -name '.*' -a '!' -name . -a '!' -name .gitignore -a '!' -name .vim -a -prune -o '(' -type f -o -type l ')' ! -path '*/target/*' ! -path '*/build/*' ! -path '*/zig-out/*' ! -path '*/__pycache__/*'"
 endif
 
 function! Find(pat, ...)
   let s:arg_list = [a:pat]
   if g:findcmd[0:3] == "find" 
-    let s:arg_list = ["-name '*" . a:pat . "*'"]
+    let s:arg_list = ["-name '*" . a:pat . "*' -a -print"]
   elseif g:findcmd[0:1] == "rg"
     let s:arg_list = ["-g '*" . a:pat . "*'"]
   endif
@@ -59,8 +45,11 @@ function! Find(pat, ...)
   endif
   return system(join([g:findcmd] + [join(s:arg_list, ' ')], ' '))
 endfunction
-command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
-command! -nargs=+ -complete=file_in_path -bar Find cgetexpr Find(<f-args>)
+
+func! FindComplete(A, L, P)
+  return system(g:findcmd)
+endfunc
+command! -nargs=+ -complete=custom,FindComplete -bar Find cgetexpr Find(<f-args>)
 
 
 function! Commit(...)

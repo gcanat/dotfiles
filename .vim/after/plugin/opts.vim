@@ -41,7 +41,7 @@ if exists('g:loaded_scope')
     nnoremap <leader>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
   endif
   if executable('rg')
-    nnoremap <leader>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*"')<CR>
+    nnoremap <leader>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*" -g "!tags"')<CR>
   else
     nnoremap <leader>fg :Scope Grep<CR>
   endif
@@ -56,12 +56,19 @@ if exists('g:loaded_scope')
   nnoremap <leader>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
 else
   nnoremap <leader>gw :Grep <cword><CR>
-  # nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
-  # nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
-  # nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
-  # nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
-  # nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
-  # nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
+  if !exists("g:fzf_loaded")
+    nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
+    nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
+    nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
+    nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
+    nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
+    nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
+    nnoremap <space>gp <scriptcmd>vim9cmd fuzzy#PRlist()<CR>
+    nnoremap <leader>gc <scriptcmd>vim9cmd fuzzy#GitLog()<CR>
+    nnoremap <space>gb <scriptcmd>vim9cmd fuzzy#GitBranch()<CR>
+    nnoremap <space>vm <scriptcmd>vim9cmd fuzzy#Marks()<CR>
+    nnoremap <leader>km <scriptcmd>vim9cmd fuzzy#KeyMaps()<CR>
+  endif
   nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
   nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
   nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
@@ -97,7 +104,8 @@ if exists("g:loaded_lsp")
       filetype: ['rust'],
       path: 'rust-analyzer',
       args: [],
-      syncInit: true
+      syncInit: true,
+    # initializationOptions: { cargo: { features: ["ndarray"] } }
     }])
     autocmd! BufWritePre *.rs call execute('LspFormat')
   endif
@@ -110,6 +118,15 @@ if exists("g:loaded_lsp")
       features: {hover: false}
     }])
   endif
+  # if executable('ty')
+  #   g:LspAddServer([{
+  #     name: 'ty',
+  #     filetype: ['python'],
+  #     path: 'ty',
+  #     args: ["server"],
+  #     # features: {hover: false}
+  #   }])
+  # endif
   if executable('jedi-language-server')
     g:LspAddServer([{
       name: 'jedi',
@@ -119,10 +136,10 @@ if exists("g:loaded_lsp")
   endif
   if executable('vim-language-server')
     g:LspAddServer([{
-     name: 'vimls',
-     filetype: 'vim',
-     path: exepath('vim-language-server'),
-     args: ['--stdio']
+      name: 'vimls',
+      filetype: 'vim',
+      path: exepath('vim-language-server'),
+      args: ['--stdio']
     }])
     autocmd! BufEnter *.vim nnoremap <buffer> K :LspHover<CR>
   endif
@@ -134,7 +151,7 @@ if exists("g:loaded_lsp")
       path: "texlab",
       rootSearch: [".git", ".latexmkrc", ".texlabroot", "texlabroot", "Tectonic.toml"],
       workspaceConfig: {
-      settings: {
+        settings: {
           texlab: {
             bibtexFormatter: "texlab",
             build: {
@@ -246,6 +263,13 @@ if exists('g:loaded_vimpector')
   nmap <Leader>dh <Plug>VimspectorBalloonEval
   # for visual mode, the visually selected text
   xmap <Leader>dh <Plug>VimspectorBalloonEval
+
+elseif exists('g:termdebug_loaded')
+  nnoremap <leader>dl :Run<CR>
+  nnoremap <leader>do :Over<CR>
+  nnoremap <leader>dt :Break<CR>
+  nnoremap <leader>di :Step<CR>
+  nnoremap <leader>dc :Continue<CR>
+  nnoremap <leader>dh :Evaluate<CR>
 endif
-
-
+# vim: ts=2 sts=2 sw=2 et

@@ -3,6 +3,14 @@ if !executable('fzf')
 	finish
 endif
 
+finish
+
+if exists('g:fzf_loaded')
+  finish
+endif
+
+let g:fzf_loaded = 1
+
 if executable('bat')
 	let g:file_preview_cmd = 'bat -n --color=always {}'
 else
@@ -62,7 +70,7 @@ function! FzfFiles()
 endfunction
 
 function! RipgrepFzf(query, fullscreen)
-	let command_fmt = 'rg -HS --no-heading --column --smart-case %s || true'
+	let command_fmt = 'rg -HS --no-heading --column --smart-case -g "!target/**" -g "!build/**" -g "!**/dist/**" -g "!tags" -g "!*.ipynb" %s || true'
 	let initial_command = a:query->len() > 0 ? printf(command_fmt, shellescape(a:query)) : "true"
 	let reload_command = printf(command_fmt, '{q}')
 	let spec = {
@@ -108,7 +116,7 @@ function! FzfMru()
 endfunction
 
 function! FzfGitlog()
-	let git_log = systemlist('git log --graph --color --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"')
+	let git_log = systemlist('git log --oneline --color --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"')
 	let preview_cmd = 'git show --color $(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p")'
 	let spec = {
 		\ 'source': git_log,
@@ -120,7 +128,7 @@ function! FzfGitlog()
 endfunction
 
 function! FzfGitlogLine() range
-	let cmd = 'git log --graph --color -s -L ' . a:firstline . ',' . a:lastline . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
+	let cmd = 'git log --oneline --color -s -L ' . a:firstline . ',' . a:lastline . ':' . buffer_name('%') .' --format="%C(white)%h - %C(green)%cs - %C(blue)%s%C(red)%d"'
 	let git_log = systemlist(cmd)
 	let preview_cmd = 'git show --color $(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") -- ' . buffer_name('%')
 	let spec = {
@@ -160,16 +168,38 @@ function! FzfGitFiles()
   call fzf#run(fzf#wrap({'source': systemlist(git_cmd), 'options': ['--reverse', '--prompt', 'GitFiles> ']}))
 endfunction
 
+function! FzfStatus()
+  let git_cmd = 'git status -s'
+  let prev = 'git diff --color HEAD -- {2}'
+  call fzf#run(fzf#wrap({
+        \ 'source': systemlist(git_cmd),
+        \ 'options': ['--reverse', '--prompt', 'GitStatus> ', '--preview', prev],
+        \ 'window': {'height': 0.9, 'width': 0.9}
+        \ }))
+endfunction
+
 " manually defined mappings
 function! FzfKeymaps()
   let keymaps = execute('map')->split('\n')
   call fzf#run(fzf#wrap({'source': keymaps, 'options': ['--reverse', '--prompt', 'Keymaps> ']}))
 endfunction
 
+function s:open_review_file(line)
+  let pr_id = a:line->split()[0]
+  call system('gh pr checkout ' . pr_id)
+  vim9cmd git#PRreview()
+  let repo = trim(system('git remote -v | grep fetch | grep -oE "\w+\/\w+\.git" | sed "s/\.git//"'))
+  let prr_cmd = system('prr get ' . repo . '/' . pr_id . '.prr')
+  exe 'tabnew ~/dev/review/' . repo . '/' . pr_id . '.prr'
+endfunction
+
 function! FzfPRlist()
   let preview_cmd = 'gh pr view {1}'
+  let apply_cmd = 'ctrl-r:execute(gh pr checkout {1})'
   call fzf#run(fzf#wrap({
         \ 'source': systemlist('gh pr list'),
-        \ 'options': ['--reverse', '--prompt', 'PR list> ', '--preview', preview_cmd]
+        \ 'options': ['--reverse', '--prompt', 'PR list> ', '--preview', preview_cmd,
+        \ '--header', '> ENTER (pr review) CTRL-R (checkout pr)', '--bind', apply_cmd],
+        \ 'sink': function('s:open_review_file')
         \ }))
 endfunction
