@@ -49,7 +49,7 @@ if has('patch-9.1.1166')
   command! -nargs=+ -complete=custom,MruComplete MRU edit <args>
 
   def MruComplete(_, _, _): string
-    return v:oldfiles->join("\n")
+    return v:oldfiles->copy()->filter((_, i: string): bool => i->fnamemodify(':p')->filereadable())->map((_, i: string): string => fnamemodify(i, ':~:.'))->join("\n")
   enddef
 
   command! -nargs=+ -complete=custom,GitFilesComplete GE edit <args>
