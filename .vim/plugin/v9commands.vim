@@ -29,7 +29,12 @@ enddef
 command! -nargs=+ -complete=customlist,GrepCompleteBuffers Gbuf cgetexpr GrepBuffers(<f-args>)
 
 if has('patch-9.1.1166')
-  autocmd CmdlineChanged [:/\?] wildtrigger()
+  augroup cmdline
+    autocmd!
+    autocmd CmdlineEnter [:/\?] set pumheight=15
+    autocmd CmdlineLeave [:/\?] set pumheight&
+    autocmd CmdlineChanged [:/\?] wildtrigger()
+  augroup END
 
   command! -nargs=+ -complete=customlist,GrepComplete LiveGrep VisitFile(<q-args>)
 

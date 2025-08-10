@@ -14,10 +14,10 @@ downloads/opt/jupytext.vim https://github.com/goerz/jupytext.vim.git
 downloads/opt/jupyter-vim https://github.com/jupyter-vim/jupyter-vim.git
 
 # LSP
-# downloads/opt/lsp https://github.com/yegappan/lsp.git
+downloads/opt/lsp https://github.com/yegappan/lsp.git
 downloads/opt/taglist https://github.com/yegappan/taglist.git
 # downloads/opt/vista.vim https://github.com/liuchengxu/vista.vim.git
-downloads/opt/vimcomplete https://github.com/girishji/vimcomplete.git
+# downloads/opt/vimcomplete https://github.com/girishji/vimcomplete.git
 
 # vim-lsp
 #downloads/opt/vim-lsp https://github.com/prabirshrestha/vim-lsp.git

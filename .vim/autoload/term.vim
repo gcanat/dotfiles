@@ -1,47 +1,48 @@
 vim9script
 
+# copied from https://github.com/habamax/.vim/blob/92450104ac6f1f0ae20c3a80c299dafd36f0b24b/autoload/term.vim#L32
 # import autoload 'term.vim'
 # xnoremap <expr> <space>t term.Send()
 # nnoremap <expr> <space>t term.Send()
 # nnoremap <expr> <space>tt term.Send() .. '_'
 export def Send(...args: list<any>): string
-    if len(args) == 0
-        &opfunc = matchstr(expand('<stack>'), '[^. ]*\ze[')
-        return 'g@'
-    endif
+  if len(args) == 0
+    &opfunc = matchstr(expand('<stack>'), '[^. ]*\ze[')
+    return 'g@'
+  endif
 
-    var terms = getwininfo()->filter((_, v) => getbufvar(v.bufnr, '&buftype') == 'terminal')
-    if len(terms) < 1
-        echomsg "There is no visible terminal!"
-        return ""
-    endif
-
-    if len(terms) > 1
-        echomsg "Too many terminals open!"
-        return ""
-    endif
-
-    var term_window = terms[0].winnr
-
-    var sel_save = &selection
-    &selection = "inclusive"
-    var reg_save = getreg('"')
-    var clipboard_save = &clipboard
-    &clipboard = ""
-
-    var commands = {"line": "'[V']y", "char": "`[v`]y", "block": "`[\<c-v>`]y"}
-    silent exe 'noautocmd keepjumps normal! ' .. get(commands, args[0], '')
-
-    var text = split(@", "\n")
-    if len(text) > 0 && text[-1] =~ '^\s\+'
-        text[-1] ..= "\r"
-    endif
-    term_sendkeys(winbufnr(term_window), "\<F6>" .. text->join("\r") .. "\r\<F6>\r")
-
-    &selection = sel_save
-    setreg('"', reg_save)
-    &clipboard = clipboard_save
+  var terms = getwininfo()->filter((_, v) => getbufvar(v.bufnr, '&buftype') == 'terminal')
+  if len(terms) < 1
+    echomsg "There is no visible terminal!"
     return ""
+  endif
+
+  if len(terms) > 1
+    echomsg "Too many terminals open!"
+    return ""
+  endif
+
+  var term_window = terms[0].winnr
+
+  var sel_save = &selection
+  &selection = "inclusive"
+  var reg_save = getreg('"')
+  var clipboard_save = &clipboard
+  &clipboard = ""
+
+  var commands = {"line": "'[V']y", "char": "`[v`]y", "block": "`[\<c-v>`]y"}
+  silent exe 'noautocmd keepjumps normal! ' .. get(commands, args[0], '')
+
+  var text = split(@", "\n")
+  if len(text) > 0 && text[-1] =~ '^\s\+'
+    text[-1] ..= "\r"
+  endif
+  term_sendkeys(winbufnr(term_window), "\<F6>" .. text->join("\r") .. "\r\<F6>\r")
+
+  &selection = sel_save
+  setreg('"', reg_save)
+  &clipboard = clipboard_save
+  return ""
 enddef
 
 # Callback to use after the popup is closed
@@ -80,3 +81,4 @@ export def TermPopup(cmd: list<string>): void
   })
 
 enddef
+# vim: ts=2 sts=2 sw=2 et

@@ -143,4 +143,14 @@ export def PRreview()
   exe $'silent noautocmd tabdo Diff {merge_base}'
   exe 'tabdo wincmd = | syntax on'
 enddef
+
+# same as above but also fetch and open prr file
+export def OpenReviewFile()
+  PRreview()
+  var repo = trim(system('git remote -v | grep fetch | grep -oE "\w+\/\w+\.git" | sed "s/\.git//"'))
+  var pr_id = readfile("/tmp/prr_id")[0]
+  var prr_cmd = system($'prr get {repo}/{pr_id}.prr')
+  exe $'tabnew ~/dev/review/{repo}/{pr_id}.prr'
+enddef
+
 # vim: ts=2 sts=2 sw=2 tw=79 et

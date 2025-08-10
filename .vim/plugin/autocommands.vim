@@ -18,7 +18,6 @@ else
     autocmd ColorScheme gruvbox-material silent! hi PmenuMatch ctermfg=167 ctermbg=237 guifg=#e67e80 guibg=#3c3836
     autocmd ColorScheme * hi DiffAdd guibg=#31503d guifg=NONE cterm=NONE gui=NONE | hi DiffDelete guibg=#5c3539 guifg=NONE cterm=NONE gui=NONE | hi DiffChange guifg=NONE guibg=#3a6cb5 cterm=NONE gui=NONE term=NONE
   augroup END
-  " colorscheme gruvbox-material
   colorscheme wildcharm
 endif
 
@@ -43,12 +42,6 @@ augroup CursColLine
     au InsertEnter * setlocal nocursorline
 augroup end
 
-" augroup TexColorScheme
-"   autocmd!
-"   au WinLeave,BufWinLeave *.tex,*.bib setl background=dark | :colorscheme kanagawa
-"   au VimEnter,WinEnter,BufWinEnter *.tex,*.bib setl background=light | :colorscheme lunaperche
-" augroup end
-
 autocmd VimEnter * set completepopup+=border:off
 
 " Watch for pre-commit output
@@ -67,11 +60,3 @@ autocmd VimEnter * set completepopup+=border:off
 "   autocmd!
 "   autocmd User FugitiveChanged call s:AfterGit()
 " augroup END
-
-" if $XDG_SESSION_TYPE == "wayland"
-"   augroup wl-clipboard
-"     autocmd!
-"     autocmd FocusLost * :call system('wl-copy --trim-newline', @+)
-"     autocmd FocusGained * :let @+ = system('wl-paste -n')
-"   augroup END
-" endif

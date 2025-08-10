@@ -3,11 +3,10 @@ command! -nargs=? Diff call git#Diff(<q-args>)
 " Grep using grepprg
 function! Grep(...)
   return system(join([&grepprg] + [expandcmd(join(a:000, ' '))], ' '))
-  " return system(join([&grepprg] + [join(a:000, ' ')], ' '))
 endfunction
 
-command! -nargs=+ -complete=file_in_path -bar Grep  cgetexpr Grep(<f-args>)
-command! -nargs=+ -complete=file_in_path -bar LGrep lgetexpr Grep(<f-args>)
+command! -nargs=+ -bar Grep  cgetexpr Grep(<f-args>)
+command! -nargs=+ -bar LGrep lgetexpr Grep(<f-args>)
 
 cnoreabbrev <expr> grep  (getcmdtype() ==# ':' && getcmdline() ==# 'grep')  ? 'Grep'  : 'grep'
 cnoreabbrev <expr> lgrep (getcmdtype() ==# ':' && getcmdline() ==# 'lgrep') ? 'LGrep' : 'lgrep'
@@ -30,7 +29,7 @@ elseif executable("fdfind")
 elseif executable("rg")
   let g:findcmd = "rg --files"
 else
-  let g:findcmd = "find -name '.*' -a '!' -name . -a '!' -name .gitignore -a '!' -name .vim -a -prune -o '(' -type f -o -type l ')' ! -path '*/target/*' ! -path '*/build/*' ! -path '*/zig-out/*' ! -path '*/__pycache__/*'"
+  let g:findcmd = "find -name '.*' -a '!' -name . -a '!' -name .gitignore -a '!' -name .vim -a -prune -o '(' -type f -o -type l ')' ! -path '*/target/*' ! -path '*/build/*' ! -path '*/zig-out/*' ! -path '*/__pycache__/*' !-path '*/go/*'"
 endif
 
 function! Find(pat, ...)
@@ -183,7 +182,7 @@ autocmd BufReadPost,BufNewFile *
   \ endif
 
 " search wiki notes
-" function! s:notes_completion(A, L, P) abort
-"   return readdir(expand('~/wiki'))->map('expand("~/wiki/")..v:val')->filter('v:val =~ a:A')
-" endfunction
-" command! -nargs=1 -complete=customlist,s:notes_completion Notes :edit <args>
+function! s:notes_completion(A, L, P) abort
+  return readdir(expand('~/wiki'))->map('expand("~/wiki/")..v:val')->filter('v:val =~ a:A')
+endfunction
+command! -nargs=1 -complete=customlist,s:notes_completion Notes :edit <args>

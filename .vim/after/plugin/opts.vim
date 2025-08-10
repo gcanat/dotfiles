@@ -14,73 +14,8 @@ if exists('g:loaded_devdocs')
   nnoremap <leader>du :DevdocsUninstall<CR>
 endif
 
-if exists('g:loaded_scope')
-  import autoload 'scope/fuzzy.vim'
-  fuzzy.OptionsSet({
-    grep_echo_cmd: false,
-    grep_skip_len: 3,
-    timer_delay: 20,
-    # grep_poll_interval: 200,
-    find_echo_cmd: true,
-  })
-  import autoload 'scope/popup.vim' as sp
-  sp.OptionsSet({
-    borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
-    bordercharsp: ['─', '│', '─', '│', '╭', '╮', '┤', '├'],
-    maxheight: 30,
-    maxwidth: 120,
-  })
-  augroup scope-quickfix-history
-    autocmd!
-    autocmd QuickFixCmdPost clist cwindow
-    autocmd QuickFixCmdPost llist lwindow
-  augroup END
-  if g:findcmd == 'find'
-    nnoremap <leader>fe :Scope File<CR>
-  else
-    nnoremap <leader>fe <scriptcmd>fuzzy.File($'{g:findcmd}', 100000)<CR>
-  endif
-  if executable('rg')
-    nnoremap <leader>fg <scriptcmd>fuzzy.Grep('rg -HS --no-heading --vimgrep -g "!*.ipynb" -g "!*.egg-info" -g "!*__pycache__*" -g "!tags"')<CR>
-  else
-    nnoremap <leader>fg :Scope Grep<CR>
-  endif
-  nnoremap <leader>fm <scriptcmd>fuzzy.MRU()<CR>
-  nnoremap <leader>fk <scriptcmd>fuzzy.Keymap()<CR>
-  nnoremap <leader>b <scriptcmd>fuzzy.Buffer()<CR>
-  nnoremap <leader>fq <scriptcmd>fuzzy.Quickfix()<CR>
-  # search word under cursor
-  nnoremap <leader>gw <scriptcmd>fuzzy.Grep(null_string, true, '<cword>')<CR>
-  nnoremap <leader>jl <scriptcmd>fuzzy.Jumplist()<CR>
-  nnoremap <leader>jm <scriptcmd>fuzzy.Mark()<CR>
-  nnoremap <leader>ls <scriptcmd>fuzzy.LspDocumentSymbol()<CR>
-else
-  nnoremap <leader>gw :Grep <cword><CR>
-  if !exists("g:fzf_loaded")
-    nnoremap <leader>b <scriptcmd>vim9cmd fuzzy#Buffer()<CR>
-    nnoremap <leader>e <scriptcmd>vim9cmd fuzzy#File()<CR>
-    nnoremap <leader>fe <scriptcmd>vim9cmd fuzzy#FileTree()<CR>
-    nnoremap <leader>fg <scriptcmd>vim9cmd fuzzy#LiveGrep()<CR>
-    nnoremap <leader>ge <scriptcmd>vim9cmd fuzzy#GitFile()<CR>
-    nnoremap <leader>fm <scriptcmd>vim9cmd fuzzy#MRU()<CR>
-    nnoremap <space>gp <scriptcmd>vim9cmd fuzzy#PRlist()<CR>
-    nnoremap <leader>gc <scriptcmd>vim9cmd fuzzy#GitLog()<CR>
-    nnoremap <space>gb <scriptcmd>vim9cmd fuzzy#GitBranch()<CR>
-    nnoremap <space>vm <scriptcmd>vim9cmd fuzzy#Marks()<CR>
-    nnoremap <leader>km <scriptcmd>vim9cmd fuzzy#KeyMaps()<CR>
-  endif
-  nnoremap <leader>dj <scriptcmd>vim9cmd fuzzy#DumbJump()<CR>
-  nnoremap <leader>fs <scriptcmd>vim9cmd fuzzy#Session()<CR>
-  nnoremap <leader>fp <scriptcmd>vim9cmd fuzzy#Project()<CR>
-  nnoremap <leader>jl <scriptcmd>vim9cmd fuzzy#Jumplist()<CR>
-  nnoremap <leader>ch <scriptcmd>vim9cmd fuzzy#CmdHistory()<CR>
-  nnoremap <leader>fh <scriptcmd>vim9cmd fuzzy#Help()<CR>
-  nnoremap <leader>wsf <scriptcmd>vim9cmd fuzzy#File('~/wiki')<CR>
-endif
-
 if exists("g:loaded_lsp")
   g:LspOptionsSet({
-    # autoComplete: exists("g:loaded_vimcomplete") ? false : true,
     autoComplete: false,
     omniComplete: true,
     completionMatcher: 'icase',
@@ -118,15 +53,6 @@ if exists("g:loaded_lsp")
       features: {hover: false}
     }])
   endif
-  # if executable('ty')
-  #   g:LspAddServer([{
-  #     name: 'ty',
-  #     filetype: ['python'],
-  #     path: 'ty',
-  #     args: ["server"],
-  #     # features: {hover: false}
-  #   }])
-  # endif
   if executable('jedi-language-server')
     g:LspAddServer([{
       name: 'jedi',
@@ -204,7 +130,6 @@ endif
 if exists('g:wiki_loaded')
   g:wiki_root = '~/wiki'
   g:markdown_fenced_languages = ['python']
-  nnoremap <leader>wst <scriptcmd>vim9cmd fuzzy#WikiTags()<CR>
 endif
 
 if exists('g:loaded_taglist')
@@ -215,37 +140,10 @@ if exists('g:loaded_taglist')
   nnoremap <leader>tc :TlistClose<CR>
   nnoremap [t <plug>(TlistJumpTagUp)
   nnoremap ]t <plug>(TlistJumpTagDown)
-elseif exists('g:loaded_vista')
-  nnoremap <leader>vt :Vista<CR>
-  nnoremap <leader>vl :Vista yegappan_lsp<CR>
-  nnoremap <leader>vc :Vista!<CR>
 endif
 
 if exists('g:loaded_mundo')
   nnoremap <leader>ut :MundoToggle<CR>
-endif
-
-if exists('g:loaded_vimcomplete')
-  inoremap <C-u> <Plug>(vimcomplete-info-window-pageup)
-  inoremap <C-f> <Plug>(vimcomplete-info-window-pagedown)
-  var options = {
-    completor: { shuffleEqualPriority: true, postfixHighlight: true },
-    buffer: { enable: true, priority: 7, urlComplete: true, envComplete: true, maxCount: 5 },
-    abbrev: { enable: false, priority: 5 },
-    lsp: { enable: true, priority: 15, maxCount: 10 },
-    omnifunc: { enable: true, priority: 8, filetypes: ['python', 'javascript', 'vim'], maxCount: 5 },
-    vsnip: { enable: false, priority: 11, maxCount: 5 },
-    vimscript: { enable: true, priority: 11, maxCount: 5 },
-    ngram: {
-      enable: true,
-      priority: 10,
-      bigram: false,
-      filetypes: ['text', 'help', 'markdown'],
-      filetypesComments: ['c', 'cpp', 'python', 'java', 'rust', 'vim'],
-    },
-    tag: { enable: true, maxCount: 5, priority: 9 },
-  }
-  g:VimCompleteOptionsSet(options)
 endif
 
 if exists('g:loaded_vimpector')
