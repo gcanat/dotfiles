@@ -33,7 +33,7 @@ if has('patch-9.1.0831')
 	augroup au_files_cache
 		au!
 		" popuplate files_cache asynchronously when starting vim
-		au VimEnter * call timer_start(0, 'Find')
+		au VimEnter * call timer_start(50, 'Find')
 		au CmdlineEnter : if curr_dir != getcwd() | let g:files_cache = []
 					\ | let g:curr_dir = getcwd() | endif
 	augroup END
@@ -85,7 +85,7 @@ if has("patch-8.2.4325")
 	set wildoptions+=pum,fuzzy
 endif
 
-set fillchars=vert:│ shortmess+=Tasc undofile
+set fillchars=vert:│ shortmess+=TascI undofile
 if has('patch-9.0.0738')
   set shortmess+=C
 endif
@@ -330,7 +330,7 @@ augroup gitstatus
 	autocmd!
 	autocmd BufEnter,BufWritePost,ShellCmdPost * call CurrentGitStatus()
 augroup END
- 
+
 set statusline=
 set statusline+=%#PmenuSel#
 set statusline+=%{g:gitstatus}
@@ -525,6 +525,61 @@ endif
 
 if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/download/opt/lsp")
 	packadd lsp
+	call LspOptionsSet(#{autoComplete: v:false, omniComplete: v:true})
+	if executable("rust-analyzer")
+		call LspAddServer([#{
+			\ name: 'rustanalyzer',
+			\ filetype: ['rust'],
+			\ path: 'rust-analyzer',
+			\ args: [],
+			\ syncInit: v:true,
+			\ }])
+	endif
+	if executable("ruff")
+		call LspAddServer([#{
+			\ name: 'ruff',
+			\ filetype: ['python'],
+			\ path: 'ruff',
+			\ args: ["server", "--preview"],
+			\ features: #{hover: v:false}
+			\ }])
+	endif
+	" if executable("zuban")
+	" 	call LspAddServer([#{
+	" 		\ name: 'zuban',
+	" 		\ filetype: ['python'],
+	" 		\ path: 'zuban',
+	" 		\ args: ["server"],
+	" 		\ }])
+	" endif
+	if executable('jedi-language-server')
+		call LspAddServer([#{
+			\ name: 'jedi',
+			\ filetype: ['python'],
+			\ path: 'jedi-language-server',
+			\ }])
+	endif
+	" if executable('pyrefly')
+	" 	call LspAddServer([#{
+	" 		\ name: 'pyrefly',
+	" 		\ filetype: ['python'],
+	" 		\ path: 'pyrefly',
+	" 		\ args: ["lsp"]
+	" 		\ }])
+	" endif
+	nnoremap gd :LspGotoDefinition<CR>
+	nnoremap gs :LspDocumentSymbol<CR>
+	nnoremap gS :LspSymbolSearch<CR>
+	nnoremap gr :LspShowReferences<CR>
+	nnoremap gi :LspPeekImpl<CR>
+	nnoremap <leader>rf :LspPeekReferences<CR>
+	nnoremap <leader>rn :LspRename<CR>
+	nnoremap [d :LspDiagPrev<CR>
+	nnoremap ]d :LspDiagNext<CR>
+	autocmd! BufEnter *.py,*.rs,*.tex nnoremap <buffer> K :LspHover<CR>
+	nnoremap <space>d :LspDiagShow<CR>
+	nnoremap <space>ca :LspCodeAction<CR>
+	nnoremap <leader>lf :LspFormat<CR>
 endif
 if isdirectory($HOME . "/.vim/pack/download/opt/taglist")
 	packadd taglist
@@ -534,14 +589,16 @@ if executable('git-jump')
 	command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
 endif
 
-autocmd BufReadPost,BufNewFile *
-	\ if executable('git') |
-	\   let s:root_dir = system('git rev-parse --show-toplevel') |
-	\   if s:root_dir[0:5] != 'fatal:' |
-	\     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',') |
-	\     let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\') |
-	\   endif |
-	\ endif
+" add gitignored files to wildignore
+function! s:LocalWildignore(id)
+	let s:root_dir = system('git rev-parse --show-toplevel')
+	if s:root_dir[0:5] != 'fatal:'
+		let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',')
+		let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\')
+	endif
+endfunc
+
+" autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
 
 nnoremap <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter({_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ? fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose buffer: ") .. '<CR>'
 
@@ -550,7 +607,7 @@ if has('patch-9.1.1576')
 	let g:git_files_cache = []
 	augroup cmdline
 		autocmd!
-		autocmd CmdlineChanged [:/\?] call wildtrigger()
+		autocmd CmdlineChanged [:/\?] if getcmdpos() > 3 | call wildtrigger() | endif
 		autocmd CmdlineEnter [:/\?] set pumheight=15
 		autocmd CmdlineLeave [:/\?] set pumheight&
 		autocmd CmdwinLeave : let g:mru_cache = [] | let g:git_files_cache = []
@@ -571,10 +628,10 @@ if has('patch-9.1.1576')
 
 	" Live grep in command line
 	command! -nargs=+ -complete=customlist,GrepComplete LiveGrep call VisitFile(<q-args>)
-  nnoremap <leader>fg :LiveGrep 
+  nnoremap <leader>fg :LiveGrep<space>
 
 	command! -nargs=+ -complete=custom,MruComplete MRU edit <args>
-	nnoremap <leader>fm :MRU 
+	nnoremap <leader>fm :MRU<space>
 
 	func! MruComplete(_a, _b, _c)
 		if empty(g:mru_cache)
@@ -584,7 +641,7 @@ if has('patch-9.1.1576')
 	endfunc
 
 	command! -nargs=+ -complete=custom,GitFilesComplete GitFiles edit <args>
-	nnoremap <leader>ge :GitFiles 
+	nnoremap <leader>ge :GitFiles<space>
 
 	func! GitFilesComplete(_a, _b, _c)
 		if empty(g:git_files_cache)
@@ -592,6 +649,12 @@ if has('patch-9.1.1576')
 		endif
 		return g:git_files_cache
 	endfunc
+
+	if has('patch-9.1.1738')
+		" mapping for navigating cmd history
+		cnoremap <expr> <Up>   wildmenumode() ? "\<C-E>\<Up>"   : "\<Up>"
+		cnoremap <expr> <Down> wildmenumode() ? "\<C-E>\<Down>" : "\<Down>"
+	endif
 endif
 
 if has('patch-9.1.1590')
