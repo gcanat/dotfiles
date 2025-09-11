@@ -179,8 +179,11 @@ nnoremap ]l :lnext<CR>
 nnoremap [l :lprev<CR>
 nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
-nnoremap <leader>gw :Grep <C-R><C-W><CR>
+nnoremap <leader>gw :Grep <C-r><C-w><CR>
 nnoremap <leader>ff magggqG'a
+nnoremap <space>dm :Diff <c-r>=system("git mbase")->trim()<CR><CR>
+nnoremap <space>dw :window diffthis<CR>
+nnoremap <space>v :noa vim /
 
 let grepcmd = 'grep\ --color=never\ -REHInsi'
 for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig', 'tags']
@@ -250,7 +253,9 @@ function! Diff(spec)
 	setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
 	let cmd = "++edit #"
 	if len(a:spec)
-		let cmd = "!git -C " . shellescape(fnamemodify(finddir('.git', '.;'), ':p:h:h')) . " show " . a:spec . ":#"
+		let git_root = fnamemodify(finddir('.git', '.;'), ':p:h:h')
+		let file_to_diff = fnamemodify(expand('#'), ':p:s?' . git_root . '/??')
+		let cmd = "!git -C " . shellescape(git_root)  . " show " . a:spec . ":" . shellescape(file_to_diff)
 	endif
 	execute "read " . cmd
 	silent 0d_
