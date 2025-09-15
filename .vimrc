@@ -70,7 +70,7 @@ endif
 
 " better looking diff
 if has("patch-8.1.0360")
-	set diffopt+=vertical,algorithm:histogram " ,indent-heuristic
+	set diffopt+=vertical,algorithm:histogram
 endif
 if has("patch-9.1.1009")
 	set diffopt+=linematch:60
@@ -143,12 +143,12 @@ else
 endif
 
 " use tab to trigger completion
-" inoremap <TAB> <c-n>
-" function! s:check_back_space() abort
-"   let col = col('.') - 1
-"     return !col || getline('.')[col - 1]  =~# '\s'
-" endfunction
-" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : <SID>check_back_space() ? "\<Tab>" : "\<c-n>"
+inoremap <TAB> <c-n>
+function! s:check_back_space() abort
+  let col = col('.') - 1
+    return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : <SID>check_back_space() ? "\<Tab>" : "\<c-n>"
 
 inoremap <expr> <Tab>     pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab>   pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -181,11 +181,10 @@ nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
 nnoremap <leader>gw :Grep <C-r><C-w><CR>
 nnoremap <leader>ff magggqG'a
-nnoremap <space>dm :Diff <c-r>=system("git mbase")->trim()<CR><CR>
-nnoremap <space>dw :window diffthis<CR>
-nnoremap <space>v :noa vim /
+nnoremap <space>a :ar **/*.
+nnoremap <space>v :noa vim //j ## <bar> cw<left><left><left><left><left><left><left><left><left><left>
 
-let grepcmd = 'grep\ --color=never\ -REHInsi'
+let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi'
 for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig', 'tags']
 	let grepcmd .= '\ --exclude=\"' . pattern . '\"'
 endfor 
@@ -253,13 +252,16 @@ function! Diff(spec)
 	setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
 	let cmd = "++edit #"
 	if len(a:spec)
-		let git_root = fnamemodify(finddir('.git', '.;'), ':p:h:h')
+		let git_root = system("git rev-parse --show-toplevel")->trim()
 		let file_to_diff = fnamemodify(expand('#'), ':p:s?' . git_root . '/??')
 		let cmd = "!git -C " . shellescape(git_root)  . " show " . a:spec . ":" . shellescape(file_to_diff)
 	endif
 	execute "read " . cmd
 	silent 0d_
-	execute 'set ft=' . getbufvar(bufnr('#'), '&filetype')
+	let buf_ft = getbufvar(bufnr('#'), '&filetype')
+	if buf_ft != ""
+		execute 'set ft=' . buf_ft
+	endif
 	diffthis
 	wincmd p
 	diffthis
@@ -373,6 +375,9 @@ endfunction
 " Open window with git status info
 command! -nargs=0 G call GStatus()
 
+" diff current file against merge base
+nnoremap <space>dm :Diff <c-r>=GetMergeBase()<CR><CR>
+nnoremap <space>dw :window diffthis<CR>
 " diff current file against HEAD
 nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile <bar> silent! r !git diff #<CR>1Gdd
 " show the diff for the commit SHA under the cursor
@@ -389,14 +394,18 @@ function! Diffqf(spec)
 		cprev
 	endif
 	" Diff against merge_base
-	let default_branch = trim(system('git rev-parse --abbrev-ref origin/HEAD | cut -c8-'))
-	let merge_base = trim(system($'git merge-base HEAD {default_branch} || echo {default_branch}'))
+	let merge_base = GetMergeBase()
 	silent! call Diff(merge_base)
 	cope
 	wincmd j
 endfunction
 nnoremap ]r :call Diffqf(1)<CR>
 nnoremap [r :call Diffqf(0)<CR>
+
+function! GetMergeBase()
+	let default_branch = trim(system('git rev-parse --abbrev-ref origin/HEAD | cut -c8-'))
+	return trim(system($'git merge-base HEAD {default_branch} || echo {default_branch}'))
+endfunc
 
 function! GitAdd(...)
 	let addcmd = "git add " . shellescape(expand('<cfile>'))
@@ -452,9 +461,10 @@ let s:git_status_dictionary = {
 	\ "X": "Unknown"
 	\ }
 function! s:get_diff_files(rev)
-	let gitroot = system('git rev-parse --show-toplevel')[:-2]
+	let gitroot = system('git rev-parse --show-toplevel')->trim()
+	let rev = a:rev == "" ? GetMergeBase() : a:rev
 	let list = map(systemlist(
-		\ 'git diff --name-status '.a:rev),
+		\ 'git diff --name-status ' . rev),
 		\ '{"filename":"' . fnameescape(gitroot) 
 		\ . '/" . matchstr(v:val, "\\S\\+$"),"text":s:git_status_dictionary[matchstr(v:val, "^\\w")]}'
 		\ )
@@ -462,9 +472,8 @@ function! s:get_diff_files(rev)
 	copen
 endfunction
 
-" populate qflist with files changed in a branch compared to commit or branch
-" given as arg
-command! -nargs=1 DiffRev call s:get_diff_files(<q-args>)
+" populate qflist with files changed in a branch compared to commit or branch given as arg
+command! -nargs=* DiffRev call s:get_diff_files(<q-args>)
 
 " if has("patch-9.1.0913")
 "   set messagesopt=wait:500,history:1000
@@ -549,14 +558,6 @@ if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/do
 			\ features: #{hover: v:false}
 			\ }])
 	endif
-	" if executable("zuban")
-	" 	call LspAddServer([#{
-	" 		\ name: 'zuban',
-	" 		\ filetype: ['python'],
-	" 		\ path: 'zuban',
-	" 		\ args: ["server"],
-	" 		\ }])
-	" endif
 	if executable('jedi-language-server')
 		call LspAddServer([#{
 			\ name: 'jedi',
@@ -564,14 +565,6 @@ if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/do
 			\ path: 'jedi-language-server',
 			\ }])
 	endif
-	" if executable('pyrefly')
-	" 	call LspAddServer([#{
-	" 		\ name: 'pyrefly',
-	" 		\ filetype: ['python'],
-	" 		\ path: 'pyrefly',
-	" 		\ args: ["lsp"]
-	" 		\ }])
-	" endif
 	nnoremap gd :LspGotoDefinition<CR>
 	nnoremap gs :LspDocumentSymbol<CR>
 	nnoremap gS :LspSymbolSearch<CR>
@@ -582,7 +575,7 @@ if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/do
 	nnoremap [d :LspDiagPrev<CR>
 	nnoremap ]d :LspDiagNext<CR>
 	autocmd! BufEnter *.py,*.rs,*.tex nnoremap <buffer> K :LspHover<CR>
-	nnoremap <space>d :LspDiagShow<CR>
+	nnoremap <space>ds :LspDiagShow<CR>
 	nnoremap <space>ca :LspCodeAction<CR>
 	nnoremap <leader>lf :LspFormat<CR>
 endif
@@ -592,6 +585,8 @@ endif
 
 if executable('git-jump')
 	command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
+	nnoremap <space>dj :Jump diff<CR>
+	nnoremap <space>gg :Jump grep<space>
 endif
 
 " add gitignored files to wildignore
@@ -605,14 +600,18 @@ endfunc
 
 " autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
 
-nnoremap <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter({_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ? fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose buffer: ") .. '<CR>'
+nnoremap <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter(
+			\ {_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ?
+			\ fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose
+			\ buffer: ") .. '<CR>'
 
 if has('patch-9.1.1576')
 	let g:mru_cache = []
 	let g:git_files_cache = []
 	augroup cmdline
 		autocmd!
-		autocmd CmdlineChanged [:/\?] if getcmdpos() > 3 | call wildtrigger() | endif
+		autocmd CmdlineChanged [/\?]  call wildtrigger()
+		autocmd CmdlineChanged : if getcmdcompltype() != 'shellcmd' | call wildtrigger() | endif
 		autocmd CmdlineEnter [:/\?] set pumheight=15
 		autocmd CmdlineLeave [:/\?] set pumheight&
 		autocmd CmdwinLeave : let g:mru_cache = [] | let g:git_files_cache = []
