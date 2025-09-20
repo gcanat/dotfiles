@@ -3,7 +3,7 @@ if &compatible
 endif
 syntax on
 set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
-set nu relativenumber
+set nu relativenumber splitright
 set tabstop=4 softtabstop=4 shiftwidth=4
 if has('patch-9.1.1166')
   set wildmode=noselect:lastused,full
@@ -105,7 +105,7 @@ endif
 
 set wildcharm=<C-@>
 let &t_ut=''
-let mapleader = ","
+let mapleader = "," | let maplocalleader = " "
 set backspace=indent,eol,start
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:…
 set fillchars=vert:│
@@ -142,21 +142,8 @@ else
 	colorscheme slate
 endif
 
-" use tab to trigger completion
-inoremap <TAB> <c-n>
-function! s:check_back_space() abort
-  let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : <SID>check_back_space() ? "\<Tab>" : "\<c-n>"
-
 inoremap <expr> <Tab>     pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab>   pumvisible() ? "\<C-p>" : "\<S-Tab>"
-" inoremap <c-t> <c-x><c-]>
-" inoremap <c-b> <c-x><c-n>
-" inoremap <c-o> <c-x><c-o>
-" inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
-" set omnifunc=syntaxcomplete#Complete
 
 " easier on azerty keyboard
 nmap à ]
@@ -181,8 +168,8 @@ nnoremap ]b :bnext<CR>
 nnoremap [b :bprev<CR>
 nnoremap <leader>gw :Grep <C-r><C-w><CR>
 nnoremap <leader>ff magggqG'a
-nnoremap <space>a :ar **/*.
-nnoremap <space>v :noa vim //j ## <bar> cw<left><left><left><left><left><left><left><left><left><left>
+nnoremap <localleader>a :ar **/*.
+nnoremap <localleader>v :noa vim //j ## <bar> cw<left><left><left><left><left><left><left><left><left><left>
 
 let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi'
 for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig', 'tags']
@@ -290,9 +277,9 @@ command! -nargs=? -range GB echo join(systemlist("git -C " . shellescape(expand(
 
 
 if has("patch-8.1.1455")
-	nnoremap <silent> <space>gi :call ShowCommit(v:count, line("."), line("."))<CR>
+	nnoremap <silent> <localleader>gi :call ShowCommit(v:count, line("."), line("."))<CR>
 	command! -range CommitRange call ShowCommit(v:count, <line1>, <line2>)
-	xnoremap <silent> <space>gi :CommitRange<CR>
+	xnoremap <silent> <localleader>gi :CommitRange<CR>
 
 	function! FilterKeys(winid, key)
 		if a:key == "j"
@@ -353,92 +340,28 @@ set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
 
-" set errorformat+=%o:%l:%c:%m
-function! s:parse_log(val)
-	let cmt_msg = split(a:val, ' - ')
-	return cmt_msg[0] . ':1:1:' . cmt_msg[1]
-endfunction
-
-function! Glog(...)
-	let commitcmd = "git log --oneline --pretty=format:'%h - %s (%cr) <%an>' " . join(a:000, ' ')
-	let result = systemlist(commitcmd)
-	return result->mapnew({ _, val -> s:parse_log(val)})
-endfunction
-command! -nargs=* -bar GcLog cgetexpr Glog(<f-args>)
-
-function! GStatus()
-	new gitstatus
-	setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile
-	silent! r !git status --porcelain
-	silent 0d_
-endfunction
-" Open window with git status info
-command! -nargs=0 G call GStatus()
-
 " diff current file against merge base
-nnoremap <space>dm :Diff <c-r>=GetMergeBase()<CR><CR>
-nnoremap <space>dw :window diffthis<CR>
-" diff current file against HEAD
-nnoremap <leader>gf :new gitlog <bar> setl ft=diff bufhidden=wipe buftype=nofile <bar> silent! r !git diff #<CR>1Gdd
-" show the diff for the commit SHA under the cursor
-nnoremap <leader>gc yiw<C-W>w:e! gitlog <bar> setl ft=git bufhidden=wipe buftype=nofile nobuflisted noswapfile <bar> silent! r !git show <C-R>"<CR>1Gdd<C-W>w
+nn <localleader>dm :Diff <c-r>=GetMergeBase()<CR><CR>
+nn <localleader>dw :windo diffthis<CR>
+nn <localleader>gl :term git --no-pager log --oneline -i --grep ""<left>
+nn <localleader>G :term git status --porcelain<CR>
 
-" assuming qflist is popuplated with list of files modified by a PR, diff
-" against last merge commit
-function! Diffqf(spec)
-	ccl
-	wincmd o
-	if (a:spec == 1)
-		cnext
-	else
-		cprev
-	endif
-	" Diff against merge_base
-	let merge_base = GetMergeBase()
-	silent! call Diff(merge_base)
-	cope
-	wincmd j
-endfunction
-nnoremap ]r :call Diffqf(1)<CR>
-nnoremap [r :call Diffqf(0)<CR>
+if has("patch-8.0.1596")
+	aug git_mappings
+		au!
+		au TerminalOpen *git* nn <buffer> gs 0:vert term git --no-pager show <cword><CR>
+		au TerminalOpen *git* nn <buffer> s $:call system($"git add {expand('<cWORD>')}")<CR>
+		au TerminalOpen *git* nn <buffer> X $:call system($"git restore --staged {expand('<cWORD>')}")<CR>
+		au TerminalOpen *git* nn <buffer> gq :bd!<CR>
+		au TerminalOpen *git* nn <buffer> cc :!git commit -m ""<left>
+		au TerminalOpen *git* nn <buffer> = $:vert term git --no-pager diff <cWORD><CR>
+	aug END
+endif
 
 function! GetMergeBase()
 	let default_branch = trim(system('git rev-parse --abbrev-ref origin/HEAD | cut -c8-'))
 	return trim(system($'git merge-base HEAD {default_branch} || echo {default_branch}'))
 endfunc
-
-function! GitAdd(...)
-	let addcmd = "git add " . shellescape(expand('<cfile>'))
-	silent let f = system(addcmd)
-	execute "1,$d | silent! r !git status --porcelain"
-endfunction
-command! -nargs=0 -bar GitAdd call GitAdd()
-
-function! GitReset(...)
-	let addcmd = "git reset HEAD " . shellescape(expand('<cfile>'))
-	silent let f = system(addcmd)
-	execute "1,$d | silent! r !git status --porcelain"
-endfunction
-command! -nargs=0 -bar GitReset call GitReset()
-
-" add mappings similar to fugitive
-augroup Gitbuffer
-	autocmd!
-	au WinLeave gitstatus unmap s
-	au WinLeave gitstatus unmap S
-	au WinLeave gitstatus unmap =
-	au WinLeave gitstatus unmap cc
-	au WinLeave gitstatus unmap ce
-	au WinLeave gitstatus,gitlog,gitblame unmap gq
-	au WinLeave gitstatus unmap <leader>r
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap s :GitAdd<CR>1Gdd
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap S :GitReset<CR>1Gdd
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap = $:silent! r !git diff <cfile><CR>g;k2e
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap cc :!git commit -m ""<Left>
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap ce :!git commit --amend --no-edit<CR>
-	au VimEnter,WinEnter,BufWinEnter gitstatus nnoremap <leader>r :1,$d <bar> silent! r !git status --porcelain<CR>
-	au VimEnter,WinEnter,BufWinEnter gitstatus,gitlog,gitblame nnoremap gq :bd!<CR>
-augroup end
 
 augroup CursColLine
 	autocmd!
@@ -447,37 +370,6 @@ augroup CursColLine
 	au InsertEnter * setlocal nocursorline
 	au InsertLeave * setlocal cursorline
 augroup end
-
-
-let s:git_status_dictionary = {
-	\ "A": "Added",
-	\ "B": "Broken",
-	\ "C": "Copied",
-	\ "D": "Deleted",
-	\ "M": "Modified",
-	\ "R": "Renamed",
-	\ "T": "Changed",
-	\ "U": "Unmerged",
-	\ "X": "Unknown"
-	\ }
-function! s:get_diff_files(rev)
-	let gitroot = system('git rev-parse --show-toplevel')->trim()
-	let rev = a:rev == "" ? GetMergeBase() : a:rev
-	let list = map(systemlist(
-		\ 'git diff --name-status ' . rev),
-		\ '{"filename":"' . fnameescape(gitroot) 
-		\ . '/" . matchstr(v:val, "\\S\\+$"),"text":s:git_status_dictionary[matchstr(v:val, "^\\w")]}'
-		\ )
-	call setqflist(list)
-	copen
-endfunction
-
-" populate qflist with files changed in a branch compared to commit or branch given as arg
-command! -nargs=* DiffRev call s:get_diff_files(<q-args>)
-
-" if has("patch-9.1.0913")
-"   set messagesopt=wait:500,history:1000
-" endif
 
 " try to use comment builtin plugin
 if has("patch-9.1.374")
@@ -537,7 +429,7 @@ if has("patch-9.1.1227")
 	packadd hlyank
 endif
 
-if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/download/opt/lsp")
+if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/opt/lsp"))
 	packadd lsp
 	call LspOptionsSet(#{autoComplete: v:false, omniComplete: v:true})
 	if executable("rust-analyzer")
@@ -575,8 +467,8 @@ if (has('vim9script') ||  v:version > 900) && isdirectory($HOME . "/.vim/pack/do
 	nnoremap [d :LspDiagPrev<CR>
 	nnoremap ]d :LspDiagNext<CR>
 	autocmd! BufEnter *.py,*.rs,*.tex nnoremap <buffer> K :LspHover<CR>
-	nnoremap <space>ds :LspDiagShow<CR>
-	nnoremap <space>ca :LspCodeAction<CR>
+	nnoremap <localleader>ds :LspDiagShow<CR>
+	nnoremap <localleader>ca :LspCodeAction<CR>
 	nnoremap <leader>lf :LspFormat<CR>
 endif
 if isdirectory($HOME . "/.vim/pack/download/opt/taglist")
@@ -585,18 +477,18 @@ endif
 
 if executable('git-jump')
 	command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
-	nnoremap <space>dj :Jump diff<CR>
-	nnoremap <space>gg :Jump grep<space>
+	nnoremap <localleader>dj :Jump diff<CR>
+	nnoremap <localleader>gg :Jump grep<space>
 endif
 
 " add gitignored files to wildignore
-function! s:LocalWildignore(id)
-	let s:root_dir = system('git rev-parse --show-toplevel')
-	if s:root_dir[0:5] != 'fatal:'
-		let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',')
-		let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\')
-	endif
-endfunc
+" function! s:LocalWildignore(id)
+" 	let s:root_dir = system('git rev-parse --show-toplevel')
+" 	if s:root_dir[0:5] != 'fatal:'
+" 		let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',')
+" 		let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\')
+" 	endif
+" endfunc
 
 " autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
 
