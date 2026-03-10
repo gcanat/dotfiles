@@ -141,7 +141,7 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 filetype plugin on
 filetype indent on
 
-autocmd! Colorscheme habamax,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
+autocmd! Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
   \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
   \ | hi VertSplit guibg=NONE ctermbg=NONE | hi! link TabPanelFill Normal
   \ | hi! link TabPanel Normal | hi! link Signcolumn Normal
@@ -503,6 +503,9 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
 
 endif
 
+packadd vim-fugitive
+packadd wiki.vim
+
 if executable('git-jump')
   command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
   nn <localleader>dj :Jump diff<CR>
@@ -590,4 +593,8 @@ if has('patch-9.1.1590')
   set ac
   set cpt=o^10,.^5,w^5,b^5,t^5
 endif
+
+" copy to the + register the github url of the current line
+nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse --abbrev-ref HEAD)/' .. bufname())->trim() .. '#L' .. line('.')<CR>
 " vim:ts=2:sw=2
+
