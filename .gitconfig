@@ -1,31 +1,64 @@
 [user]
-	email = gui.canat@gmail.com
-	name = gcanat
+  email = gui.canat@gmail.com
+  name = gcanat
 [credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+  helper = 
+  helper = !/usr/bin/gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+  helper = 
+  helper = !/usr/bin/gh auth git-credential
 
 [push]
   default = current
 
-[diff]
-  tool = vimdiff
+# [diff]
+#   tool = vimdiff
+#   colorMoved = default
 
 [merge]
-  conflictstyle = diff3
+  conflictstyle = zdiff3
   tool = vimdiff
   prompt = false
 
 [mergetool]
-  cmd = vim -f -c "GVdiffsplit!" "$MERGED"
+  # cmd = vim -f -c \"set diffopt&\" -c \"GVdiffsplit!\" \"$MERGED\"
+  cmd = vim -f -c \"set diffopt&\"
+[mergetool "vimdiff"]
+  layout = "@LOCAL,REMOTE + LOCAL,BASE,REMOTE / MERGED"
 
 [alias]
-  files = !git diff --name-only $(git merge-base HEAD \"$REV_BASE\")
-  stat = !git diff --stat $(git merge-base HEAD \"$REV_BASE\")
-  review = !vim -p $(git files) +\"tabdo noautocmd Diff $REV_BASE\"
+  # find the default branch
+  base = !git rev-parse --abbrev-ref origin/HEAD | cut -c8-
+  # find the merge base
+  mbase = !git merge-base HEAD $(git base) || echo $(git base)
+  files = !git diff --name-only --staged $(git mbase)
+  stat = !git diff --stat --staged $(git mbase)
+  review = !vim -p $(git files) -c \"set showtabline=0 showtabpanel=2 equalalways | silent tabdo noautocmd Diff $(git mbase)\" -c \"tabdo wincmd =\"
+  # review = !vim -c \"set showtabline=0 showtabpanel=2 equalalways | silent Git difftool -y $(git mbase) HEAD\"
+  gclog = !vim -c \"Gclog $(git mbase)..HEAD\"
   pfl = push --force-with-lease
+  co = checkout
+  cm = commit -m ""
+  st = status
+  br = branch
+  url = ! bash -c 'git config --get remote.origin.url | sed -E "s/\\.git\\$//"'
+
 [init]
-	defaultBranch = main
+  defaultBranch = main
+
+[delta]
+  line-numbers = true
+  side-by-side = false
+
+[diff]
+    tool = kitty
+    guitool = kitty.gui
+[difftool]
+    prompt = false
+    trustExitCode = true
+[difftool "kitty"]
+    cmd = kitten diff $LOCAL $REMOTE
+[difftool "kitty.gui"]
+    cmd = kitten diff $LOCAL $REMOTE
+[core]
+	editor = vim
