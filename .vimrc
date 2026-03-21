@@ -595,6 +595,41 @@ if has('patch-9.1.1590')
 endif
 
 " copy to the + register the github url of the current line
-nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse --abbrev-ref HEAD)/' .. bufname())->trim() .. '#L' .. line('.')<CR>
-" vim:ts=2:sw=2
+nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse --abbrev-ref HEAD)/'
+      \ .. bufname())->trim() .. '#L' .. line('.')<CR>
 
+" update plugins
+func! OutCb(ch, msg)
+  if a:msg !~ '.*up to date.$' && a:msg !~ '^HEAD' && a:msg !~ '^Removing .*tags'
+        \ && a:msg !~ '^Updating files'
+    g:plug_msgcount += 1
+    echow a:msg
+  endif
+endfunc
+
+func! PullPlug(path)
+  return job_start([&shell, &shellcmdflag, 'git pull'], 
+        \ {"cwd": a:path, "err_cb": 'OutCb', "out_cb": 'OutCb'})
+endfunc
+
+func! UpdatePlugins()
+  let g:plug_msgcount = 0
+  let plug_dirs = globpath("~/.vim/pack", "*", 0 , 1)->filter({_, v -> isdirectory(v)
+        \ })->mapnew({_, v -> [v .. "/opt", v .. "/start"]})->flatten()
+  let jobs = plug_dirs->mapnew({_, val -> globpath(val, "*", 0, 1)->filter(
+        \ {_, v -> isdirectory(v)})->map({_, v -> PullPlug(v)})})->flatten()
+  let PartialHandler = function('TimerHandler', [jobs])
+  call timer_start(2000, PartialHandler, {"repeat": 100})
+endfunc
+
+func! TimerHandler(jobs, t)
+  if reduce(a:jobs, {acc, val -> acc && job_status(val) != "run"}, v:true)
+    call timer_stop(a:t)
+    let msg = g:plug_msgcount == 0 ? "No updates available." : "Plugins updated"
+    echow msg
+    helptags ALL
+  endif
+endfunc
+
+command -nargs=0 Packup call UpdatePlugins()
+" vim:ts=2:sw=2
