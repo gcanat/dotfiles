@@ -1,4 +1,0 @@
-inherits = "catppuccin_macchiato"
-
-"ui.background" = { bg = "base", fg = "mauve" }
-"ui.popup" = { fg = "mauve", bg = "surface0" }
