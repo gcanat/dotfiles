@@ -13,6 +13,7 @@ function fgb
 
     eval $git_branches | fzf \
         --ansi \
+        --style minimal \
         --reverse \
         --no-sort \
         --preview-label '[ Commits ]' \

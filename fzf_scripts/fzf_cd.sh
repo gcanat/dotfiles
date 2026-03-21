@@ -8,6 +8,3 @@ cd_to_dir() {
         cd "$selected_dir" || return 1
     fi
 }
-
-alias z='cd_to_dir ~/'
-alias zi='cd_to_dir'

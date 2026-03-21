@@ -29,6 +29,7 @@ function fgc
 
     eval "$git_log" | fzf \
         --ansi \
+        --style minimal \
         --reverse \
         --no-sort \
         --prompt="$branch_prompt" \
