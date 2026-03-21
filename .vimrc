@@ -1,27 +1,20 @@
-if &compatible
-  set nocompatible
-endif
+if &compatible | set nocompatible | endif
 syntax on
 set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
-set nu relativenumber splitright
+set nu relativenumber splitright termguicolors background=light
 set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
 if has('patch-9.1.1166')
   set wildmode=noselect:lastused,full
 else
   set wildmode=list:longest,list:full
 endif
-set incsearch ignorecase smartcase
-set updatetime=2000 ttimeout ttimeoutlen=250
-" if has('termguicolors') && (has('mac') || has('win32'))
-  set termguicolors
-" endif
-set background=dark
+set incsearch ignorecase smartcase updatetime=2000 ttimeout ttimeoutlen=250
 
 func! SetPath(timer)
-  let path_list = systemlist(
+  let paths = systemlist(
         \ 'find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin"
-        \ ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')
-  let paths = map(path_list, {_, val -> val != "." ? fnameescape(val[2:] . "/**") : val})
+        \ ! -path "./build" ! -path "./*.egg-info" ! -path "__pycache__" -type d')->map(
+        \ {_, val -> val != "." ? fnameescape(val[2:] . "/**") : val})
   execute "set path=,," . join(paths, ",")
 endfunc
 augroup au_set_path
@@ -31,23 +24,23 @@ augroup END
 
 if has('patch-9.1.0831')
   let g:files_cache = []
-  let g:curr_dir = getcwd()
 
   augroup au_files_cache
     au!
     " popuplate files_cache asynchronously when starting vim
     au VimEnter * call timer_start(250, 'Find')
-    au CmdlineEnter : if g:curr_dir != getcwd() | let g:files_cache = []
-          \ | let g:curr_dir = getcwd() | endif
+    au DirChanged * let g:files_cache = []
   augroup END
 
   func! Find(timer)
     if isdirectory(".git") && executable("git")
       let g:files_cache = systemlist("git ls-files")
+    elseif executable("fd")
+      let g:files_cache = systemlist("fd -j 8 --type f --strip-cwd-prefix") 
     elseif executable("find")
       let g:files_cache = systemlist('find \! \( -path "*/.*" -prune -o -path "*/target/*" -prune
-            \ -o -path "*/build/*" -prune -o -path "*/go/*" -prune -o -path "*/bin/*" -prune
-            \ -o -name "*.swp" -o -name "*.o" \) -type f -follow')
+            \ -o -path "*__pycache__*" -prune -o -path "*/build/*" -prune -o -path "*/go/*" -prune
+            \ -o -path "*/bin/*" -prune -o -name "*.swp" -o -name "*.o" \) -type f -follow')
     else
       let g:files_cache = globpath('.', '**', 0, 1)->filter({_, v -> !isdirectory(v)}
             \ )->mapnew({_, v -> v->substitute('^\.[\/]', "", "")})
@@ -55,29 +48,12 @@ if has('patch-9.1.0831')
   endfunc
 
   func! FindFiles(cmdarg, cmdcomplete)
-    if empty(g:files_cache)
-      call Find()
-    endif
-    if empty(a:cmdarg)
-      return g:files_cache
-    else
-      return g:files_cache->matchfuzzy(a:cmdarg)
-    endif
+    if empty(g:files_cache) | call Find(0) | endif
+    if empty(a:cmdarg) | return g:files_cache | else |
+          \ return g:files_cache->matchfuzzy(a:cmdarg) | endif
   endfunc
 
   set findfunc=FindFiles
-endif
-
-" better looking diff
-if has("patch-8.1.0360")
-  set diffopt+=vertical,algorithm:histogram
-endif
-if has("patch-9.1.1009")
-  set diffopt+=linematch:60
-endif
-if has("patch-9.1.1243")
-  set diffopt-=inline:simple
-  set diffopt+=inline:char
 endif
 
 set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,*.un~,tags,*/target/**,*/build/**,*/node_modules/**,*/bin/**
@@ -96,8 +72,7 @@ if has("patch-8.1.1884")
   autocmd! VimEnter * set completepopup+=border:off
 endif
 if has("patch-9.1.1308")
-  set cot-=fuzzy
-  set cot+=nearest
+  set cot-=fuzzy cot+=nearest
 endif
 if has("patch-9.1.1311")
   set complete=.^5,w^5,b^5,t^5
@@ -107,7 +82,7 @@ let &t_ut='' | let mapleader = "," | let maplocalleader = " "
 set wildcharm=<C-@> backspace=indent,eol,start
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:… fillchars=vert:│
 autocmd OptionSet shiftwidth call s:SetSpaceIndentGuides(v:option_new)
-autocmd BufWinEnter * call s:SetSpaceIndentGuides(&l:shiftwidth)
+autocmd BufWinEnter * call timer_start(50, {_ -> s:SetSpaceIndentGuides(&l:shiftwidth)})
 
 function! s:SetSpaceIndentGuides(sw) abort
   let indent = a:sw ? a:sw : &tabstop
@@ -173,21 +148,15 @@ nn <localleader>v :noa vim //j **/*. <bar> cw<left><left><left><left><left><left
 ino kj <esc>
 cno <M-l> <Right>| cno <M-h> <Left>| ino <M-l> <Right>| ino <M-h> <Left>
 
-let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi'
-for pattern in ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig', 'tags']
-  let grepcmd .= '\ --exclude=\"' . pattern . '\"'
-endfor 
-for pattern in ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build',
-      \ '.*_cache', '.cache', '.cargo', 'node_modules', '.env', '.venv', '~/.*' ]
-  let grepcmd .= '\ --exclude-dir=\"' . pattern . '\"'
-endfor
-execute "set grepprg=" . grepcmd
+let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi\ '
+let excl_files = ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig',
+      \ 'tags']->map({_, v -> '--exclude=\"' . v . '\"'})->join('\ ')
+let excl_dirs = ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build',
+      \ '.*_cache', '.cache', '.cargo', 'node_modules', '.env', '.venv', '~/.*'
+      \ ]->map({_, v -> '--exclude-dir=\"' . v . '\"'})->join('\ ')
+execute "set grepprg=" . grepcmd . '\ ' . excl_files . '\ ' . excl_dirs
 
-" Grep using grepprg
-function! Grep(...)
-  return system(join([&grepprg] + [join(a:000, ' ')], ' '))
-endfunction
-command! -nargs=+ -bar Grep  cgetexpr Grep(<f-args>)
+command! -nargs=+ -bar Grep cgetexpr system(&grepprg .. ' <args>') <bar> copen
 
 function! Global(pat, bang) range
   let operator = a:bang == '!' ? '!~' : '=~'
@@ -204,14 +173,6 @@ function! Global(pat, bang) range
   endif
 endfunction
 command! -bang -nargs=1 -range=% Global <line1>,<line2>call Global(<q-args>, expand('<bang>'))
-
-func Eatchar(pat)
-  let c = nr2char(getchar(0))
-  return (c =~ a:pat) ? '' : c
-endfunc
-
-" easy insert **/*. in command line
-cnorea rù **/*<c-r>=Eatchar('\m\s')<cr>
 
 " Automatically open quickfix window
 augroup quickfix
@@ -257,9 +218,7 @@ function! Diff(spec)
   if buf_ft != ""
     execute 'set ft=' . buf_ft
   endif
-  diffthis
-  wincmd p
-  diffthis
+  diffthis | wincmd p | diffthis
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
 
@@ -274,10 +233,7 @@ function! Gblame()
   setl nomodifiable ft=git
   execute s:curr_line
   nn <buffer> gq :bd!<CR>
-  setl scrollbind
-  wincmd w
-  setl scrollbind
-  sync
+  setl scrollbind | wincmd w | setl scrollbind | sync
 endfunction
 nn <leader>gb :call Gblame()<CR>
 
@@ -319,7 +275,7 @@ if has("patch-8.1.1455")
   endfunc
 endif
 
-function! CurrentGitStatus()
+function! CurrentGitStatus(timer)
   let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
   let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
   if len(gitbranch) > 0
@@ -331,7 +287,7 @@ endfunc
 
 augroup gitstatus
   autocmd!
-  autocmd BufEnter,BufWritePost,ShellCmdPost * call CurrentGitStatus()
+  autocmd BufEnter,BufWritePost,ShellCmdPost * call timer_start(300, 'CurrentGitStatus')
 augroup END
 
 let g:gitstatus = '' | let g:lsp_names = '' | let g:lspstatus = '' | let g:lspdiags = ''
@@ -396,7 +352,7 @@ if has("patch-9.1.374")
 endif
 
 if has("patch-8.1.0673")
-  function! DiffSign()
+  function! DiffSign(timer)
     call sign_define('DiffSignChange', {'text': '┃', 'texthl': 'Changed'})
     call sign_define('DiffSignAdd', {'text': '┃', 'texthl': 'Added'})
     call sign_define('DiffSignDel', {'text': '-', 'texthl': 'Removed'})
@@ -441,7 +397,7 @@ if has("patch-8.1.0673")
       endfor
     endif
   endfunction
-  autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call DiffSign() | endif
+  autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call timer_start(250, 'DiffSign') | endif
 endif
 
 if has("patch-9.1.1227")
@@ -458,8 +414,11 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
   if executable("ruff")
     call LspAddServer([#{name: 'ruff', filetype: ['python'], path: 'ruff', args: ["server", "--preview"], features: #{hover: v:false}}])
   endif
-  if executable('jedi-language-server')
-    call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
+  " if executable('jedi-language-server')
+  "   call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
+  " endif
+  if executable("ty")
+    call LspAddServer([#{name: 'ty', filetype: ['python'], path: 'ty', args: ["server"]}])
   endif
 
   nn gd :LspGotoDefinition<CR>
@@ -479,7 +438,7 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
   func! LspProgressStatus()
     if empty(g:LspProgress) | return '' | endif
     let info = values(g:LspProgress)[0]
-    return info->get('serverName', '') .. ': ' .. info->get('title', '') 
+    return info->get('serverName', '') .. ': ' .. info->get('title', '')
           \ .. ' ' .. info->get('percentage') .. '%'
   endfunc
 
@@ -503,8 +462,9 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
 
 endif
 
-packadd vim-fugitive
-packadd wiki.vim
+" packadd vim-fugitive
+" let g:wiki_root = '~/wiki'
+" packadd wiki.vim
 
 if executable('git-jump')
   command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
@@ -523,10 +483,10 @@ endif
 
 " autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
 
-nn <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter(
-      \ {_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ?
-      \ fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose
-      \ buffer: ") .. '<CR>'
+" nn <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter(
+"       \ {_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ?
+"       \ fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose
+"       \ buffer: ") .. '<CR>'
 
 if has('patch-9.1.1576')
   let g:mru_cache = []
