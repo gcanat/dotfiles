@@ -2,13 +2,14 @@ if &compatible | set nocompatible | endif
 syntax on
 set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
 set nu relativenumber splitright termguicolors background=light
-set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+set tabstop=4 softtabstop=4 shiftwidth=4 expandtab go=aegit
 if has('patch-9.1.1166')
   set wildmode=noselect:lastused,full
 else
   set wildmode=list:longest,list:full
 endif
 set incsearch ignorecase smartcase updatetime=2000 ttimeout ttimeoutlen=250
+let g:markdown_fenced_languages = ["rust", "python"]
 
 func! SetPath(timer)
   let paths = systemlist(
@@ -33,10 +34,9 @@ if has('patch-9.1.0831')
   augroup END
 
   func! Find(timer)
-    if isdirectory(".git") && executable("git")
-      let g:files_cache = systemlist("git ls-files")
-    elseif executable("fd")
-      let g:files_cache = systemlist("fd -j 8 --type f --strip-cwd-prefix") 
+    let l:fd_cmd = executable("fd") ? "fd" : executable("fdfind") ? "fdfind" : ""
+    if !empty(l:fd_cmd)
+      let g:files_cache = systemlist(l:fd_cmd . " -j 8 --type f --strip-cwd-prefix") 
     elseif executable("find")
       let g:files_cache = systemlist('find \! \( -path "*/.*" -prune -o -path "*/target/*" -prune
             \ -o -path "*__pycache__*" -prune -o -path "*/build/*" -prune -o -path "*/go/*" -prune
@@ -85,6 +85,7 @@ autocmd OptionSet shiftwidth call s:SetSpaceIndentGuides(v:option_new)
 autocmd BufWinEnter * call timer_start(50, {_ -> s:SetSpaceIndentGuides(&l:shiftwidth)})
 
 function! s:SetSpaceIndentGuides(sw) abort
+  if empty(&ft) | return | endif
   let indent = a:sw ? a:sw : &tabstop
   if &l:listchars == ""
     let &l:listchars = &listchars
@@ -414,12 +415,13 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
   if executable("ruff")
     call LspAddServer([#{name: 'ruff', filetype: ['python'], path: 'ruff', args: ["server", "--preview"], features: #{hover: v:false}}])
   endif
-  " if executable('jedi-language-server')
-  "   call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
-  " endif
-  if executable("ty")
-    call LspAddServer([#{name: 'ty', filetype: ['python'], path: 'ty', args: ["server"]}])
+  autocmd! BufWritePre *.rs,*.py call execute('LspFormat')
+  if executable('jedi-language-server')
+    call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
   endif
+  " if executable("ty")
+  "   call LspAddServer([#{name: 'ty', filetype: ['python'], path: 'ty', args: ["server"]}])
+  " endif
 
   nn gd :LspGotoDefinition<CR>
   nn gs :LspDocumentSymbol<CR>
