@@ -91,7 +91,6 @@ function! s:SetSpaceIndentGuides(sw) abort
     let &l:listchars = &listchars
   endif
   let listchars = substitute(&listchars, 'leadmultispace:.\{-},', '', 'g')
-  " let newlead = "\┆"
   let newlead = "\⸱"
   for i in range(indent - 1)
     let newlead .= "\ "
@@ -125,10 +124,6 @@ autocmd! Colorscheme * hi clear EndOfBuffer | hi link EndOfBuffer Normal
 autocmd! ColorScheme catppuccin hi Normal guibg=NONE ctermbg=NONE
 autocmd! ColorScheme tokyonight-night hi CursorLine term=NONE cterm=NONE
 
-" if has('patch-9.1.2110') | colo catppuccin | elseif has('patch-9.0.0335') | colo habamax | else | colo slate | endif
-" let g:gruvbox_material_background = 'hard'
-" let g:gruvbox_material_better_performance = 1
-" colo gruvbox-material
 colo habamax_vibrant
 
 ino <expr> <Tab>     pumvisible() ? "\<C-n>" : "\<Tab>"
@@ -318,6 +313,7 @@ nn <localleader>dw :windo diffthis<CR>
 nn <localleader>gl :term git --no-pager log --oneline -i --grep ""<left>
 nn <localleader>G :term git status --porcelain<CR>
 nn <localleader>gp :term gh pr list<CR>
+" command! -nargs=0 G :term git status --porcelain
 
 if has("patch-8.0.1596")
   aug git_mappings
@@ -416,12 +412,15 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
     call LspAddServer([#{name: 'ruff', filetype: ['python'], path: 'ruff', args: ["server", "--preview"], features: #{hover: v:false}}])
   endif
   autocmd! BufWritePre *.rs,*.py call execute('LspFormat')
-  if executable('jedi-language-server')
-    call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
-  endif
+  " if executable('jedi-language-server')
+  "   call LspAddServer([#{name: 'jedi', filetype: ['python'], path: 'jedi-language-server'}])
+  " endif
   " if executable("ty")
   "   call LspAddServer([#{name: 'ty', filetype: ['python'], path: 'ty', args: ["server"]}])
   " endif
+  if executable("pyrefly")
+    call LspAddServer([#{name: 'pyrefly', filetype: ['python'], path: 'pyrefly', args: ["lsp"]}])
+  endif
 
   nn gd :LspGotoDefinition<CR>
   nn gs :LspDocumentSymbol<CR>
@@ -473,6 +472,21 @@ if executable('git-jump')
   nn <localleader>dj :Jump diff<CR>
   nn <localleader>gg :Jump grep<space>
 endif
+if executable('gitui')
+  nn <leader>gt :term ++close gitui<CR>
+endif
+if executable('ruff')
+  nn <space>cr :cgetexpr systemlist("ruff check --output-format=concise --preview " . expand("%"))<CR>
+endif
+if executable('mypy')
+  nn <space>cm :cgetexpr systemlist("mypy --show-column-numbers --strict --ignore-missing-imports " . expand("%"))<CR>
+endif
+if executable('ty')
+  nn <space>ct :cgetexpr systemlist("ty check --no-progress --color=never --output-format=concise " . expand("%"))<CR>
+endif
+
+nn <space>rm :term cargo run -r<CR>
+nn <space>rt :term cargo test<CR>
 
 " add gitignored files to wildignore
 " function! s:LocalWildignore(id)
@@ -564,7 +578,7 @@ nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse --abbre
 func! OutCb(ch, msg)
   if a:msg !~ '.*up to date.$' && a:msg !~ '^HEAD' && a:msg !~ '^Removing .*tags'
         \ && a:msg !~ '^Updating files'
-    g:plug_msgcount += 1
+    let g:plug_msgcount += 1
     echow a:msg
   endif
 endfunc
