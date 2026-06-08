@@ -28,7 +28,7 @@ if has('patch-9.1.0831')
 
   augroup au_files_cache
     au!
-    " popuplate files_cache asynchronously when starting vim
+    " populate files_cache asynchronously when starting vim
     au VimEnter * call timer_start(250, 'Find')
     au DirChanged * let g:files_cache = []
   augroup END
@@ -81,23 +81,7 @@ endif
 let &t_ut='' | let mapleader = "," | let maplocalleader = " "
 set wildcharm=<C-@> backspace=indent,eol,start
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:… fillchars=vert:│
-autocmd OptionSet shiftwidth call s:SetSpaceIndentGuides(v:option_new)
-autocmd BufWinEnter * call timer_start(50, {_ -> s:SetSpaceIndentGuides(&l:shiftwidth)})
-
-function! s:SetSpaceIndentGuides(sw) abort
-  if empty(&ft) | return | endif
-  let indent = a:sw ? a:sw : &tabstop
-  if &l:listchars == ""
-    let &l:listchars = &listchars
-  endif
-  let listchars = substitute(&listchars, 'leadmultispace:.\{-},', '', 'g')
-  let newlead = "\⸱"
-  for i in range(indent - 1)
-    let newlead .= "\ "
-  endfor
-  let &l:listchars = "leadmultispace:" .. newlead .. "," .. listchars
-endfunction
-
+au! FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
 
 let g:vimdata=expand("~/.local/share/") . 'vim-data'
 execute "set directory=" . g:vimdata . '/swap//'
@@ -113,8 +97,7 @@ let g:netrw_altv=1 | let g:netrw_liststyle=3
 let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 " let g:netrw_list_hide=netrw_gitignore#Hide() .. ',.git,.*\.swp$,.*\.un~$'
 
-filetype plugin on
-filetype indent on
+filetype plugin on | filetype indent on
 
 autocmd! Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
   \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
@@ -131,8 +114,7 @@ ino <expr> <S-Tab>   pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " easier on azerty keyboard
 nmap à ]| nmap ç [| nmap ù }| nmap é {| xmap ù }| xmap é {
-nn <c-h> <c-w><c-h>| nn <c-l> <c-w><c-l>
-nn <c-j> <c-w><c-j>| nn <c-k> <c-w><c-k>
+nn s <c-w>| nn <leader>fa :Argedit<space>
 nn <leader>b :b <c-@>| nn <leader>fe :fin<space>
 nn - :15Lex<CR>| nn <leader>ff magggqG'a
 " nn <leader>fm :bro ol<CR>
@@ -140,9 +122,10 @@ nn ]q :cnext<CR>| nn [q :cprev<CR>
 nn ]l :lnext<CR>| nn [l :lprev<CR>
 nn ]b :bnext<CR>| nn [b :bprev<CR>
 nn <leader>gw :Grep <c-r><c-w><CR>
-nn <localleader>v :noa vim //j **/*. <bar> cw<left><left><left><left><left><left><left><left><left><left><left><left><left>
+nn <localleader>v :noa vim //j ## <bar> cw<c-left><c-left><c-left><c-left><right>
 ino kj <esc>
 cno <M-l> <Right>| cno <M-h> <Left>| ino <M-l> <Right>| ino <M-h> <Left>
+com! -nargs=1 -complete=arglist Argedit edit <args>
 
 let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi\ '
 let excl_files = ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig',
@@ -198,7 +181,7 @@ augroup RestoreCursor
     \ | endif
 augroup END
 
-" Diff against a specificy commit hash or HEAD
+" Diff against a specific commit hash or HEAD
 function! Diff(spec)
   vertical new
   setlocal bufhidden=wipe buftype=nofile nobuflisted noswapfile
@@ -343,7 +326,7 @@ augroup CursColLine
   au InsertLeave * setlocal cursorline
 augroup end
 
-" try to use comment builtin plugin
+" try to use comment built-in plugin
 if has("patch-9.1.374")
   packadd comment
 endif
@@ -404,7 +387,7 @@ endif
 if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/opt/lsp"))
   packadd lsp
 
-  call LspOptionsSet(#{autoComplete: v:false, omniComplete: v:true, useQuickfixForLocations: v:true, semanticHighlight: v:true})
+  call LspOptionsSet(#{autoComplete: v:false, omniComplete: v:true, useQuickfixForLocations: v:true, semanticHighlight: v:true, incrementalSync: v:true})
   if executable("rust-analyzer")
     call LspAddServer([#{name: 'rustanalyzer', filetype: ['rust'], path: 'rust-analyzer', args: [], syncInit: v:true}])
   endif
@@ -571,8 +554,16 @@ if has('patch-9.1.1590')
 endif
 
 " copy to the + register the github url of the current line
-nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse --abbrev-ref HEAD)/'
+nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse HEAD)/'
       \ .. bufname())->trim() .. '#L' .. line('.')<CR>
+
+" show current file directory content
+nn <c-b> :let @d = expand("%:h")<CR>:e <c-r>d/*<c-d>
+nn <c-e> :e <c-d>
+
+" easier navigation between qf lists
+au! FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
+au! FileType help,netrw nn <buffer> gq :bd<CR>
 
 " update plugins
 func! OutCb(ch, msg)
