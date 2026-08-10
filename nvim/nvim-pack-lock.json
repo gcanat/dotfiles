@@ -1,0 +1,41 @@
+{
+  "plugins": {
+    "diffs.nvim": {
+      "rev": "e6d3aa4bb400287ba1a612e28b5cd55e0ba15726",
+      "src": "https://github.com/barrettruth/diffs.nvim"
+    },
+    "fzf-lua": {
+      "rev": "8671012a7b2a1648595952c655039d51fb301c14",
+      "src": "https://github.com/ibhagwan/fzf-lua"
+    },
+    "gitsigns.nvim": {
+      "rev": "31d6fb2d618bca1482b9f274751ead5f03461408",
+      "src": "https://github.com/lewis6991/gitsigns.nvim"
+    },
+    "image.nvim": {
+      "rev": "88351f1f7d9dbae286e671ce3690a49660dd8a5c",
+      "src": "https://github.com/3rd/image.nvim"
+    },
+    "kanagawa.nvim": {
+      "rev": "bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3",
+      "src": "https://github.com/rebelot/kanagawa.nvim"
+    },
+    "mini.completion": {
+      "rev": "d2a2b2a2b5350b713ade3bb744df39eee7d4229b",
+      "src": "https://github.com/nvim-mini/mini.completion"
+    },
+    "nvim-treesitter": {
+      "rev": "c9f9ed6c1892f629ea399f4ee7905f2686fa13f2",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter",
+      "version": "'main'"
+    },
+    "pyrepl.nvim": {
+      "rev": "8e7d4fc0a97b421a6ede49f4b2ea35114690deb2",
+      "src": "https://github.com/dangooddd/pyrepl.nvim"
+    },
+    "vim-fugitive": {
+      "rev": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0",
+      "src": "https://github.com/tpope/vim-fugitive"
+    }
+  }
+}
