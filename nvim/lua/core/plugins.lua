@@ -86,7 +86,7 @@ vim.defer_fn(function()
   vim.pack.add({
     "https://github.com/nvim-mini/mini.completion",
     "https://github.com/tpope/vim-fugitive",
-    -- "https://github.com/justinmk/guh.nvim",
+    -- {src = "https://github.com/gcanat/guh.nvim", version = "dev" },
     "https://github.com/barrettruth/diffs.nvim",
     "https://github.com/lewis6991/gitsigns.nvim",
     "https://github.com/ibhagwan/fzf-lua",

@@ -77,16 +77,6 @@ vim.api.nvim_create_autocmd('BufFilePost', {
   pattern = { 'guh://*/prdiff/*', 'guh://*/prcomments/*'},
   command = 'nnoremap <buffer> cd :.GuhComment!<CR>'
 })
--- set custom syntax for guh summary
-vim.api.nvim_create_autocmd('BufFilePost', {
-  pattern = 'guh://*/*',
-  callback = function(ev)
-    for _, pat in pairs({ '/pr/', '/prdiff/', '/prcomments', '/commit/' }) do
-      if ev.match:find(pat) then return end
-    end
-    vim.cmd([[set syntax=ghsummary]])
-  end,
-})
 
 map("n", "<leader>u", function()
   require("undotree").open({ title = "undotree"})
