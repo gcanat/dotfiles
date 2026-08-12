@@ -114,6 +114,52 @@ vim.defer_fn(function()
     } } }
   }
 
+  local get_pr_num = function(selection)
+    local pr_num = vim.split(selection[1], '%s+')[1]:match("^#?(%d+)$")
+    if not pr_num then vim.notify('PR number not found', vim.log.levels.ERROR) end
+    return pr_num
+  end
+
+  vim.api.nvim_create_user_command("FzfPRlist", function(opts)
+    local preview_cmd = 'GH_FORCE_TTY=True gh pr view --comments {1}'
+    local diff_cmd = 'GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr diff {1}'
+
+    require'fzf-lua'.fzf_exec('gh pr list -S "is:pr is:open sort:updated-desc" --limit=1000', {
+      winopts = { height=0.90, width=0.85 },
+      prompt = 'PR list> ',
+      fzf_opts = {
+        ['--ansi'] = true,
+        ['--reverse'] = true,
+        ['--preview'] = preview_cmd,
+        ['--info'] = 'inline',
+        ['--style'] = 'minimal',
+        ['--header'] = '> ENTER (pr review) CTRL-R (checkout pr) CTRL-D (diff) CTRL-F (description)',
+      },
+      actions = {
+        ['default'] = function(selection)
+          local pr_num = get_pr_num(selection)
+          vim.cmd('Guh ' .. pr_num)
+        end,
+        ['ctrl-r'] = function(selection)
+          local pr_num = get_pr_num(selection)
+          vim.cmd('!gh pr checkout ' .. pr_num)
+        end,
+        ['ctrl-d'] = { fn = function(_)
+          vim.notify('Changing preview to diff')
+        end,
+        exec_silent = true,
+        postfix = 'preview:' .. diff_cmd,
+        },
+        ['ctrl-f'] = { fn = function(_)
+          vim.notify('Changing preview to PR summary')
+        end,
+        exec_silent = true,
+        postfix = 'preview:' .. preview_cmd,
+        },
+      },
+    })
+  end)
+
   require('gitsigns').setup{
     on_attach = function(bufnr)
       local gitsigns = require('gitsigns')

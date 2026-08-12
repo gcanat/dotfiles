@@ -59,6 +59,7 @@ map('n', '<localleader>gt', '<Cmd>FzfLua git_tags<CR>', { desc = 'Git tags' })
 map('n', '<localleader>gs', '<Cmd>FzfLua git_status<CR>', { desc = 'Git status' })
 map('n', '<localleader>gw', '<Cmd>FzfLua git_worktrees<CR>', { desc = 'Git worktrees' })
 map('n', '<localleader>gh', '<Cmd>FzfLua git_hunks<CR>', { desc = 'Git hunks' })
+map('n', '<localleader>gp', '<Cmd>FzfPRlist<CR>', { desc = 'GH PR list' })
 
 
 vim.api.nvim_create_user_command('Grep', function(opts)
