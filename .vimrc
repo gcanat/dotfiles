@@ -1,7 +1,7 @@
 if &compatible | set nocompatible | endif
 syntax on
 set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
-set nu relativenumber splitright termguicolors background=light
+set nu relativenumber splitright termguicolors background=dark
 set tabstop=4 softtabstop=4 shiftwidth=4 expandtab go=aegit
 if has('patch-9.1.1166')
   set wildmode=noselect:lastused,full
@@ -81,7 +81,6 @@ endif
 let &t_ut='' | let mapleader = "," | let maplocalleader = " "
 set wildcharm=<C-@> backspace=indent,eol,start
 set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:… fillchars=vert:│
-au! FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
 
 let g:vimdata=expand("~/.local/share/") . 'vim-data'
 execute "set directory=" . g:vimdata . '/swap//'
@@ -99,22 +98,23 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 
 filetype plugin on | filetype indent on
 
-autocmd! Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
-  \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
-  \ | hi VertSplit guibg=NONE ctermbg=NONE | hi! link TabPanelFill Normal
-  \ | hi! link TabPanel Normal | hi! link Signcolumn Normal
-autocmd! Colorscheme * hi clear EndOfBuffer | hi link EndOfBuffer Normal
-autocmd! ColorScheme catppuccin hi Normal guibg=NONE ctermbg=NONE
-autocmd! ColorScheme tokyonight-night hi CursorLine term=NONE cterm=NONE
+aug Colors | au!
+  au Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
+    \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
+    \ | hi VertSplit guibg=NONE ctermbg=NONE | hi! link TabPanelFill Normal
+    \ | hi! link TabPanel Normal | hi! link Signcolumn Normal
+  au Colorscheme * hi clear EndOfBuffer | hi link EndOfBuffer Normal
+  au ColorScheme retrobox hi Function guifg=#a9b665 | hi Directory guifg=#a9b665 | hi String guifg=#a9b665 | hi Title guifg=#a9b665
+aug END
 
-colo habamax_vibrant
+colo retrobox
 
 ino <expr> <Tab>     pumvisible() ? "\<C-n>" : "\<Tab>"
 ino <expr> <S-Tab>   pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " easier on azerty keyboard
 nmap à ]| nmap ç [| nmap ù }| nmap é {| xmap ù }| xmap é {
-nn s <c-w>| nn <leader>fa :Argedit<space>
+nmap s <c-w>| nn <leader>fa :Argedit<space>
 nn <leader>b :b <c-@>| nn <leader>fe :fin<space>
 nn - :15Lex<CR>| nn <leader>ff magggqG'a
 " nn <leader>fm :bro ol<CR>
@@ -290,26 +290,38 @@ set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
 
+" launch a term command
+fu! s:TermCmd(cmd, ...) abort
+  let l:opt = a:0 >= 1 ? a:1 : {}
+  call term_start(a:cmd, extend(l:opt, {'exit_cb': function('s:OnTermExit')}))
+endf
+
+" go back to buffer top at the end of the job
+fu! s:OnTermExit(job, status) abort
+  call timer_start(10, {-> feedkeys("\<C-\>\<C-n>gg", 'n')})
+endf
+
 " diff current file against merge base
 nn <localleader>dm :Diff <c-r>=GetMergeBase()<CR><CR>
 nn <localleader>dw :windo diffthis<CR>
-nn <localleader>gl :term git --no-pager log --oneline -i --grep ""<left>
-nn <localleader>G :term git status --porcelain<CR>
-nn <localleader>gp :term gh pr list<CR>
-" command! -nargs=0 G :term git status --porcelain
+nn <localleader>gl :call <SID>TermCmd('git --no-pager log --oneline -i --grep ""')<left><left><left>
+nn <localleader>G :call <SID>TermCmd('git status --porcelain', {'term_name': 'git status'})<CR>
+nn <localleader>gc :call <SID>TermCmd('git --no-pager log --all --graph --color --format="%C(white)%h
+      \ - %C(green)%cs - %C(blue)%s%C(red)%d" -300', {'term_name': 'git log'})<CR>
+nn <localleader>gp :call <SID>TermCmd('gh pr list', {'term_name': 'PR list'})<CR>
 
 if has("patch-8.0.1596")
   aug git_mappings
     au!
-    au TerminalOpen *git* nn <buffer> gs 0:vert term git --no-pager show <cword><CR>
+    au TerminalOpen *git* nn <buffer> gs 0:call <SID>TermCmd($"git --no-pager show {expand('<cword>')}", {'vertical': 1, 'term_name': 'git show'})<CR>
     au TerminalOpen *git* nn <buffer> s $:call system($"git add {expand('<cfile>')}")<CR>
     au TerminalOpen *git* nn <buffer> X $:call system($"git restore --staged {expand('<cfile>')}")<CR>
     au TerminalOpen *git* nn <buffer> gq :bd!<CR>
     au TerminalOpen *git* nn <buffer> gp :!git push<CR>
     au TerminalOpen *git* nn <buffer> gP :!git pull<CR>
     au TerminalOpen *git* nn <buffer> cc :!git commit -m ""<left>
-    au TerminalOpen *git* nn <buffer> = $:vert term git --no-pager diff <cfile><CR>
-    au TerminalOpen *!gh* nn <buffer> gc 0l:!gh pr checkout <cword><CR>
+    au TerminalOpen *git* nn <buffer> = $:call <SID>TermCmd($"git --no-pager diff {expand('<cWORD>')}", {'vertical': 1, 'term_name': 'git diff'})<CR>
+    au TerminalOpen PR\ list* nn <buffer> gc 0l:!gh pr checkout <cword><CR>
   aug END
 endif
 
@@ -459,17 +471,17 @@ if executable('gitui')
   nn <leader>gt :term ++close gitui<CR>
 endif
 if executable('ruff')
-  nn <space>cr :cgetexpr systemlist("ruff check --output-format=concise --preview " . expand("%"))<CR>
+  au FileType python nn <buffer> <space>cr :cgetexpr systemlist("ruff check --output-format=concise --preview " . expand("%"))<CR>
 endif
 if executable('mypy')
-  nn <space>cm :cgetexpr systemlist("mypy --show-column-numbers --strict --ignore-missing-imports " . expand("%"))<CR>
+  au FileType python nn <buffer> <space>cm :cgetexpr systemlist("mypy --show-column-numbers --strict --ignore-missing-imports " . expand("%"))<CR>
 endif
 if executable('ty')
-  nn <space>ct :cgetexpr systemlist("ty check --no-progress --color=never --output-format=concise " . expand("%"))<CR>
+  au FileType python nn <buffer> <space>ct :cgetexpr systemlist("ty check --no-progress --color=never --output-format=concise " . expand("%"))<CR>
 endif
 
-nn <space>rm :term cargo run -r<CR>
-nn <space>rt :term cargo test<CR>
+au FileType rust nn <buffer> <space>rm :term cargo run -r<CR>
+au FileType rust nn <buffer> <space>rt :term cargo test<CR>
 
 " add gitignored files to wildignore
 " function! s:LocalWildignore(id)
@@ -561,9 +573,11 @@ nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse HEAD)/'
 nn <c-b> :let @d = expand("%:h")<CR>:e <c-r>d/*<c-d>
 nn <c-e> :e <c-d>
 
-" easier navigation between qf lists
-au! FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
-au! FileType help,netrw nn <buffer> gq :bd<CR>
+aug Ft | au!
+  au FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
+  au FileType help,netrw nn <buffer> gq :bd<CR>
+  au FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
+aug END
 
 " update plugins
 func! OutCb(ch, msg)
