@@ -99,7 +99,7 @@ let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
 filetype plugin on | filetype indent on
 
 aug Colors | au!
-  au Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*
+  au Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*,desert
     \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
     \ | hi VertSplit guibg=NONE ctermbg=NONE | hi! link TabPanelFill Normal
     \ | hi! link TabPanel Normal | hi! link Signcolumn Normal
@@ -576,7 +576,9 @@ nn <c-e> :e <c-d>
 aug Ft | au!
   au FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
   au FileType help,netrw nn <buffer> gq :bd<CR>
-  au FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
+  if has('patch-8.2.5066')
+    au FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
+  endif
 aug END
 
 " update plugins
