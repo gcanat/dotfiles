@@ -1,3 +1,4 @@
+" settings {{{1
 if &compatible | set nocompatible | endif
 syntax on
 set autoindent signcolumn=yes encoding=utf-8 laststatus=2 hidden
@@ -11,6 +12,7 @@ endif
 set incsearch ignorecase smartcase updatetime=2000 ttimeout ttimeoutlen=250
 let g:markdown_fenced_languages = ["rust", "python"]
 
+" set path {{{2
 func! SetPath(timer)
   let paths = systemlist(
         \ 'find . -maxdepth 1 ! -path "./.*" ! -path "./target" ! -path "./bin"
@@ -21,9 +23,104 @@ endfunc
 augroup au_set_path
   au!
   au VimEnter * call timer_start(500, 'SetPath')
+  au DirChanged * call timer_start(500, 'SetPath')
+augroup END
+" }}}
+
+" grepprg {{{2
+let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi\ '
+let excl_files = ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig',
+      \ 'tags']->map({_, v -> '--exclude=\"' . v . '\"'})->join('\ ')
+let excl_dirs = ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build',
+      \ '.*_cache', '.cache', '.cargo', 'node_modules', '.env', '.venv', '~/.*'
+      \ ]->map({_, v -> '--exclude-dir=\"' . v . '\"'})->join('\ ')
+execute "set grepprg=" . grepcmd . '\ ' . excl_files . '\ ' . excl_dirs
+" }}}
+
+set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,*.un~,tags,*/target/**,*/build/**,*/node_modules/**,*/bin/**
+if has("patch-8.2.4325")
+  set wildoptions+=pum ",fuzzy
+endif
+
+set shortmess+=Tasc undofile
+if has('patch-9.0.0738')
+  set shortmess+=C
+endif
+
+" completion options {{{2
+set completeopt=menuone,preview,noinsert,noselect pumheight=20 inf
+if has("patch-8.1.1884")
+  set completeopt+=popup
+  autocmd! VimEnter * set completepopup+=border:off
+endif
+if has("patch-9.1.1308")
+  set cot-=fuzzy cot+=nearest
+endif
+if has("patch-9.1.1311")
+  set complete=.^5,w^5,b^5,t^5
+endif
+if has('patch-9.1.1590')
+  set ac
+  set cpt=o^10,.^5,w^5,b^5,t^5
+endif
+" }}}
+
+let &t_ut='' | let mapleader = "," | let maplocalleader = " "
+set wildcharm=<C-@> backspace=indent,eol,start
+set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:… fillchars=vert:│
+
+" netrw {{{2
+let g:netrw_banner=0 | let g:netrw_browse_split=4
+let g:netrw_altv=1 | let g:netrw_liststyle=3
+let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
+" let g:netrw_list_hide=netrw_gitignore#Hide() .. ',.git,.*\.swp$,.*\.un~$'
+" }}}
+
+filetype plugin on | filetype indent on
+
+" autocommands {{{2
+" Automatically open quickfix window
+augroup quickfix
+  autocmd!
+  autocmd FileType qf wincmd J
+  autocmd QuickFixCmdPost cgetexpr cwindow
+  autocmd QuickFixCmdPost lgetexpr lwindow
 augroup END
 
+" restore last position when opening a file
+augroup RestoreCursor
+  autocmd!
+  autocmd BufReadPost *
+    \ let line = line("'\"")
+    \ | if line >= 1 && line <= line("$") && &filetype !~# 'commit'
+    \      && index(['xxd', 'gitrebase'], &filetype) == -1
+    \      && !&diff
+    \ |   execute "normal! g`\""
+    \ | endif
+augroup END
+
+augroup CursColLine
+  autocmd!
+  au WinLeave * setlocal nocursorline nocursorcolumn
+  au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
+  au InsertEnter * setlocal nocursorline
+  au InsertLeave * setlocal cursorline
+augroup end
+
+aug Ft | au!
+  au FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
+  au FileType help,netrw nn <buffer> gq :bd<CR>
+  if has('patch-8.2.5045')
+   au FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
+  endif
+aug END
+" }}}
+
+" }}}
+
+" find files {{{1
 if has('patch-9.1.0831')
+  " findfunc {{{2
   let g:files_cache = []
 
   augroup au_files_cache
@@ -54,34 +151,87 @@ if has('patch-9.1.0831')
   endfunc
 
   set findfunc=FindFiles
+  " }}}
 endif
 
-set wildignore+=*.egg-info/**,.*,**/__pycache__/**,*.o,*.obj,*.bak,*.exe,*.swp,*.zwc,*.un~,tags,*/target/**,*/build/**,*/node_modules/**,*/bin/**
-if has("patch-8.2.4325")
-  set wildoptions+=pum,fuzzy
+if has('patch-9.1.1576')
+  " setup {{{2
+  let g:mru_cache = []
+  let g:git_files_cache = []
+  augroup cmdline
+    autocmd!
+    autocmd CmdlineChanged [/\?] call wildtrigger()
+    autocmd CmdlineChanged : if getcmdcompltype() != 'shellcmd' | call wildtrigger() | endif
+    autocmd CmdlineEnter [:/\?] set pumheight=15
+    autocmd CmdlineLeave [:/\?] set pumheight&
+    autocmd CmdwinLeave : let g:mru_cache = [] | let g:git_files_cache = []
+  augroup END
+  if has('patch-9.1.1738')
+    " mapping for navigating cmd history
+    cno <expr> <Up>   wildmenumode() ? "\<C-E>\<Up>"   : "\<Up>"
+    cno <expr> <Down> wildmenumode() ? "\<C-E>\<Down>" : "\<Down>"
+  endif
+  " }}}
+
+  " live grep {{{2
+  func! GrepComplete(arglead, cmdline, cursorpos)
+    return a:arglead != '' ? systemlist(&grepprg .. ' ' .. a:arglead) : []
+  endfunc
+
+  func! VisitFile(line)
+    let qfitem = getqflist({'lines': [a:line]}).items[0]
+    if qfitem->has_key('bufnr')
+      let pos = qfitem.vcol > 0 ? 'setcharpos' : 'setpos'
+      exec ':b +call\ ' .. pos ..'(".",\ [0,\ ' .. qfitem.lnum .. ',\ ' .. qfitem.col .. ',\ 0]) ' .. qfitem.bufnr
+      call setbufvar(qfitem.bufnr, '&buflisted', 1)
+    endif
+  endfunc
+
+  " Live grep in command line
+  command! -nargs=+ -complete=customlist,GrepComplete LiveGrep call VisitFile(<q-args>)
+  nn <leader>fg :LiveGrep<space>
+  " }}}
+
+  " MRU {{{2
+  command! -nargs=+ -complete=custom,MruComplete MRU edit <args>
+  nn <leader>fm :MRU<space>
+
+  func! MruComplete(_a, _b, _c)
+    if empty(g:mru_cache)
+      let g:mru_cache =  v:oldfiles->copy()->filter({_, i -> i->fnamemodify(':p')->filereadable()})->map({_, i -> fnamemodify(i, ':~:.')})->join("\n")
+    endif
+    return g:mru_cache
+  endfunc
+  " }}}
+
+  " Git files {{{2
+  command! -nargs=+ -complete=custom,GitFilesComplete GitFiles edit <args>
+  nn <leader>ge :GitFiles<space>
+
+  func! GitFilesComplete(_a, _b, _c)
+    if empty(g:git_files_cache)
+      let g:git_files_cache = system('git ls-files')
+    endif
+    return g:git_files_cache
+  endfunc
+  " }}}
+
+  " chdir {{{2
+  command! -nargs=+ -complete=custom,FindDirsComplete ChDir cd <args>
+  func! FindDirsComplete(_a, _b, _c)
+    return system('find . -type d ! -path "./.*"')
+  endfunc
+  " }}}
+
 endif
 
-set fillchars=vert:│ shortmess+=Tasc undofile
-if has('patch-9.0.0738')
-  set shortmess+=C
-endif
 
-set completeopt=menuone,preview,noinsert,noselect pumheight=20 inf
-if has("patch-8.1.1884")
-  set completeopt+=popup
-  autocmd! VimEnter * set completepopup+=border:off
-endif
-if has("patch-9.1.1308")
-  set cot-=fuzzy cot+=nearest
-endif
-if has("patch-9.1.1311")
-  set complete=.^5,w^5,b^5,t^5
-endif
+" show current file directory content
+nn <c-b> :let @d = expand("%:h")<CR>:e <c-r>d/*<c-d>
+nn <c-e> :e <c-d>
+" }}}
 
-let &t_ut='' | let mapleader = "," | let maplocalleader = " "
-set wildcharm=<C-@> backspace=indent,eol,start
-set list listchars=tab:›\ ,nbsp:․,trail:·,extends:…,precedes:… fillchars=vert:│
-
+" data {{{1
 let g:vimdata=expand("~/.local/share/") . 'vim-data'
 execute "set directory=" . g:vimdata . '/swap//'
 execute "set backupdir=" . g:vimdata . '/backup//'
@@ -89,15 +239,9 @@ execute "set undodir=" . g:vimdata . '/undo//'
 if !isdirectory(&undodir) | call mkdir(&undodir, "p") | endif
 if !isdirectory(&backupdir) | call mkdir(&backupdir, "p") | endif
 if !isdirectory(&directory) | call mkdir(&directory, "p") | endif
+" }}}
 
-" netrw
-let g:netrw_banner=0 | let g:netrw_browse_split=4
-let g:netrw_altv=1 | let g:netrw_liststyle=3
-let g:netrw_list_hide=',\(^\|\s\s\)\zs\.\S\+,.*\.swp$,.*\.un~$,.git,target'
-" let g:netrw_list_hide=netrw_gitignore#Hide() .. ',.git,.*\.swp$,.*\.un~$'
-
-filetype plugin on | filetype indent on
-
+" colors {{{1
 aug Colors | au!
   au Colorscheme habamax*,wildcharm,retrobox,nod,kanagawa,slate,morning,gruvbox*,desert
     \  hi Normal guifg=NONE guibg=NONE ctermbg=NONE ctermfg=NONE
@@ -107,8 +251,14 @@ aug Colors | au!
   au ColorScheme retrobox hi Function guifg=#a9b665 | hi Directory guifg=#a9b665 | hi String guifg=#a9b665 | hi Title guifg=#a9b665
 aug END
 
-colo retrobox
+if !empty(globpath(&rtp, 'colors/retrobox.vim'))
+    colorscheme retrobox
+else
+    colorscheme desert
+endif
+" }}}
 
+" mappings  and commands {{{1
 ino <expr> <Tab>     pumvisible() ? "\<C-n>" : "\<Tab>"
 ino <expr> <S-Tab>   pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
@@ -126,14 +276,6 @@ nn <localleader>v :noa vim //j ## <bar> cw<c-left><c-left><c-left><c-left><right
 ino kj <esc>
 cno <M-l> <Right>| cno <M-h> <Left>| ino <M-l> <Right>| ino <M-h> <Left>
 com! -nargs=1 -complete=arglist Argedit edit <args>
-
-let grepcmd = 'LC_ALL=C\ grep\ --color=never\ -REHInsi\ '
-let excl_files = ['*.swp', '*.zwc', '*.un~', '*.pyc', '*.pyo', '*.ipynb', '*.orig',
-      \ 'tags']->map({_, v -> '--exclude=\"' . v . '\"'})->join('\ ')
-let excl_dirs = ['*.egg-info', '__pycache__', '.git', 'target', 'bin', 'build',
-      \ '.*_cache', '.cache', '.cargo', 'node_modules', '.env', '.venv', '~/.*'
-      \ ]->map({_, v -> '--exclude-dir=\"' . v . '\"'})->join('\ ')
-execute "set grepprg=" . grepcmd . '\ ' . excl_files . '\ ' . excl_dirs
 
 command! -nargs=+ -bar Grep cgetexpr system(&grepprg .. ' <args>') <bar> copen
 
@@ -153,14 +295,6 @@ function! Global(pat, bang) range
 endfunction
 command! -bang -nargs=1 -range=% Global <line1>,<line2>call Global(<q-args>, expand('<bang>'))
 
-" Automatically open quickfix window
-augroup quickfix
-  autocmd!
-  autocmd FileType qf wincmd J
-  autocmd QuickFixCmdPost cgetexpr cwindow
-  autocmd QuickFixCmdPost lgetexpr lwindow
-augroup END
-
 " Function to grep the opened buffers
 function! GrepallBuf(...)
   let s:buffers = map(getbufinfo({'buflisted': 1}), 'v:val.name')
@@ -168,19 +302,10 @@ function! GrepallBuf(...)
 endfunc
 
 command! -nargs=1 Gbuf cgetexpr GrepallBuf(<f-args>)
+" }}}
 
-" restore last position when opening a file
-augroup RestoreCursor
-  autocmd!
-  autocmd BufReadPost *
-    \ let line = line("'\"")
-    \ | if line >= 1 && line <= line("$") && &filetype !~# 'commit'
-    \      && index(['xxd', 'gitrebase'], &filetype) == -1
-    \      && !&diff
-    \ |   execute "normal! g`\""
-    \ | endif
-augroup END
-
+" git stuf {{{1
+" Diff {{{2
 " Diff against a specific commit hash or HEAD
 function! Diff(spec)
   vertical new
@@ -200,7 +325,9 @@ function! Diff(spec)
   diffthis | wincmd p | diffthis
 endfunction
 command! -nargs=? Diff call Diff(<q-args>)
+" }}}
 
+" Blame {{{2
 function! Gblame()
   let s:curr_line = getpos('.')[1]
   vertical new gitblame
@@ -218,9 +345,9 @@ nn <leader>gb :call Gblame()<CR>
 
 " Git Blame
 command! -nargs=? -range GB echo join(systemlist("git -C " . shellescape(expand('%:p:h')) . " blame -L <line1>,<line2> <args> -- " . expand('%:t')), "\n")
+" }}}
 
-
-if has("patch-8.1.1455")
+if has("patch-8.1.1455") " show commit {{{2
   nn <silent> <localleader>gi :call ShowCommit(v:count, line("."), line("."))<CR>
   command! -range CommitRange call ShowCommit(v:count, <line1>, <line2>)
   xn <silent> <localleader>gi :CommitRange<CR>
@@ -252,8 +379,9 @@ if has("patch-8.1.1455")
     let winid = popup_atcursor(text, { "padding": [0,1,0,1], "pos": "botleft", "mapping": 0, "filter": funcref('FilterKeys') })
     call setbufvar(winbufnr(winid), "&filetype", "git")
   endfunc
-endif
+endif " }}}
 
+" git status in statusline {{{2
 function! CurrentGitStatus(timer)
   let gitoutput = systemlist('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git status -s 2>/dev/null')
   let gitbranch = system('cd '.expand('%:p:h:S').' 2>/dev/null'.' && git branch --show-current 2>/dev/null | tr -d "\n"')
@@ -270,7 +398,26 @@ augroup gitstatus
 augroup END
 
 let g:gitstatus = '' | let g:lsp_names = '' | let g:lspstatus = '' | let g:lspdiags = ''
+" }}}
 
+" copy to the + register the github url of the current line
+nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse HEAD)/'
+      \ .. bufname())->trim() .. '#L' .. line('.')<CR>
+
+" add gitignored files to wildignore
+" function! s:LocalWildignore(id)
+"   let s:root_dir = system('git rev-parse --show-toplevel')
+"   if s:root_dir[0:5] != 'fatal:'
+"     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',')
+"     let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\')
+"   endif
+" endfunc
+
+" autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
+
+" }}}
+
+" statusline {{{1
 set statusline=
 set statusline+=%#PmenuSel#
 set statusline+=%{g:gitstatus}
@@ -289,7 +436,9 @@ set statusline+=\[%{&fileformat}\]
 set statusline+=\ %p%%
 set statusline+=\ %l:%c
 set statusline+=\ 
+" }}}
 
+" Poor man fugitive {{{1
 " launch a term command
 fu! s:TermCmd(cmd, ...) abort
   let l:opt = a:0 >= 1 ? a:1 : {}
@@ -329,20 +478,9 @@ function! GetMergeBase()
   let default_branch = trim(system('git rev-parse --abbrev-ref origin/HEAD | cut -c8-'))
   return trim(system($'git merge-base HEAD {default_branch} || echo {default_branch}'))
 endfunc
+" }}}
 
-augroup CursColLine
-  autocmd!
-  au WinLeave * setlocal nocursorline nocursorcolumn
-  au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
-  au InsertEnter * setlocal nocursorline
-  au InsertLeave * setlocal cursorline
-augroup end
-
-" try to use comment built-in plugin
-if has("patch-9.1.374")
-  packadd comment
-endif
-
+" Poor man gitsigns {{{1
 if has("patch-8.1.0673")
   function! DiffSign(timer)
     call sign_define('DiffSignChange', {'text': '┃', 'texthl': 'Changed'})
@@ -391,11 +529,18 @@ if has("patch-8.1.0673")
   endfunction
   autocmd BufReadPost,BufWritePost,BufEnter,DirChanged * if &filetype != '' | call timer_start(250, 'DiffSign') | endif
 endif
+" }}}
 
+" plugins {{{1
+" try to use comment built-in plugin
+if has("patch-9.1.374")
+  packadd comment
+endif
 if has("patch-9.1.1227")
   packadd hlyank
 endif
 
+" lsp {{{2
 if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/opt/lsp"))
   packadd lsp
 
@@ -457,131 +602,9 @@ if (has('vim9script') ||  v:version > 900) && !empty(globpath("$HOME/.vim", "**/
   augroup END
 
 endif
+" }}}
 
-" packadd vim-fugitive
-" let g:wiki_root = '~/wiki'
-" packadd wiki.vim
-
-if executable('git-jump')
-  command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
-  nn <localleader>dj :Jump diff<CR>
-  nn <localleader>gg :Jump grep<space>
-endif
-if executable('gitui')
-  nn <leader>gt :term ++close gitui<CR>
-endif
-if executable('ruff')
-  au FileType python nn <buffer> <space>cr :cgetexpr systemlist("ruff check --output-format=concise --preview " . expand("%"))<CR>
-endif
-if executable('mypy')
-  au FileType python nn <buffer> <space>cm :cgetexpr systemlist("mypy --show-column-numbers --strict --ignore-missing-imports " . expand("%"))<CR>
-endif
-if executable('ty')
-  au FileType python nn <buffer> <space>ct :cgetexpr systemlist("ty check --no-progress --color=never --output-format=concise " . expand("%"))<CR>
-endif
-
-au FileType rust nn <buffer> <space>rm :term cargo run -r<CR>
-au FileType rust nn <buffer> <space>rt :term cargo test<CR>
-
-" add gitignored files to wildignore
-" function! s:LocalWildignore(id)
-"   let s:root_dir = system('git rev-parse --show-toplevel')
-"   if s:root_dir[0:5] != 'fatal:'
-"     let &l:path = join(systemlist('git ls-tree -d --name-only -r HEAD'), ',')
-"     let &l:wildignore = (empty(&wildignore) ? '' : &wildignore..',') .. escape(join(systemlist('git check-ignore **/.* **/*'), ','), '{}\')
-"   endif
-" endfunc
-
-" autocmd BufReadPost,BufNewFile * if executable('git') | call timer_start(50, 's:LocalWildignore') | endif
-
-" nn <silent> <expr> <space>b ':b ' .. input(range(1, bufnr('$'))->filter(
-"       \ {_, v -> buflisted(v)})->map({_, v -> v .. ' ' .. (bufname(v) != '' ?
-"       \ fnamemodify(bufname(v), ':t') : '[No Name]')})->join("\n") .. "\nChoose
-"       \ buffer: ") .. '<CR>'
-
-if has('patch-9.1.1576')
-  let g:mru_cache = []
-  let g:git_files_cache = []
-  augroup cmdline
-    autocmd!
-    autocmd CmdlineChanged [/\?] call wildtrigger()
-    autocmd CmdlineChanged : if getcmdcompltype() != 'shellcmd' | call wildtrigger() | endif
-    autocmd CmdlineEnter [:/\?] set pumheight=15
-    autocmd CmdlineLeave [:/\?] set pumheight&
-    autocmd CmdwinLeave : let g:mru_cache = [] | let g:git_files_cache = []
-  augroup END
-
-  func! GrepComplete(arglead, cmdline, cursorpos)
-    return a:arglead != '' ? systemlist(&grepprg .. ' ' .. a:arglead) : []
-  endfunc
-
-  func! VisitFile(line)
-    let qfitem = getqflist({'lines': [a:line]}).items[0]
-    if qfitem->has_key('bufnr')
-      let pos = qfitem.vcol > 0 ? 'setcharpos' : 'setpos'
-      exec ':b +call\ ' .. pos ..'(".",\ [0,\ ' .. qfitem.lnum .. ',\ ' .. qfitem.col .. ',\ 0]) ' .. qfitem.bufnr
-      call setbufvar(qfitem.bufnr, '&buflisted', 1)
-    endif
-  endfunc
-
-  " Live grep in command line
-  command! -nargs=+ -complete=customlist,GrepComplete LiveGrep call VisitFile(<q-args>)
-  nn <leader>fg :LiveGrep<space>
-
-  command! -nargs=+ -complete=custom,MruComplete MRU edit <args>
-  nn <leader>fm :MRU<space>
-
-  func! MruComplete(_a, _b, _c)
-    if empty(g:mru_cache)
-      let g:mru_cache =  v:oldfiles->copy()->filter({_, i -> i->fnamemodify(':p')->filereadable()})->map({_, i -> fnamemodify(i, ':~:.')})->join("\n")
-    endif
-    return g:mru_cache
-  endfunc
-
-  command! -nargs=+ -complete=custom,GitFilesComplete GitFiles edit <args>
-  nn <leader>ge :GitFiles<space>
-
-  func! GitFilesComplete(_a, _b, _c)
-    if empty(g:git_files_cache)
-      let g:git_files_cache = system('git ls-files')
-    endif
-    return g:git_files_cache
-  endfunc
-
-  command! -nargs=+ -complete=custom,FindDirsComplete ChDir cd <args>
-  func! FindDirsComplete(_a, _b, _c)
-    return system('find . -type d ! -path "./.*"')
-  endfunc
-
-  if has('patch-9.1.1738')
-    " mapping for navigating cmd history
-    cno <expr> <Up>   wildmenumode() ? "\<C-E>\<Up>"   : "\<Up>"
-    cno <expr> <Down> wildmenumode() ? "\<C-E>\<Down>" : "\<Down>"
-  endif
-endif
-
-if has('patch-9.1.1590')
-  set ac
-  set cpt=o^10,.^5,w^5,b^5,t^5
-endif
-
-" copy to the + register the github url of the current line
-nnoremap <leader>gh :let @+ = system('echo (git url)/blob/(git rev-parse HEAD)/'
-      \ .. bufname())->trim() .. '#L' .. line('.')<CR>
-
-" show current file directory content
-nn <c-b> :let @d = expand("%:h")<CR>:e <c-r>d/*<c-d>
-nn <c-e> :e <c-d>
-
-aug Ft | au!
-  au FileType qf nn <buffer> <Left> :colder<CR>| nn <buffer> <Right> :cnewer<CR>
-  au FileType help,netrw nn <buffer> gq :bd<CR>
-  if has('patch-8.2.5066')
-    au FileType * exe 'setl lcs+=leadmultispace:\⸱' .. repeat('\ ', &sw - 1)
-  endif
-aug END
-
-" update plugins
+" update plugins {{{2
 func! OutCb(ch, msg)
   if a:msg !~ '.*up to date.$' && a:msg !~ '^HEAD' && a:msg !~ '^Removing .*tags'
         \ && a:msg !~ '^Updating files'
@@ -615,4 +638,29 @@ func! TimerHandler(jobs, t)
 endfunc
 
 command -nargs=0 Packup call UpdatePlugins()
-" vim:ts=2:sw=2
+" }}}
+" }}}
+
+" extra shortcuts {{{1
+if executable('git-jump')
+  command! -bar -nargs=* Jump cexpr system('git jump --stdout ' . expand(<q-args>)) | cope
+  nn <localleader>dj :Jump diff<CR>
+  nn <localleader>gg :Jump grep<space>
+endif
+if executable('gitui')
+  nn <leader>gt :term ++close gitui<CR>
+endif
+if executable('ruff')
+  au FileType python nn <buffer> <space>cr :cgetexpr systemlist("ruff check --output-format=concise --preview " . expand("%"))<CR>
+endif
+if executable('mypy')
+  au FileType python nn <buffer> <space>cm :cgetexpr systemlist("mypy --show-column-numbers --strict --ignore-missing-imports " . expand("%"))<CR>
+endif
+if executable('ty')
+  au FileType python nn <buffer> <space>ct :cgetexpr systemlist("ty check --no-progress --color=never --output-format=concise " . expand("%"))<CR>
+endif
+
+au FileType rust nn <buffer> <space>rm :term cargo run -r<CR>
+au FileType rust nn <buffer> <space>rt :term cargo test<CR>
+" }}}
+" vim:ts=2:sw=2:foldmethod=marker
