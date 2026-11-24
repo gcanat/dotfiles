@@ -109,6 +109,8 @@ input "type:keyboard" {
     bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
     # PrintScreen
     bindsym Print exec $HOME/.config/sway/scripts/screenshot.sh
+    # Lock screen
+    bindsym Control+$mod+l exec --no-startup-id $HOME/.config/sway/scripts/lock.sh
 
     # Start a terminal
     bindsym $mod+Return exec $term
